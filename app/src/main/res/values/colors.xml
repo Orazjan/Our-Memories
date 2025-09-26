@@ -2,4 +2,18 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="background_light">#FFF9F9F9</color>
+
+    <color name="text_dark_soft">#FF5C5C5C</color>
+
+    <color name="accent_mint">#FFA2D9CE</color>
+
+    <color name="accent_pink_soft">#FFFFD7E0</color>
+
+    <color name="card_background_pastel">#FFF8EBE1</color>
+    <color name="nav_icon_active">@color/accent_mint</color>
+    <color name="nav_icon_inactive">#FFBDBDBD</color>
+
+
 </resources>

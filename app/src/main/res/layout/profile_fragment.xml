@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/nav_icon_active"
+        android:gravity="center"
+        android:text="V 0.0.1"
+        tools:ignore="MissingConstraints">
+
+
+    </TextView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

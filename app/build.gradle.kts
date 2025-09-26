@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "com.example.ourmemories"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.ourmemories"
-        minSdk = 30
+        minSdk = 28
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
