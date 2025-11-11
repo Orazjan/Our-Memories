@@ -6,17 +6,22 @@ package com.example.ourmemories
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
+
 import com.example.ourmemories.Fragments.CalendarFragment
 import com.example.ourmemories.Fragments.GalleryFragment
 import com.example.ourmemories.Fragments.MainFragment
 import com.example.ourmemories.Fragments.ProfileFragment
-import com.google.android.material.bottomnavigation.BottomNavigationView // Важный импорт
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 /**
  * Основное активити приложения.
  */
 class MainActivity : AppCompatActivity() {
+
+    private val MAIN_TAG = "main_fragment"
+    private val GALLERY_TAG = "gallery_fragment"
+    private val CALENDAR_TAG = "calendar_fragment"
+    private val PROFILE_TAG = "profile_fragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,32 +30,55 @@ class MainActivity : AppCompatActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
         bottomNav.setOnItemSelectedListener { item ->
-            val selectedFragment: Fragment = when (item.itemId) {
-                R.id.nav_home -> MainFragment()
-                R.id.nav_gallery -> GalleryFragment()
-                R.id.nav_calendar -> CalendarFragment()
-                R.id.nav_profile -> ProfileFragment()
+            val selectedTag = when (item.itemId) {
+                R.id.nav_home -> MAIN_TAG
+                R.id.nav_gallery -> GALLERY_TAG
+                R.id.nav_calendar -> CALENDAR_TAG
+                R.id.nav_profile -> PROFILE_TAG
                 else -> return@setOnItemSelectedListener false
             }
 
-            switchFragment(selectedFragment)
-
+            switchFragment(selectedTag)
             true
         }
 
         if (savedInstanceState == null) {
-            switchFragment(MainFragment())
             bottomNav.selectedItemId = R.id.nav_home
         }
     }
 
     /**
-     * Переключатель фрагментов
-     * @param fragment
+     * Переключатель фрагментов по стратегии show/hide.
+     * Сохраняет состояние каждого фрагмента.
+     * @param tag Тег фрагмента, который нужно показать.
      */
-    private fun switchFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, fragment)
-            .commitNow()
-    }
+    private fun switchFragment(tag: String) {
+        val fragmentManager = supportFragmentManager
+        val transaction = fragmentManager.beginTransaction()
 
+        val currentActiveFragment = fragmentManager.primaryNavigationFragment
+        if (currentActiveFragment != null) {
+            transaction.hide(currentActiveFragment)
+        }
+
+        var fragment = fragmentManager.findFragmentByTag(tag)
+
+        if (fragment == null) {
+            fragment = when (tag) {
+                MAIN_TAG -> MainFragment()
+                GALLERY_TAG -> GalleryFragment()
+                CALENDAR_TAG -> CalendarFragment()
+                PROFILE_TAG -> ProfileFragment()
+                else -> MainFragment()
+            }
+
+            transaction.add(R.id.fragment_container, fragment, tag)
+        } else {
+            transaction.show(fragment)
+        }
+
+        transaction.setPrimaryNavigationFragment(fragment)
+        transaction.setReorderingAllowed(true)
+        transaction.commit()
+    }
 }
