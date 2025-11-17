@@ -6,7 +6,7 @@ package com.example.ourmemories
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.ourmemories.Fragments.CalendarFragment
 import com.example.ourmemories.Fragments.GalleryFragment
 import com.example.ourmemories.Fragments.MainFragment
@@ -18,12 +18,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
  */
 class MainActivity : AppCompatActivity() {
 
+
     private val MAIN_TAG = "main_fragment"
     private val GALLERY_TAG = "gallery_fragment"
     private val CALENDAR_TAG = "calendar_fragment"
     private val PROFILE_TAG = "profile_fragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val SplashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
