@@ -16,12 +16,15 @@
 
     <activity
         android:name=".LogAndReg.EnterActivity"
-        android:exported="false" />
+        android:exported="false"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+        />
 
     <activity
         android:name=".MainActivity"
         android:launchMode="singleInstance"
-        android:exported="true">
+        android:exported="true"
+        android:theme="@style/Theme.MaterialComponents.Light.NoActionBar">
 
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />

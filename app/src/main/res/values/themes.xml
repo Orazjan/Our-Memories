@@ -13,5 +13,14 @@
         <item name="postSplashScreenTheme">@style/Theme.OurMemories</item>
     </style>
 
+    <style name="CalendarDay">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
 
 </resources>

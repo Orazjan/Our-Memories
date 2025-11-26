@@ -7,6 +7,7 @@ package com.example.ourmemories
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.Fragment // Важный импорт
 import com.example.ourmemories.Fragments.CalendarFragment
 import com.example.ourmemories.Fragments.GalleryFragment
 import com.example.ourmemories.Fragments.MainFragment
@@ -18,14 +19,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
  */
 class MainActivity : AppCompatActivity() {
 
-
     private val MAIN_TAG = "main_fragment"
     private val GALLERY_TAG = "gallery_fragment"
     private val CALENDAR_TAG = "calendar_fragment"
     private val PROFILE_TAG = "profile_fragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val SplashScreen = installSplashScreen()
+        val splashScreen = installSplashScreen() // Переменная с маленькой буквы
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -50,9 +50,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Переключатель фрагментов по стратегии show/hide.
-     * Сохраняет состояние каждого фрагмента.
-     * @param tag Тег фрагмента, который нужно показать.
+     * ПУБЛИЧНЫЙ метод для открытия второстепенных фрагментов
+     * (например, VersionInfo или Настройки).
+     * Добавляет транзакцию в BackStack, чтобы работала кнопка "Назад".
+     */
+    fun replaceFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null) // Обязательно добавляем в стек, чтобы вернуться назад
+            .commit()
+    }
+
+    /**
+     * Переключатель основных табов (show/hide).
      */
     private fun switchFragment(tag: String) {
         val fragmentManager = supportFragmentManager
