@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
@@ -27,7 +25,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add a New Memory"
+            android:text="@string/add_a_new_memory"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -89,7 +87,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Add Photos &amp; Videos"
+                    android:text="@string/add_photos_videos"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold"/>
@@ -98,7 +96,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Tap here to select from gallery"
+                    android:text="@string/tap_here_to_select_from_gallery"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp"/>
             </LinearLayout>
@@ -106,7 +104,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Title"
+                android:text="@string/title"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
@@ -115,7 +113,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_input_soft"
-                android:hint="Our Anniversary Dinner"
+                android:hint="@string/our_anniversary_dinner"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_secondary"
@@ -124,7 +122,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Description"
+                android:text="@string/description"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
@@ -135,7 +133,7 @@
                 android:minHeight="144dp"
                 android:gravity="top"
                 android:background="@drawable/bg_input_soft"
-                android:hint="A little story behind the moment..."
+                android:hint="@string/a_little_story_behind_the_moment"
                 android:padding="16dp"
                 android:inputType="textMultiLine"
                 android:textColor="@color/text_primary"

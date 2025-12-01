@@ -36,7 +36,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Выберите версию">
+                    android:hint="@string/choose_version">
 
                     <AutoCompleteTextView
                         android:id="@+id/mySpinner"
@@ -62,7 +62,7 @@
                         android:id="@+id/InfoText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="Информация о версии..."
+                        tools:text="@string/information_in_this_version"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>

@@ -1,3 +1,45 @@
 <resources>
-    <string name="app_name">Our Memories</string>
+    <string name="app_name" translatable="false">Our Memories</string>
+    <string name="password">Password</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="welcome_back">Welcome Back</string>
+    <string name="email" translatable="false">Email</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login">Login</string>
+    <string name="don_t_have_an_account">Don\'t have an account?</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="create_your_naccount">Create Your\nAccount</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="log_in">Log In</string>
+    <string name="profile">Profile</string>
+    <string name="days_together">Days Together</string>
+    <string name="shared_albums">Shared Albums</string>
+    <string name="our_favorites">Our Favorites</string>
+    <string name="timeline">Timeline</string>
+    <string name="logout">Logout</string>
+    <string name="last_memories">Last Memories</string>
+    <string name="see_all">See All</string>
+    <string name="gallery">Gallery</string>
+    <string name="no_worries_enter_your_email_below_and_we_ll_send_you_a_link_to_reset_it">No worries! Enter your email below and we\'ll send you a link to reset it.</string>
+    <string name="send_reset_link">Send Reset Link</string>
+    <string name="back_to_log_in">Back to Log In</string>
+    <string name="add_a_new_memory">Add a New Memory</string>
+    <string name="add_photos_videos"><![CDATA[Add Photos & Videos]]></string>
+    <string name="tap_here_to_select_from_gallery">Tap here to select from gallery</string>
+    <string name="title">Title</string>
+    <string name="our_anniversary_dinner">Our Anniversary Dinner</string>
+    <string name="description">Description</string>
+    <string name="a_little_story_behind_the_moment">A little story behind the moment...</string>
+    <string name="calendar">Calendar</string>
+    <string name="memories">Memories</string>
+    <string name="first_date_anniversary">First Date Anniversary</string>
+    <string name="main">Main</string>
+    <string name="choose_version">Choose version</string>
+    <string name="information_in_this_version">Information in this version</string>
+    <string name="save_your_best_moments">Save your best moments</string>
+    <string name="Create_shared_albums">Create shared albums, manage a calendar of events, and share memories with your significant other.</string>
+    <string name="start">Start</string>
+    <string name="next">Next</string>
+    <string name="registr">Signing up</string>
 </resources>

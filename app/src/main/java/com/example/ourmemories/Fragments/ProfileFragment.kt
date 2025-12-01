@@ -30,7 +30,7 @@ class ProfileFragment : Fragment() {
 
         // Убедитесь, что в вашем XML файле (profile_fragment.xml) есть TextView с id "textVersion"
         val version: TextView = view.findViewById(R.id.textVersion)
-        val versionOfApp = "V 0.0.1"
+        val versionOfApp = "V 0.0.2"
         version.text = versionOfApp
 
         version.setOnClickListener {

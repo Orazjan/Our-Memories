@@ -38,7 +38,10 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
     private fun setupVersionData() {
         val descriptions = LinkedHashMap<String, String>()
 
-        descriptions["V 0.0.1"] = "Добавлено: – Все кнопки рабочие\n – Дизайн окончательный\n – Окно для регистрации и входа сделаны"
+        descriptions["V 0.0.2"] =
+            "Добавлено:\n– Языки русский и английский\n– Вход через email\n– Регистрация через email\n– Восстановление пароля\n– Экран приветствия\n– Настройка и запонение профиля"
+        descriptions["V 0.0.1"] =
+            "Добавлено: \n– Все кнопки рабочие\n– Дизайн окончательный\n– Окно для регистрации и входа сделаны"
 
         versionDescriptions = descriptions
         versionNames = ArrayList(descriptions.keys)
@@ -46,9 +49,7 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
 
     private fun setupSpinner() {
         val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            versionNames
+            requireContext(), android.R.layout.simple_dropdown_item_1line, versionNames
         )
         versionSpinner.setAdapter(adapter)
     }

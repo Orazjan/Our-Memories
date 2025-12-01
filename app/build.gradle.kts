@@ -22,8 +22,7 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -37,6 +36,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.firebase.storage)
     implementation(libs.material.calendarview)
     implementation(libs.androidx.core.splashscreen)
     implementation(platform(libs.firebase.bom))

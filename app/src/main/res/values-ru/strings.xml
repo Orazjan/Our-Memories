@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Our Memories</string>
+    <string name="password">Пароль</string>
+    <string name="enter_your_email">Введите Email</string>
+    <string name="welcome_back">Добро пожаловать</string>
+    <string name="email">Email</string>
+    <string name="forgot_password">Забыли пароль?</string>
+    <string name="login">Вход</string>
+    <string name="don_t_have_an_account">Нет аккаунта?</string>
+    <string name="sign_up">Зарегестрироваться</string>
+    <string name="enter_your_password">Введите пароль</string>
+    <string name="create_your_naccount">СОЗДАЙ СВОЙ\nАККАУНТ</string>
+    <string name="already_have_an_account">Уже есть аккаунт?</string>
+    <string name="log_in">Войти</string>
+    <string name="profile">Профиль</string>
+    <string name="days_together">Дней Вместе</string>
+    <string name="shared_albums">Наши альбомы</string>
+    <string name="our_favorites">Нам Нравится</string>
+    <string name="timeline">За всё время</string>
+    <string name="logout">Выйти из системы</string>
+    <string name="last_memories">Последнее</string>
+    <string name="see_all">Посмотреть всё</string>
+    <string name="gallery">Галерея</string>
+    <string name="no_worries_enter_your_email_below_and_we_ll_send_you_a_link_to_reset_it">Не переживай! Мы отправим ссылку для восстановления пароля</string>
+    <string name="send_reset_link">Отправить ссылку</string>
+    <string name="back_to_log_in">Вернуться на страницу входа</string>
+    <string name="add_a_new_memory">Добавить Новое Воспоминание</string>
+    <string name="add_photos_videos">Добавить фото и видео</string>
+    <string name="tap_here_to_select_from_gallery">Нажми сюда для добавления из галереи</string>
+    <string name="title">Название</string>
+    <string name="our_anniversary_dinner">Наш юбелейный ужин</string>
+    <string name="description">Описание</string>
+    <string name="a_little_story_behind_the_moment">Небольшая история об этом</string>
+    <string name="calendar">Календарь</string>
+    <string name="memories">Воспоминания</string>
+    <string name="first_date_anniversary">Первое свидание</string>
+    <string name="main">Главная</string>
+    <string name="choose_version">Выберите версию</string>
+    <string name="information_in_this_version">Информация о версии</string>
+    <string name="save_your_best_moments">Сохраните ваши \n лучшие моменты</string>
+    <string name="Create_shared_albums">Создавайте общие альбомы, ведите календарь событий и делитесь воспоминаниями со своей половинкой</string>
+    <string name="start">Начать</string>
+    <string name="next">Далее</string>
+    <string name="registr">Регистрация</string>
+</resources>

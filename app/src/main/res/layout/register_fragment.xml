@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
@@ -12,21 +10,22 @@
         android:id="@+id/btnBack"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:padding="12dp"
-        android:layout_marginTop="8dp"
         android:layout_marginStart="-12dp"
+        android:layout_marginTop="8dp"
+        android:padding="12dp"
         android:src="@android:drawable/ic_menu_revert"
-        app:tint="@color/text_primary"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/text_primary" />
+
     <TextView
         android:id="@+id/tvAppTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="CoupleApp"
+        android:fontFamily="sans-serif-bold"
+        android:text="@string/sign_up"
         android:textColor="@color/text_primary"
         android:textSize="18sp"
-        android:fontFamily="sans-serif-bold"
         app:layout_constraintBottom_toBottomOf="@id/btnBack"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,28 +36,28 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="Create Your\nAccount"
-        android:textColor="@color/text_primary"
-        android:textSize="32sp"
         android:fontFamily="sans-serif-black"
         android:lineSpacingExtra="4dp"
+        android:text="@string/create_your_naccount"
+        android:textColor="@color/text_primary"
+        android:textSize="32sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnBack" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_marginTop="32dp"
+        android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@id/tvHeadline">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Email Address"
+            android:layout_marginBottom="8dp"
+            android:text="@string/email"
             android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -69,14 +68,15 @@
             android:paddingHorizontal="16dp">
 
             <EditText
+                android:id="@+id/loginTextView"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@null"
-                android:hint="Enter your email"
+                android:hint="@string/enter_your_email"
+                android:inputType="textEmailAddress"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_secondary"
-                android:inputType="textEmailAddress"
                 android:textSize="16sp" />
 
             <ImageView
@@ -89,11 +89,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Password"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
             android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="8dp"
+            android:text="@string/password"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -104,14 +104,15 @@
             android:paddingHorizontal="16dp">
 
             <EditText
+                android:id="@+id/passwordTextView"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@null"
-                android:hint="Enter your password"
+                android:hint="@string/enter_your_password"
+                android:inputType="textPassword"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_secondary"
-                android:inputType="textPassword"
                 android:textSize="16sp" />
 
             <ImageView
@@ -121,60 +122,14 @@
                 app:tint="@color/text_secondary" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Partner's Code"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"/>
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginStart="6dp"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_secondary"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_input_field"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
-
-            <EditText
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@null"
-                android:hint="Enter code"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_secondary"
-                android:inputType="textCapCharacters"
-                android:textSize="16sp" />
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_dialog_info"
-                app:tint="@color/text_secondary" />
-        </LinearLayout>
-
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
         android:layout_marginBottom="32dp"
+        android:gravity="center"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <androidx.appcompat.widget.AppCompatButton
@@ -183,11 +138,12 @@
             android:layout_height="56dp"
             android:background="@drawable/bg_input_field"
             android:backgroundTint="@color/baby_pink"
-            android:text="Register"
+            android:text="@string/sign_up"
             android:textAllCaps="false"
             android:textColor="#5D3A40"
-            android:textStyle="bold"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -197,16 +153,16 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Already have an account? "
-                android:textColor="@color/text_secondary"/>
+                android:text="@string/already_have_an_account"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/tv_login"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Log In"
-                android:textStyle="bold"
-                android:textColor="@color/primary_lavender"/>
+                android:text="@string/log_in"
+                android:textColor="@color/primary_lavender"
+                android:textStyle="bold" />
         </LinearLayout>
 
     </LinearLayout>
