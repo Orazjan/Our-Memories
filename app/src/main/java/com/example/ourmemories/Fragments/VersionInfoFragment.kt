@@ -38,6 +38,8 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
     private fun setupVersionData() {
         val descriptions = LinkedHashMap<String, String>()
 
+        descriptions["V 0.0.3"] =
+            "Добавлено:\n– Экран профиля\n– Настроен автовход"
         descriptions["V 0.0.2"] =
             "Добавлено:\n– Языки русский и английский\n– Вход через email\n– Регистрация через email\n– Восстановление пароля\n– Экран приветствия\n– Настройка и запонение профиля"
         descriptions["V 0.0.1"] =

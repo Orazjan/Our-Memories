@@ -25,7 +25,6 @@ class MainActivity : AppCompatActivity() {
     private val PROFILE_TAG = "profile_fragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen() // Переменная с маленькой буквы
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 

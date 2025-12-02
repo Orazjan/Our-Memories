@@ -30,7 +30,7 @@
     <string name="title">Title</string>
     <string name="our_anniversary_dinner">Our Anniversary Dinner</string>
     <string name="description">Description</string>
-    <string name="a_little_story_behind_the_moment">A little story behind the moment...</string>
+    <string name="your_partner_password">Your partner password:</string>
     <string name="calendar">Calendar</string>
     <string name="memories">Memories</string>
     <string name="first_date_anniversary">First Date Anniversary</string>
@@ -42,4 +42,13 @@
     <string name="start">Start</string>
     <string name="next">Next</string>
     <string name="registr">Signing up</string>
+    <string name="choose_your_date_of_birthday">Choose your date of birthday</string>
+    <string name="select">Select</string>
+    <string name="a_little_story_behind_the_moment">A little story behind the moment</string>
+    <string name="invite_a_partner">Invite a partner</string>
+    <string name="connecting_accaunt">Connecting accaunt</string>
+    <string name="enter_your_partner_s_8_digit_code_it_s_located_in_their_profile">Enter your partner\'s 8-digit code (it\'s located in their profile).</string>
+    <string name="for_example_12345678">For example: 12345678</string>
+    <string name="connect">Connect</string>
+    <string name="invite">Invite</string>
 </resources>

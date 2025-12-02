@@ -31,7 +31,7 @@
     <string name="title">Название</string>
     <string name="our_anniversary_dinner">Наш юбелейный ужин</string>
     <string name="description">Описание</string>
-    <string name="a_little_story_behind_the_moment">Небольшая история об этом</string>
+    <string name="your_partner_password">Ваш пароль партнёра:</string>
     <string name="calendar">Календарь</string>
     <string name="memories">Воспоминания</string>
     <string name="first_date_anniversary">Первое свидание</string>
@@ -43,4 +43,13 @@
     <string name="start">Начать</string>
     <string name="next">Далее</string>
     <string name="registr">Регистрация</string>
+    <string name="choose_your_date_of_birthday">Выберите дату рождения</string>
+    <string name="select">Выбрать</string>
+    <string name="a_little_story_behind_the_moment">Небольшая история про этот день</string>
+    <string name="invite_a_partner">Пригласить партнёра</string>
+    <string name="connecting_accaunt">Соединение аккаунтов</string>
+    <string name="enter_your_partner_s_8_digit_code_it_s_located_in_their_profile">Введите 8-значный код вашего партнера (он находится в его профиле).</string>
+    <string name="for_example_12345678">Например: 12345678</string>
+    <string name="connect">Соеденить</string>
+    <string name="invite">Пригласить</string>
 </resources>

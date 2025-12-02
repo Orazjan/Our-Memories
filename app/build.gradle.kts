@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
 }
+val version = "0.0.3"
 
 android {
     namespace = "com.example.ourmemories"
@@ -13,7 +14,7 @@ android {
         minSdk = 28
         targetSdk = 35
         versionCode = 1
-        versionName = "0.1"
+        versionName = version
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,6 +37,8 @@ android {
 }
 
 dependencies {
+
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.firebase.storage)
     implementation(libs.material.calendarview)
@@ -49,6 +52,8 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.firebase.appcheck.playintegrity)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
