@@ -4,8 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
@@ -18,7 +22,10 @@ import com.example.ourmemories.LogAndReg.SetupProfileFragment
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -28,63 +35,80 @@ class EnterActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var prefs: SharedPreferences
 
-    // Флаг, чтобы держать Splash Screen пока мы проверяем базу
+    // Флаг, чтобы держать Splash Screen
     private var isChecking = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // Держим заставку, пока isChecking == true
+
         splashScreen.setKeepOnScreenCondition { isChecking }
+        hideSystemUI()
+
 
         setContentView(R.layout.activity_enter)
+
+        try {
+            val settings = FirebaseFirestoreSettings.Builder()
+                .setLocalCacheSettings(PersistentCacheSettings.newBuilder().build()).build()
+            Firebase.firestore.firestoreSettings = settings
+        } catch (e: Exception) {
+        }
 
         auth = Firebase.auth
         prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
 
-        // Запускаем проверку в фоне
         lifecycleScope.launch {
+            delay(1000)
             checkUserAndNavigate()
+        }
+
+
+    }
+
+    private fun hideSystemUI() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 
     private suspend fun checkUserAndNavigate() {
         val user = auth.currentUser
 
-        // Если пользователя нет (вышел или не входил) -> показываем Вход
+        Log.d("EnterActivity", "Проверка пользователя: ${user?.uid}")
+
         if (user == null) {
-            isChecking = false
+            Log.d("EnterActivity", "Пользователь не найден -> Экран входа/онбординга")
             showLoginOrOnboarding()
+            isChecking = false
             return
         }
 
         try {
-            // Даем на проверку базы 2.5 секунды
             withTimeout(2500L) {
-                // Обновляем данные пользователя (необязательно, но полезно для токена)
                 try {
                     user.reload().await()
                 } catch (e: Exception) {
                 }
 
-                // Проверяем, создан ли профиль в базе данных
                 val db = Firebase.firestore
                 val doc = db.collection("users").document(user.uid).get().await()
 
                 if (doc.exists()) {
-                    // Профиль есть -> Идем в приложение
+                    Log.d("EnterActivity", "Профиль найден -> Главный экран")
                     navigateToMainApp()
                 } else {
-                    // Профиля нет (зарегистрировался, но закрыл приложение) -> Идем заполнять
+                    Log.d("EnterActivity", "Профиль не заполнен -> SetupProfile")
                     isChecking = false
                     showProfileSetup()
                 }
             }
         } catch (e: Exception) {
-            // === ЕСЛИ ВРЕМЯ ИСТЕКЛО ИЛИ НЕТ ИНТЕРНЕТА ===
-            // Так как пользователь залогинен (user != null), мы доверяем ему
-            // и пускаем в приложение в оффлайн-режиме.
+            Log.e("EnterActivity", "Ошибка или таймаут: ${e.message}")
             navigateToMainApp()
         }
     }
@@ -99,61 +123,53 @@ class EnterActivity : AppCompatActivity() {
     }
 
     private fun loadFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .commit()
+        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, fragment)
+            .commitAllowingStateLoss()
     }
 
     fun showOnboardingStep2() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-            .replace(R.id.fragment_container, OnboardingStep2Fragment())
-            .addToBackStack(null)
+            .replace(R.id.fragment_container, OnboardingStep2Fragment()).addToBackStack(null)
             .commit()
     }
 
     fun finishOnboarding() {
-        prefs.edit().putBoolean("isFirstRun", false).apply()
         showRegistration()
     }
 
     fun showRegistration() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-            .replace(R.id.fragment_container, RegFragment())
-            .addToBackStack(null)
-            .commit()
+            .replace(R.id.fragment_container, RegFragment()).addToBackStack(null).commit()
     }
 
     fun showLogin() {
         supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-            .replace(R.id.fragment_container, LoginFragment())
-            .commit()
+            .replace(R.id.fragment_container, LoginFragment()).commit()
     }
 
     fun showProfileSetup() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-            .replace(R.id.fragment_container, SetupProfileFragment())
-            .commit()
+            .replace(R.id.fragment_container, SetupProfileFragment()).commit()
     }
 
     fun showForgotPassword() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-            .replace(R.id.fragment_container, ForgotPasswordFragment())
-            .addToBackStack(null)
+            .replace(R.id.fragment_container, ForgotPasswordFragment()).addToBackStack(null)
             .commit()
     }
 
     fun onAuthSuccess() {
-        // При успешном входе из Login/Reg
+        prefs.edit().putBoolean("isFirstRun", false).apply()
+
         lifecycleScope.launch {
             val user = auth.currentUser
             if (user != null) {
-                // Проверяем базу без таймаута (пользователь уже видит интерфейс)
                 val db = Firebase.firestore
                 val doc = try {
                     db.collection("users").document(user.uid).get().await()

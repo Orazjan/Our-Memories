@@ -51,4 +51,18 @@
     <string name="for_example_12345678">For example: 12345678</string>
     <string name="connect">Connect</string>
     <string name="invite">Invite</string>
+    <string name="added_data">Date is added</string>
+    <string name="Searching">Searching…</string>
+    <string name="Code_not_found">Code is not found</string>
+    <string name="cant_add_yourself">Cannot add yourself</string>
+    <string name="connected">Connected</string>
+    <string name="error">Error</string>
+    <string name="enter_eight_digits">Enter 8 digits</string>
+    <string name="code_copied">Code copied</string>
+    <string name="disconnect_partner_title">Disconnect partner title</string>
+    <string name="disconnect_partner_message">Disconnect partner message</string>
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="partner_disconnected">Partner disconnected</string>
+    <string name="user_default_name">User name</string>
 </resources>

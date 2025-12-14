@@ -42,7 +42,7 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
     private val storage = Firebase.storage
     private var selectedImageUri: Uri? = null
 
-    // Храним задачу загрузки, чтобы дождаться её завершения при сохранении
+    // Храним процесс загрузки
     private var uploadTask: Deferred<String?>? = null
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -53,8 +53,7 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             avatarView?.scaleType = ImageView.ScaleType.CENTER_CROP
             avatarView?.setPadding(0, 0, 0, 0)
 
-            // === ОПТИМИЗАЦИЯ: Начинаем загрузку сразу после выбора! ===
-            // Пока пользователь вводит имя, фото уже летит на сервер
+            // СРАЗУ НАЧИНАЕМ СЖАТИЕ И ЗАГРУЗКУ
             uploadTask = lifecycleScope.async {
                 uploadImageToStorage(uri)
             }
@@ -81,7 +80,6 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             val name = etName.text.toString().trim()
             val date = etDate.text.toString().trim()
 
-            // Проверка на заполнение (фото обязательно)
             if (name.isEmpty() || date.isEmpty() || selectedImageUri == null) {
                 Toast.makeText(
                     context, "Пожалуйста, выберите фото и заполните все поля", Toast.LENGTH_SHORT
@@ -91,7 +89,7 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
 
             lifecycleScope.launch {
                 btnSave.isEnabled = false
-                btnSave.text = "Сохранение..." // Текст изменился, так как загрузка могла уже пройти
+                btnSave.text = "Сохранение..."
 
                 try {
                     saveProfile(name, date)
@@ -104,21 +102,98 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         }
     }
 
-    // Вспомогательная функция для загрузки в фоне
     private suspend fun uploadImageToStorage(uri: Uri): String? {
         val user = auth.currentUser ?: return null
         return try {
-            val compressedData = compressImage(uri)
-            // Увеличиваем таймаут для плохой сети (через конфигурацию Storage, если нужно)
-            // но стандартные настройки обычно справляются, если файл маленький.
-            val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
+            // 1. Сжимаем до маленького размера (например, 800x800)
+            val compressedData = compressAndResizeImage(uri)
 
+            // 2. Загружаем
+            val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
             storageRef.putBytes(compressedData).await()
+
+            // 3. Получаем ссылку
             storageRef.downloadUrl.await().toString()
         } catch (e: Exception) {
-            e.printStackTrace() // Логируем ошибку, но не крашим приложение здесь
+            e.printStackTrace()
             null
         }
+    }
+
+    private suspend fun saveProfile(name: String, date: String) {
+        val user = auth.currentUser ?: throw Exception("Пользователь не найден")
+        val uid = user.uid
+
+        // Ждем результат загрузки
+        var photoUrl = uploadTask?.await()
+
+        // Если фоновая загрузка сорвалась, пробуем еще раз синхронно
+        if (photoUrl == null && selectedImageUri != null) {
+            photoUrl = uploadImageToStorage(selectedImageUri!!)
+        }
+
+        // Обновляем Auth
+        val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(name)
+        if (photoUrl != null) {
+            profileUpdates.setPhotoUri(Uri.parse(photoUrl))
+        }
+        user.updateProfile(profileUpdates.build()).await()
+
+        val partnerCode = generatePartnerCode()
+
+        // Обновляем Firestore
+        val userData = hashMapOf(
+            "name" to name,
+            "birthDate" to date,
+            "uid" to uid,
+            "email" to user.email,
+            "photoUrl" to photoUrl,
+            "partnerCode" to partnerCode,
+            "partnerUid" to null
+        )
+        db.collection("users").document(uid).set(userData).await()
+
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, "Профиль готов!", Toast.LENGTH_SHORT).show()
+            (requireActivity() as? EnterActivity)?.onAuthSuccess()
+        }
+    }
+
+    private suspend fun compressAndResizeImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
+        // 1. Получаем оригинал Bitmap
+        val originalBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
+                requireContext().contentResolver, uri
+            )
+        }
+
+        // 2. Уменьшаем размер (Scale)
+        // Если картинка больше 800px, уменьшаем её, сохраняя пропорции
+        val maxDimension = 800
+        val scale = Math.min(
+            maxDimension.toDouble() / originalBitmap.width,
+            maxDimension.toDouble() / originalBitmap.height
+        )
+
+        val scaledBitmap = if (scale < 1.0) {
+            Bitmap.createScaledBitmap(
+                originalBitmap,
+                (originalBitmap.width * scale).toInt(),
+                (originalBitmap.height * scale).toInt(),
+                true
+            )
+        } else {
+            originalBitmap // Если картинка и так маленькая, не трогаем
+        }
+
+        // 3. Сжимаем в JPEG (Compress)
+        val outputStream = ByteArrayOutputStream()
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+
+        outputStream.toByteArray()
     }
 
     private fun showWheelDatePicker(editText: EditText) {
@@ -155,86 +230,27 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             cal.set(Calendar.YEAR, npYear.value)
             cal.set(Calendar.MONTH, npMonth.value)
             cal.set(Calendar.DAY_OF_MONTH, 1)
-
             val maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
             npDay.maxValue = maxDay
         }
 
         npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
         npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-
         updateDaysInMonth()
 
         btnConfirm.setOnClickListener {
-            val selectedDate = String.format(
-                "%02d.%02d.%d", npDay.value, npMonth.value + 1, npYear.value
-            )
+            val selectedDate =
+                String.format("%02d.%02d.%d", npDay.value, npMonth.value + 1, npYear.value)
             editText.setText(selectedDate)
             dialog.dismiss()
         }
-
         dialog.show()
     }
 
+    /**
+     *
+     */
     private fun generatePartnerCode(): String {
         return Random.nextInt(10000000, 99999999).toString()
-    }
-
-    private suspend fun saveProfile(name: String, date: String) {
-        val user = auth.currentUser ?: throw Exception("Пользователь не найден")
-        val uid = user.uid
-
-        // Ждем завершения фоновой загрузки.
-        // Если загрузка уже завершилась - результат вернется мгновенно.
-        // Если была ошибка в фоне - uploadTask вернет null, и мы попробуем загрузить еще раз или сохраним без фото.
-        var photoUrl = uploadTask?.await()
-
-        // Если фоновая загрузка не удалась (например, начали грузить, а интернет пропал),
-        // можно попробовать еще раз сейчас (синхронно), если очень нужно,
-        // или просто продолжить без фото.
-        if (photoUrl == null && selectedImageUri != null) {
-            // Попытка 2 (на случай сбоя первой)
-            photoUrl = uploadImageToStorage(selectedImageUri!!)
-        }
-
-        val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(name)
-        if (photoUrl != null) {
-            profileUpdates.photoUri = Uri.parse(photoUrl)
-        }
-        user.updateProfile(profileUpdates.build()).await()
-
-        val partnerCode = generatePartnerCode()
-
-        val userData = hashMapOf(
-            "name" to name,
-            "birthDate" to date,
-            "uid" to uid,
-            "email" to user.email,
-            "photoUrl" to photoUrl,
-            "partnerCode" to partnerCode,
-            "partnerUid" to null
-        )
-        db.collection("users").document(uid).set(userData).await()
-
-        withContext(Dispatchers.Main) {
-            Toast.makeText(context, "Профиль готов!", Toast.LENGTH_SHORT).show()
-            (requireActivity() as? EnterActivity)?.onAuthSuccess()
-        }
-    }
-
-    private suspend fun compressImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
-                requireContext().contentResolver,
-                uri
-            )
-        }
-
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
-        outputStream.toByteArray()
     }
 }

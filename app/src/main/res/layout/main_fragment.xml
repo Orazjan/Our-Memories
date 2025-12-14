@@ -27,24 +27,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/btnSettings"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="8dp"
-                android:src="@android:drawable/ic_menu_preferences"
-                app:tint="@color/text_primary" />
-        </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -54,7 +36,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar">
 
-        <!-- === 2. Scrollable Content (Только ОДИН ScrollView) === -->
+        <!-- === 2. Scrollable Content === -->
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -87,7 +69,7 @@
                             android:id="@+id/tvDaysCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/pacificoregular"
+                            android:fontFamily="@font/tiktokshrift"
                             android:text="0"
                             android:textColor="@color/heart_red"
                             android:textSize="48sp"
@@ -99,15 +81,15 @@
                             android:id="@+id/tvDaysLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="@font/tiktokshrift"
                             android:text="@string/days_together"
-                            android:fontFamily="@font/pacificoregular"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/tvDaysCount" />
 
-                        <!-- Блок с аватарками и именами -->
+                        <!-- Блок с аватарками -->
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -120,6 +102,7 @@
 
                             <!-- ЛЕВЫЙ ПОЛЬЗОВАТЕЛЬ (Я) -->
                             <LinearLayout
+                                android:id="@+id/layoutMe"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:gravity="center_horizontal"
@@ -146,7 +129,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
                                     android:ellipsize="end"
-                                    android:fontFamily="@font/pacificoregular"
+                                    android:fontFamily="@font/tiktokshrift"
                                     android:maxWidth="90dp"
                                     android:maxLines="1"
                                     android:text="Я"
@@ -155,7 +138,7 @@
                                     android:textStyle="bold" />
                             </LinearLayout>
 
-                            <!-- Сердечко между фото -->
+                            <!-- Сердечко -->
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -167,7 +150,7 @@
                                 android:textSize="40sp"
                                 app:tint="@color/heart_red" />
 
-                            <!-- ПРАВЫЙ ПОЛЬЗОВАТЕЛЬ (ПАРТНЕР - Кликабельный) -->
+                            <!-- ПРАВЫЙ ПОЛЬЗОВАТЕЛЬ (ПАРТНЕР) -->
                             <LinearLayout
                                 android:id="@+id/layoutPartner"
                                 android:layout_width="wrap_content"
@@ -200,22 +183,19 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
                                     android:ellipsize="end"
-                                    android:fontFamily="@font/pacificoregular"
+                                    android:fontFamily="@font/tiktokshrift"
                                     android:maxWidth="90dp"
                                     android:maxLines="1"
                                     android:text="@string/invite"
-
                                     android:textColor="@color/text_primary"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
-
                         </LinearLayout>
-
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- === Last Memories Section === -->
+                <!-- === ЗАГОЛОВОК "ПОСЛЕДНИЕ ВОСПОМИНАНИЯ" === -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -234,72 +214,58 @@
                         android:textSize="18sp" />
 
                     <TextView
+                        android:id="@+id/tvSeeAllMemories"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/see_all"
                         android:textColor="@color/primary_lavender"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:visibility="gone" /> <!-- Скрыто если пусто -->
                 </LinearLayout>
 
-                <HorizontalScrollView
+                <!-- === 1. СОСТОЯНИЕ: НЕТ ВОСПОМИНАНИЙ (Empty State) === -->
+                <LinearLayout
+                    android:id="@+id/layoutEmptyMemories"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="32dp"
+                    android:visibility="visible"> <!-- Виден по умолчанию -->
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@android:drawable/ic_menu_gallery"
+                        app:tint="#E0E0E0" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:text="Пока у вас нет общих воспоминаний"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <!-- === 2. СОСТОЯНИЕ: ЕСТЬ ВОСПОМИНАНИЯ (Динамическая лента) === -->
+                <!-- Заменили HorizontalScrollView на RecyclerView для динамических данных -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecentMemories"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:clipToPadding="false"
-                    android:paddingHorizontal="16dp"
-                    android:scrollbars="none">
+                    android:paddingHorizontal="12dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    tools:listitem="@layout/item_memory" />
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <!-- Пример карточки воспоминания -->
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="120dp"
-                            android:layout_height="160dp"
-                            android:layout_marginEnd="12dp"
-                            app:cardCornerRadius="16dp"
-                            app:cardElevation="2dp">
-
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                tools:src="@tools:sample/backgrounds/scenic" />
-                        </androidx.cardview.widget.CardView>
-
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="120dp"
-                            android:layout_height="160dp"
-                            android:layout_marginEnd="12dp"
-                            app:cardCornerRadius="16dp"
-                            app:cardElevation="2dp">
-
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                tools:src="@tools:sample/cities" />
-                        </androidx.cardview.widget.CardView>
-
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="120dp"
-                            android:layout_height="160dp"
-                            android:layout_marginEnd="12dp"
-                            app:cardCornerRadius="16dp"
-                            app:cardElevation="2dp">
-
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                tools:src="@tools:sample/cities" />
-                        </androidx.cardview.widget.CardView>
-
-                    </LinearLayout>
-                </HorizontalScrollView>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 

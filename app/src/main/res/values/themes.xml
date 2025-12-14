@@ -22,5 +22,11 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="CalenderViewCustom" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/heart_red</item> <!-- Цвет выделения дня -->
+        <item name="colorPrimary">@color/heart_red</item> <!-- Цвет текущей даты -->
+        <item name="android:textColorPrimary">@color/text_primary</item> <!-- Цвет цифр -->
+    </style>
+
 
 </resources>

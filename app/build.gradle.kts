@@ -2,8 +2,11 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
+    id("org.jetbrains.kotlin.kapt")
+
 }
-val version = "0.0.3"
+
+val version = "0.3"
 
 android {
     namespace = "com.example.ourmemories"
@@ -15,7 +18,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = version
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -23,10 +25,12 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -37,23 +41,28 @@ android {
 }
 
 dependencies {
+    implementation(libs.glide)
+    kapt(libs.glideCompiler)
+    implementation(libs.photoview)
 
-    implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.firebase.storage)
     implementation(libs.material.calendarview)
     implementation(libs.androidx.core.splashscreen)
+
     implementation(platform(libs.firebase.bom))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.swiperefreshlayout)
-    implementation(libs.firebase.appcheck.playintegrity)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

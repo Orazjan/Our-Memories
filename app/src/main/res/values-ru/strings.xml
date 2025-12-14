@@ -52,4 +52,13 @@
     <string name="for_example_12345678">Например: 12345678</string>
     <string name="connect">Соеденить</string>
     <string name="invite">Пригласить</string>
+    <string name="added_data">Дата добавлена</string>
+    <string name="Searching">Поиск...</string>
+    <string name="Code_not_found">Код не найден</string>
+    <string name="cant_add_yourself">Нельзя добавить самого себя</string>
+    <string name="connected">Соединено</string>
+    <string name="error">Ошибка</string>
+    <string name="enter_eight_digits">Введите 8 цифр</string>
+
+
 </resources>

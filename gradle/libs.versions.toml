@@ -15,11 +15,16 @@ constraintlayout = "2.2.1"
 firebaseAuth = "24.0.1"
 firebaseFirestore = "26.0.2"
 materialCalendarview = "2.0.1"
+photoview = "2.3.0"
 recyclerview = "1.4.0"
 swiperefreshlayout = "1.1.0"
-firebaseAppcheckPlayintegrity = "19.0.1"
+glide = "4.16.0"
+glideCompiler = "4.16.0"
+
 
 [libraries]
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+glideCompiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
@@ -37,7 +42,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 material-calendarview = { module = "com.github.prolificinteractive:material-calendarview", version.ref = "materialCalendarview" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
-firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity", version.ref = "firebaseAppcheckPlayintegrity" }
+photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
