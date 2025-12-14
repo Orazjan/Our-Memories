@@ -1,71 +1,56 @@
 package com.example.ourmemories.Fragments
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.MediaStore
 import android.view.View
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
+import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
 import com.example.ourmemories.EnterActivity
-import com.example.ourmemories.LogAndReg.SetupProfileFragment
-import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
+import com.example.ourmemories.Utils.GlideHelper
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 
 class ProfileFragment : Fragment(R.layout.profile_fragment) {
-
+    val versionOfApp = "V 0.1.4"
     private var clickCount = 0
     private val RESET_CLICK_COUNT_DELAY = 500L
 
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
-    private val storage = Firebase.storage
 
+    // Код партнера для шеринга
     private var myPartnerCode: String? = null
-
-    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            updateProfilePhoto(uri)
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Инициализация основных Views
+        // Инициализация Views
         val username = view.findViewById<TextView>(R.id.userName)
         val userPhoto = view.findViewById<ImageView>(R.id.userPhoto)
         val tvPartnerCode = view.findViewById<TextView>(R.id.passwordForPartner)
         val textVersion = view.findViewById<TextView>(R.id.textVersion)
 
-        // Кнопки меню (Находим по ID include)
+        // Кнопки меню
         val cardEdit = view.findViewById<View>(R.id.cardEditProfile)
         val cardShare = view.findViewById<View>(R.id.cardShareCode)
         val cardTheme = view.findViewById<View>(R.id.cardTheme)
@@ -79,7 +64,10 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         setupMenuCard(cardShare, "Поделиться кодом", android.R.drawable.ic_menu_share, "#FAD1E6")
         setupMenuCard(cardTheme, "Тема приложения", android.R.drawable.ic_menu_view, "#EEEEEE")
         setupMenuCard(
-            cardContact, "Написать разработчику", android.R.drawable.ic_dialog_email, "#C8E6C9"
+            cardContact,
+            "Написать разработчику",
+            android.R.drawable.ic_dialog_email,
+            "#C8E6C9"
         )
         setupMenuCard(
             cardPrivacy,
@@ -88,9 +76,13 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
             "#EEEEEE"
         )
         setupMenuCard(
-            cardLogout, "Выйти из аккаунта", android.R.drawable.ic_lock_power_off, "#F3F4F6"
+            cardLogout,
+            "Выйти из аккаунта",
+            android.R.drawable.ic_lock_power_off,
+            "#F3F4F6"
         )
 
+        // Красная кнопка удаления
         setupMenuCard(cardDelete, "Удалить аккаунт", android.R.drawable.ic_delete, "#FFCDD2")
         cardDelete.findViewById<TextView>(R.id.tvTitle).setTextColor(Color.RED)
 
@@ -99,21 +91,24 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val user = auth.currentUser
         if (user != null) {
             username.text = user.displayName ?: "Пользователь"
-            loadUserPhoto(user.photoUrl, userPhoto)
+            GlideHelper.loadAvatar(userPhoto, user.photoUrl?.toString(), "ProfileAvatar")
             loadPartnerCode(user.uid, tvPartnerCode)
 
-            userPhoto.setOnClickListener { pickImage.launch("image/*") }
-            username.setOnClickListener { showChangeNameDialog(username) }
+            // Клик по аватарке или имени открывает экран редактирования
+            userPhoto.setOnClickListener { openEditProfile() }
+            username.setOnClickListener { openEditProfile() }
+
+            // Копирование кода по клику на текст
+            tvPartnerCode.setOnClickListener {
+                myPartnerCode?.let { code -> copyToClipboard(code) }
+            }
         }
 
-        // 1. Редактировать
+        // === ОБРАБОТЧИКИ НАЖАТИЙ МЕНЮ ===
+
+        // 1. Редактировать профиль -> Открываем EditProfileFragment
         cardEdit.setOnClickListener {
-            parentFragmentManager.beginTransaction().setCustomAnimations(
-                android.R.anim.slide_in_left,
-                android.R.anim.slide_out_right,
-                android.R.anim.slide_in_left,
-                android.R.anim.slide_out_right
-            ).replace(R.id.fragment_container, SetupProfileFragment()).addToBackStack(null).commit()
+            openEditProfile()
         }
 
         // 2. Поделиться
@@ -135,7 +130,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
                 data = Uri.parse("mailto:")
                 putExtra(Intent.EXTRA_EMAIL, arrayOf("support@ourmemories.com"))
-                putExtra(Intent.EXTRA_SUBJECT, "Отзыв о приложении OurMemories")
+                putExtra(Intent.EXTRA_SUBJECT, "Отзыв о приложении")
             }
             try {
                 startActivity(intent)
@@ -146,7 +141,10 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
         // 5. Политика
         cardPrivacy.setOnClickListener {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://google.com"))
+            val browserIntent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://sites.google.com/view/ourmemories-privacy")
+            ) // Ваша ссылка
             startActivity(browserIntent)
         }
 
@@ -164,50 +162,62 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         }
 
         // Пасхалка с версией
-        val versionOfApp = "V 0.1"
         textVersion.text = versionOfApp
         textVersion.setOnClickListener {
             clickCount++
             if (clickCount == 3) {
                 val versionFragment = VersionInfoFragment()
-                (activity as? MainActivity)?.replaceFragment(versionFragment)
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, versionFragment)
+                    .addToBackStack(null)
+                    .commit()
                 clickCount = 0
             } else {
                 Handler(Looper.getMainLooper()).postDelayed(
-                    { if (clickCount < 3) clickCount = 0 }, RESET_CLICK_COUNT_DELAY
+                    { if (clickCount < 3) clickCount = 0 },
+                    RESET_CLICK_COUNT_DELAY
                 )
             }
         }
     }
 
+    // === ПЕРЕХОД К РЕДАКТИРОВАНИЮ ===
+    private fun openEditProfile() {
+        parentFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                android.R.anim.slide_in_left,
+                android.R.anim.slide_out_right,
+                android.R.anim.slide_in_left,
+                android.R.anim.slide_out_right
+            )
+            .replace(R.id.fragment_container, EditProfileFragment()) // Используем новый фрагмент
+            .addToBackStack(null)
+            .commit()
+    }
+
+    // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+
+    private fun copyToClipboard(text: String) {
+        val clipboard =
+            requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Partner Code", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(context, "Код скопирован: $text", Toast.LENGTH_SHORT).show()
+    }
+
     private fun setupMenuCard(card: View, title: String, iconRes: Int, colorHex: String) {
         val tvTitle = card.findViewById<TextView>(R.id.tvTitle)
         val ivIcon = card.findViewById<ImageView>(R.id.ivIcon)
-
-        // Находим фон иконки (CardView внутри LinearLayout внутри корневого CardView)
-        // Структура include: RootCard -> LinearLayout -> [IconCard -> ImageView], TextView, Arrow
         try {
             val rootLayout = (card as CardView).getChildAt(0) as android.widget.LinearLayout
             val iconCard = rootLayout.getChildAt(0) as CardView
-            iconCard.setCardBackgroundColor(Color.parseColor(colorHex))
+            iconCard.setCardBackgroundColor(colorHex.toColorInt())
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
         tvTitle.text = title
         ivIcon.setImageResource(iconRes)
-    }
-
-    private fun loadUserPhoto(url: Uri?, imageView: ImageView) {
-        if (url != null) {
-            val requestOptions =
-                RequestOptions().timeout(30000).diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(android.R.drawable.ic_menu_camera)
-                    .error(android.R.drawable.stat_notify_error).circleCrop()
-            Glide.with(this).load(url).apply(requestOptions).thumbnail(0.1f).into(imageView)
-        } else {
-            imageView.setImageResource(android.R.drawable.ic_menu_camera)
-        }
     }
 
     private fun loadPartnerCode(uid: String, textView: TextView) {
@@ -229,73 +239,9 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         startActivity(Intent.createChooser(sendIntent, "Отправить код"))
     }
 
-    private fun showChangeNameDialog(textView: TextView) {
-        val editText = EditText(context)
-        editText.setText(textView.text)
-        editText.setPadding(40, 40, 40, 40)
-        AlertDialog.Builder(requireContext()).setTitle("Изменить имя").setView(editText)
-            .setPositiveButton("Сохранить") { _, _ ->
-                val newName = editText.text.toString().trim()
-                if (newName.isNotEmpty()) updateProfileName(newName, textView)
-            }.setNegativeButton("Отмена", null).show()
-    }
-
-    private fun updateProfileName(newName: String, textView: TextView) {
-        val user = auth.currentUser ?: return
-        lifecycleScope.launch {
-            try {
-                val updates = UserProfileChangeRequest.Builder().setDisplayName(newName).build()
-                user.updateProfile(updates).await()
-                db.collection("users").document(user.uid).update("name", newName).await()
-                textView.text = newName
-                Toast.makeText(context, "Имя обновлено", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun updateProfilePhoto(uri: Uri) {
-        val user = auth.currentUser ?: return
-        Toast.makeText(context, "Загрузка фото...", Toast.LENGTH_SHORT).show()
-        lifecycleScope.launch {
-            try {
-                val compressedData = compressImage(uri)
-                val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
-                storageRef.putBytes(compressedData).await()
-                val downloadUrl = storageRef.downloadUrl.await()
-
-                val updates = UserProfileChangeRequest.Builder().setPhotoUri(downloadUrl).build()
-                user.updateProfile(updates).await()
-                db.collection("users").document(user.uid).update("photoUrl", downloadUrl.toString())
-                    .await()
-                user.reload().await()
-
-                val userPhoto = view?.findViewById<ImageView>(R.id.userPhoto)
-                if (userPhoto != null) loadUserPhoto(downloadUrl, userPhoto)
-                Toast.makeText(context, "Фото обновлено", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    private suspend fun compressImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
-                requireContext().contentResolver, uri
-            )
-        }
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
-        outputStream.toByteArray()
-    }
-
     private fun showDeleteAccountDialog() {
-        AlertDialog.Builder(requireContext()).setTitle("Удалить аккаунт?")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Удалить аккаунт?")
             .setMessage("Это действие необратимо. Все ваши данные будут удалены.")
             .setPositiveButton("Удалить") { _, _ -> deleteAccount() }
             .setNegativeButton("Отмена", null).show()
@@ -305,18 +251,25 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val user = auth.currentUser ?: return
         lifecycleScope.launch {
             try {
+                // Удаляем данные из базы
                 db.collection("users").document(user.uid).delete().await()
+                // Удаляем сам аккаунт авторизации
                 user.delete().await()
+
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Аккаунт удален", Toast.LENGTH_SHORT).show()
+                    // Перезагружаем приложение (выход на экран входа)
                     val intent = Intent(requireActivity(), EnterActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    // Firebase часто просит повторный вход для таких операций
                     Toast.makeText(
-                        context, "Для удаления нужно выйти и войти снова", Toast.LENGTH_LONG
+                        context,
+                        "Для удаления нужно выйти и войти снова",
+                        Toast.LENGTH_LONG
                     ).show()
                     auth.signOut()
                     startActivity(Intent(requireActivity(), EnterActivity::class.java))

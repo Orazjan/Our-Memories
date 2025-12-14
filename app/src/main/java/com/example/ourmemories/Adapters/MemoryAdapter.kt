@@ -4,19 +4,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter // Используем ListAdapter вместо RecyclerView.Adapter
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.RequestOptions
 import com.example.ourmemories.Models.Memory
 import com.example.ourmemories.R
+import com.example.ourmemories.Utils.GlideHelper
 
-// Оптимизированный адаптер на базе ListAdapter
 class MemoryAdapter(
-    private val onClick: (Memory) -> Unit
+    @LayoutRes private val layoutResId: Int = R.layout.item_memory,
+    private val onClick: (Memory) -> Unit,
+    private val onLongClick: ((Memory) -> Unit)? = null // Новый параметр, по умолчанию null
 ) : ListAdapter<Memory, MemoryAdapter.MemoryViewHolder>(MemoryDiffCallback()) {
 
     inner class MemoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -24,40 +23,25 @@ class MemoryAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MemoryViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_memory, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(layoutResId, parent, false)
         return MemoryViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: MemoryViewHolder, position: Int) {
-        val memory = getItem(position) // Получаем элемент через встроенный метод
+        val memory = getItem(position)
+        GlideHelper.loadGalleryImage(holder.imageView, memory.imageUrl)
 
-        val requestOptions = RequestOptions()
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .placeholder(android.R.drawable.ic_menu_gallery)
-            .error(android.R.drawable.stat_notify_error)
+        holder.itemView.setOnClickListener { onClick(memory) }
 
-        Glide.with(holder.itemView.context)
-            .load(memory.imageUrl)
-            .apply(requestOptions)
-            .thumbnail(0.1f)
-            .transition(DrawableTransitionOptions.withCrossFade())
-            .into(holder.imageView)
-
-        holder.itemView.setOnClickListener {
-            onClick(memory)
+        // Обработка долгого нажатия
+        holder.itemView.setOnLongClickListener {
+            onLongClick?.invoke(memory)
+            true // Возвращаем true, чтобы событие было поглощено
         }
     }
 
-    // Класс для сравнения списков
     class MemoryDiffCallback : DiffUtil.ItemCallback<Memory>() {
-        // Проверяем, тот ли это элемент (по ID)
-        override fun areItemsTheSame(oldItem: Memory, newItem: Memory): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        // Проверяем, изменилось ли содержимое (по hashcode data-класса)
-        override fun areContentsTheSame(oldItem: Memory, newItem: Memory): Boolean {
-            return oldItem == newItem
-        }
+        override fun areItemsTheSame(oldItem: Memory, newItem: Memory) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Memory, newItem: Memory) = oldItem == newItem
     }
 }

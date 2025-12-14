@@ -140,6 +140,7 @@
 
                             <!-- Сердечко -->
                             <TextView
+                                android:id="@+id/tvHeartIcon"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginHorizontal="16dp"
@@ -217,6 +218,9 @@
                         android:id="@+id/tvSeeAllMemories"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:text="@string/see_all"
                         android:textColor="@color/primary_lavender"
                         android:textSize="14sp"
@@ -261,10 +265,11 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:clipToPadding="false"
-                    android:paddingHorizontal="12dp"
                     android:orientation="horizontal"
+                    android:overScrollMode="never"
+                    android:paddingHorizontal="16dp"
                     android:visibility="gone"
-                    tools:listitem="@layout/item_memory" />
+                    tools:listitem="@layout/item_memory_horizontal" />
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

@@ -1,10 +1,9 @@
-/**
- * Atanyazov Oraz
- * Copyright (c) 2025.
- */
 package com.example.ourmemories
 
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,12 +25,25 @@ class MainActivity : AppCompatActivity() {
     private val CALENDAR_TAG = "calendar_fragment"
     private val PROFILE_TAG = "profile_fragment"
 
+    // Переменная для хранения времени последнего нажатия "Назад"
+    private var backPressedTime: Long = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         hideSystemUI()
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
+        // Автоматическое скрытие меню при открытии деталей
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount > 0) {
+                bottomNav.visibility = View.GONE
+            } else {
+                bottomNav.visibility = View.VISIBLE
+            }
+        }
 
         bottomNav.setOnItemSelectedListener { item ->
             val selectedTag = when (item.itemId) {
@@ -41,7 +53,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_profile -> PROFILE_TAG
                 else -> return@setOnItemSelectedListener false
             }
-
             switchFragment(selectedTag)
             true
         }
@@ -49,6 +60,35 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             bottomNav.selectedItemId = R.id.nav_home
         }
+
+        // === ОБРАБОТКА КНОПКИ НАЗАД ===
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // 1. Если есть открытые фрагменты в стеке (детали, настройки) -> закрываем их
+                if (supportFragmentManager.backStackEntryCount > 0) {
+                    supportFragmentManager.popBackStack()
+                    return
+                }
+
+                // 2. Если мы НЕ на главной вкладке -> переходим на Главную
+                if (bottomNav.selectedItemId != R.id.nav_home) {
+                    bottomNav.selectedItemId = R.id.nav_home
+                    return
+                }
+
+                // 3. Если мы на Главной -> двойное нажатие для выхода
+                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                    finish() // Закрываем приложение
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Нажмите еще раз для выхода",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    backPressedTime = System.currentTimeMillis()
+                }
+            }
+        })
     }
 
     private fun hideSystemUI() {
@@ -60,21 +100,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * ПУБЛИЧНЫЙ метод для открытия второстепенных фрагментов
-     * (например, VersionInfo или Настройки).
-     * Добавляет транзакцию в BackStack, чтобы работала кнопка "Назад".
-     */
     fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                android.R.anim.fade_in,
+                android.R.anim.fade_out,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
             .replace(R.id.fragment_container, fragment)
             .addToBackStack(null)
-            .commit()
+            .commitAllowingStateLoss()
     }
 
-    /**
-     * Переключатель основных табов (show/hide).
-     */
     private fun switchFragment(tag: String) {
         val fragmentManager = supportFragmentManager
         val transaction = fragmentManager.beginTransaction()
@@ -94,7 +132,6 @@ class MainActivity : AppCompatActivity() {
                 PROFILE_TAG -> ProfileFragment()
                 else -> MainFragment()
             }
-
             transaction.add(R.id.fragment_container, fragment, tag)
         } else {
             transaction.show(fragment)
@@ -102,6 +139,6 @@ class MainActivity : AppCompatActivity() {
 
         transaction.setPrimaryNavigationFragment(fragment)
         transaction.setReorderingAllowed(true)
-        transaction.commit()
+        transaction.commitAllowingStateLoss()
     }
 }

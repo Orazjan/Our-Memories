@@ -42,10 +42,10 @@ class EnterActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-
-        splashScreen.setKeepOnScreenCondition { isChecking }
+        // Скрываем системные панели
         hideSystemUI()
 
+        splashScreen.setKeepOnScreenCondition { isChecking }
 
         setContentView(R.layout.activity_enter)
 
@@ -63,8 +63,6 @@ class EnterActivity : AppCompatActivity() {
             delay(1000)
             checkUserAndNavigate()
         }
-
-
     }
 
     private fun hideSystemUI() {
@@ -82,7 +80,7 @@ class EnterActivity : AppCompatActivity() {
         Log.d("EnterActivity", "Проверка пользователя: ${user?.uid}")
 
         if (user == null) {
-            Log.d("EnterActivity", "Пользователь не найден -> Экран входа/онбординга")
+            Log.d("EnterActivity", "Пользователь не найден -> Экран входа")
             showLoginOrOnboarding()
             isChecking = false
             return
@@ -131,7 +129,7 @@ class EnterActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
             .replace(R.id.fragment_container, OnboardingStep2Fragment()).addToBackStack(null)
-            .commit()
+            .commitAllowingStateLoss()
     }
 
     fun finishOnboarding() {
@@ -141,27 +139,34 @@ class EnterActivity : AppCompatActivity() {
     fun showRegistration() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-            .replace(R.id.fragment_container, RegFragment()).addToBackStack(null).commit()
+            .replace(R.id.fragment_container, RegFragment()).addToBackStack(null)
+            .commitAllowingStateLoss()
     }
 
     fun showLogin() {
-        supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        // Безопасная очистка стека
+        if (!supportFragmentManager.isStateSaved) {
+            supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        }
+
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-            .replace(R.id.fragment_container, LoginFragment()).commit()
+            .replace(R.id.fragment_container, LoginFragment())
+            .commitAllowingStateLoss()
     }
 
     fun showProfileSetup() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-            .replace(R.id.fragment_container, SetupProfileFragment()).commit()
+            .replace(R.id.fragment_container, SetupProfileFragment())
+            .commitAllowingStateLoss() 
     }
 
     fun showForgotPassword() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
             .replace(R.id.fragment_container, ForgotPasswordFragment()).addToBackStack(null)
-            .commit()
+            .commitAllowingStateLoss()
     }
 
     fun onAuthSuccess() {

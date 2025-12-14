@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -26,6 +27,7 @@ import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.Models.Memory
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -37,9 +39,6 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-/**
- * Главный фрагмент приложения.
- */
 class MainFragment : Fragment(R.layout.main_fragment) {
 
     private val db = Firebase.firestore
@@ -62,9 +61,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         scheduleNextUpdate()
     }
 
-    /**
-     * Инициализация UI элементов.
-     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -72,25 +68,43 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
         val rvRecent = view.findViewById<RecyclerView>(R.id.rvRecentMemories)
         val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
+        val tvSeeAll = view.findViewById<TextView>(R.id.tvSeeAllMemories)
+
+        // Анимация сердца
+        val tvHeart = view.findViewById<TextView>(R.id.tvHeartIcon)
+        if (tvHeart != null) {
+            val pulseAnimation = AnimationUtils.loadAnimation(context, R.anim.heart_beat)
+            tvHeart.startAnimation(pulseAnimation)
+        }
 
         rvRecent.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        recentAdapter = MemoryAdapter { memory ->
-            val detailFragment = MemoryDetailFragment.newInstance(
-                memory.id,
-                memory.title,
-                memory.description,
-                memory.imageUrl,
-                memory.timestamp,
-                memory.uploaderUid
-            )
 
-            parentFragmentManager.beginTransaction().setCustomAnimations(
-                android.R.anim.fade_in,
-                android.R.anim.fade_out,
-                android.R.anim.fade_in,
-                android.R.anim.fade_out
-            ).replace(R.id.fragment_container, detailFragment).addToBackStack(null).commit()
-        }
+        // === ИСПРАВЛЕНИЕ ОШИБКИ ЗДЕСЬ ===
+        // Явно указываем макет и onClick через именованные аргументы
+        recentAdapter = MemoryAdapter(
+            layoutResId = R.layout.item_memory_horizontal,
+            onClick = { memory ->
+                val detailFragment = MemoryDetailFragment.newInstance(
+                    memory.id,
+                    memory.title,
+                    memory.description,
+                    memory.imageUrl,
+                    memory.timestamp,
+                    memory.uploaderUid
+                )
+
+                parentFragmentManager.beginTransaction()
+                    .setCustomAnimations(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out,
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                    )
+                    .add(R.id.fragment_container, detailFragment)
+                    .addToBackStack(null)
+                    .commit()
+            }
+        )
         rvRecent.adapter = recentAdapter
 
         checkMemoriesState(view, 0)
@@ -112,9 +126,19 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             }
         }
 
+        tvSeeAll.setOnClickListener {
+            try {
+                val bottomNav =
+                    requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation)
+                bottomNav.selectedItemId = R.id.nav_gallery
+            } catch (e: Exception) {
+                Log.e(TAG, "Ошибка навигации: ${e.message}")
+            }
+        }
+
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light)
         swipeRefreshLayout.setOnRefreshListener {
-            Log.d(TAG, "Свайп обновления: перезагружаем слушатели")
+            Log.d(TAG, "Свайп обновления")
             currentUidsToLoad = null
             currentPartnerUid = null
             setupListeners(view)
@@ -124,9 +148,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         scheduleNextUpdate()
     }
 
-    /**
-     * Обновить UI для отображения дней.
-     */
+    // ... (Остальные методы без изменений) ...
+
     private fun updateDaysUI() {
         if (isAdded && currentRelationshipTimestamp != null) {
             val days = calculateDays(currentRelationshipTimestamp!!)
@@ -135,9 +158,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    /**
-     * Запланировать обновление через сутки после текущего момента времени.
-     */
     private fun scheduleNextUpdate() {
         val now = Calendar.getInstance()
         val tomorrow = Calendar.getInstance().apply {
@@ -188,22 +208,17 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             swipeRefreshLayout.isRefreshing = false
 
             if (e != null) {
-                Log.e(TAG, "Ошибка загрузки моего профиля", e)
+                Log.e(TAG, "Ошибка загрузки: ${e.message}")
                 return@addSnapshotListener
             }
 
             if (isAdded && document != null && document.exists()) {
                 val myName = document.getString("name") ?: "Я"
                 val myPhotoUrl = document.getString("photoUrl")
-
                 val tvMyName = view.findViewById<TextView>(R.id.tvMyName)
                 val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
-                val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
 
                 tvMyName.text = myName
-
-                // Проверяем ссылку в логах
-                Log.d("LINK_TEST", "Мой URL: $myPhotoUrl")
                 GlideHelper.loadAvatar(ivMyAvatar, myPhotoUrl, "MY_AVATAR")
 
                 val relationshipDate = document.getLong("relationshipDate")
@@ -212,6 +227,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
                 val partnerUid = document.getString("partnerUid")
 
+                val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
                 if (partnerUid != null) {
                     tvDaysCount.isEnabled = true
                     tvDaysCount.alpha = 1.0f
@@ -237,10 +253,15 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     private fun setupMemoriesListener(uids: List<String>, view: View) {
         memoriesListener?.remove()
-        memoriesListener = db.collection("memories").whereIn("uploaderUid", uids)
-            .orderBy("timestamp", Query.Direction.DESCENDING).limit(10)
+
+        memoriesListener = db.collection("memories")
+            .whereIn("uploaderUid", uids)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(10)
             .addSnapshotListener { snapshots, e ->
+                if (!isAdded) return@addSnapshotListener
                 if (e != null) return@addSnapshotListener
+
                 if (snapshots != null) {
                     val newMemories = snapshots.map { doc ->
                         doc.toObject(Memory::class.java).copy(id = doc.id)
@@ -266,16 +287,14 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 currentPartnerUid = partnerUid
                 partnerListener?.remove()
 
-                Log.d(TAG, "Подключаемся к партнеру: $partnerUid")
                 partnerListener =
                     db.collection("users").document(partnerUid).addSnapshotListener { pDoc, pE ->
+                        if (!isAdded) return@addSnapshotListener
                         if (pE != null) return@addSnapshotListener
 
                         if (pDoc != null && pDoc.exists()) {
                             val pName = pDoc.getString("name") ?: "Партнёр"
                             val pPhoto = pDoc.getString("photoUrl")
-
-                            Log.e("LINK_TEST", "URL партнера: $pPhoto")
                             tvPartnerName.text = pName
                             GlideHelper.loadAvatar(ivPartnerAvatar, pPhoto, "PARTNER_AVATAR")
                         }
@@ -284,14 +303,11 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         } else {
             partnerListener?.remove()
             currentPartnerUid = null
-
             tvPartnerName.text = getString(R.string.invite)
             ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
+            ivPartnerAvatar.setColorFilter(android.graphics.Color.GRAY)
             ivPartnerAvatar.setPadding(20, 20, 20, 20)
-
-            layoutPartner.setOnClickListener {
-                showInvitePartnerDialog(myUid)
-            }
+            layoutPartner.setOnClickListener { showInvitePartnerDialog(myUid) }
         }
     }
 
@@ -326,9 +342,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     private fun saveRelationshipDate(uid: String, timestamp: Long) {
         val updates = mapOf("relationshipDate" to timestamp)
-        db.collection("users").document(uid).update(updates).addOnSuccessListener {
-            Toast.makeText(context, getString(R.string.added_data), Toast.LENGTH_SHORT).show()
-        }
+        db.collection("users").document(uid).update(updates)
         if (currentPartnerUid != null) {
             db.collection("users").document(currentPartnerUid!!).update(updates)
         }
@@ -336,7 +350,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     private fun showRelationshipDatePicker(uid: String) {
         val dialog = BottomSheetDialog(
-            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
+            requireContext(),
+            com.google.android.material.R.style.Theme_Design_BottomSheetDialog
         )
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
         val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
@@ -388,7 +403,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_invite_partner, null)
         val etCode = dialogView.findViewById<EditText>(R.id.etPartnerCode)
         val btnConnect = dialogView.findViewById<Button>(R.id.btnConnect)
-
         val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
@@ -407,8 +421,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     private fun connectPartner(myUid: String, code: String, dialog: AlertDialog) {
         val btnConnect = dialog.findViewById<Button>(R.id.btnConnect)
-        val etPartnerCode = dialog.findViewById<EditText>(R.id.etPartnerCode)
-
         db.collection("users").whereEqualTo("partnerCode", code).get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
@@ -421,9 +433,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                     val partnerUid = partnerDoc.id
                     if (partnerUid == myUid) {
                         Toast.makeText(
-                            context, getString(R.string.cant_add_yourself), Toast.LENGTH_SHORT
+                            context,
+                            getString(R.string.cant_add_yourself),
+                            Toast.LENGTH_SHORT
                         ).show()
-                        etPartnerCode?.setText("")
                         btnConnect?.isEnabled = true
                         btnConnect?.text = getString(R.string.connect)
                         return@addOnSuccessListener
@@ -456,7 +469,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     private fun showMyOptions(myUid: String) {
         val dialog = BottomSheetDialog(
-            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
+            requireContext(),
+            com.google.android.material.R.style.Theme_Design_BottomSheetDialog
         )
         dialog.setContentView(R.layout.bottom_sheet_my_options)
 
@@ -484,7 +498,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     private fun showPartnerOptions(partnerUid: String, partnerName: String) {
         val dialog = BottomSheetDialog(
-            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
+            requireContext(),
+            com.google.android.material.R.style.Theme_Design_BottomSheetDialog
         )
         dialog.setContentView(R.layout.bottom_sheet_partner_options)
 
@@ -495,7 +510,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 .setTitle(getString(R.string.disconnect_partner_title))
                 .setMessage(getString(R.string.disconnect_partner_message, partnerName))
                 .setPositiveButton(getString(R.string.yes)) { _, _ -> disconnectPartner(partnerUid) }
-                .setNegativeButton(getString(R.string.cancel), null).show()
+                .setNegativeButton(getString(R.string.cancel), null)
+                .show()
         }
         dialog.show()
     }
@@ -512,7 +528,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 .show()
         }.addOnFailureListener {
             Toast.makeText(
-                context, "${getString(R.string.error)}: ${it.message}", Toast.LENGTH_SHORT
+                context,
+                "${getString(R.string.error)}: ${it.message}",
+                Toast.LENGTH_SHORT
             ).show()
         }
     }

@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -16,6 +17,7 @@ import com.bumptech.glide.request.target.Target;
 
 public class GlideHelper {
 
+    // Для аватарок (круглые)
     public static void loadAvatar(ImageView imageView, String url, String debugTag) {
         imageView.clearColorFilter();
         imageView.setImageTintList(null);
@@ -24,7 +26,7 @@ public class GlideHelper {
             imageView.setPadding(0, 0, 0, 0);
 
             RequestOptions requestOptions = new RequestOptions()
-                    .timeout(60000)
+                    .timeout(60000) // 60 секунд
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(android.R.drawable.ic_menu_camera)
                     .error(android.R.drawable.stat_notify_error)
@@ -37,21 +39,55 @@ public class GlideHelper {
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            Log.e("GlideHelper", "Ошибка [" + debugTag + "]: " + (e != null ? e.getMessage() : "Unknown"));
+                            Log.e("GlideHelper", "Avatar Error [" + debugTag + "]: " + (e != null ? e.getMessage() : "Unknown"));
                             return false;
                         }
 
                         @Override
                         public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            Log.d("GlideHelper", "Успех [" + debugTag + "]");
                             return false;
                         }
                     })
                     .into(imageView);
         } else {
-            // Если фото нет, возвращаем иконку
             imageView.setImageResource(android.R.drawable.ic_menu_camera);
             imageView.setPadding(20, 20, 20, 20);
+        }
+    }
+
+    public static void loadGalleryImage(ImageView imageView, String url) {
+        // Спиннер загрузки
+        CircularProgressDrawable circularProgress = new CircularProgressDrawable(imageView.getContext());
+        circularProgress.setStrokeWidth(5f);
+        circularProgress.setCenterRadius(30f);
+        circularProgress.start();
+
+        if (url != null && !url.isEmpty()) {
+            RequestOptions requestOptions = new RequestOptions()
+                    .timeout(60000)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(circularProgress)
+                    .error(android.R.drawable.stat_notify_error);
+
+            Glide.with(imageView.getContext())
+                    .load(url)
+                    .apply(requestOptions)
+                    .thumbnail(0.1f)
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Log.e("GlideHelper", "Gallery Error: " + (e != null ? e.getMessage() : "Unknown"));
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            return false;
+                        }
+                    })
+                    .into(imageView);
+        } else {
+            imageView.setImageResource(android.R.drawable.ic_menu_gallery);
         }
     }
 }
