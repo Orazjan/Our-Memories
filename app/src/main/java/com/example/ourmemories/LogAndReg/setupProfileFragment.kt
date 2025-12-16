@@ -1,5 +1,6 @@
 package com.example.ourmemories.LogAndReg
 
+import android.animation.ObjectAnimator
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -15,6 +16,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -49,9 +51,12 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         if (uri != null) {
             selectedImageUri = uri
             val avatarView = view?.findViewById<ImageView>(R.id.ivAvatar)
-            avatarView?.setImageURI(uri)
-            avatarView?.scaleType = ImageView.ScaleType.CENTER_CROP
-            avatarView?.setPadding(0, 0, 0, 0)
+
+            // Используем Glide для надежного отображения
+            if (avatarView != null) {
+                avatarView.setPadding(0, 0, 0, 0)
+                Glide.with(this).load(uri).centerCrop().into(avatarView)
+            }
 
             // СРАЗУ НАЧИНАЕМ СЖАТИЕ И ЗАГРУЗКУ
             uploadTask = lifecycleScope.async {
@@ -68,6 +73,11 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         val btnSave = view.findViewById<Button>(R.id.btnSaveProfile)
         val cardAvatar = view.findViewById<View>(R.id.cardAvatar)
 
+        // Анимация появления аватарки
+        cardAvatar.alpha = 0f
+        cardAvatar.translationY = 50f
+        cardAvatar.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(200).start()
+
         cardAvatar.setOnClickListener {
             pickImage.launch("image/*")
         }
@@ -80,12 +90,28 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             val name = etName.text.toString().trim()
             val date = etDate.text.toString().trim()
 
-            if (name.isEmpty() || date.isEmpty() || selectedImageUri == null) {
-                Toast.makeText(
-                    context, "Пожалуйста, выберите фото и заполните все поля", Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
+            // Анимация "тряски" при ошибке
+            var hasError = false
+
+            if (selectedImageUri == null) {
+                shakeView(cardAvatar)
+                Toast.makeText(context, "Выберите фото профиля", Toast.LENGTH_SHORT).show()
+                hasError = true
             }
+
+            if (name.isEmpty()) {
+                shakeView(etName)
+                etName.error = "Введите имя"
+                hasError = true
+            }
+
+            if (date.isEmpty()) {
+                shakeView(etDate)
+                Toast.makeText(context, "Выберите дату рождения", Toast.LENGTH_SHORT).show()
+                hasError = true
+            }
+
+            if (hasError) return@setOnClickListener
 
             lifecycleScope.launch {
                 btnSave.isEnabled = false
@@ -102,17 +128,22 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         }
     }
 
+    // Функция тряски View (визуальный отклик на ошибку)
+    private fun shakeView(view: View) {
+        ObjectAnimator.ofFloat(
+            view, "translationX", 0f, 25f, -25f, 25f, -25f, 15f, -15f, 6f, -6f, 0f
+        ).apply {
+            duration = 500
+            start()
+        }
+    }
+
     private suspend fun uploadImageToStorage(uri: Uri): String? {
         val user = auth.currentUser ?: return null
         return try {
-            // 1. Сжимаем до маленького размера (например, 800x800)
             val compressedData = compressAndResizeImage(uri)
-
-            // 2. Загружаем
             val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
             storageRef.putBytes(compressedData).await()
-
-            // 3. Получаем ссылку
             storageRef.downloadUrl.await().toString()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -127,12 +158,11 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         // Ждем результат загрузки
         var photoUrl = uploadTask?.await()
 
-        // Если фоновая загрузка сорвалась, пробуем еще раз синхронно
+        // Если фоновая загрузка сорвалась, пробуем еще раз
         if (photoUrl == null && selectedImageUri != null) {
             photoUrl = uploadImageToStorage(selectedImageUri!!)
         }
 
-        // Обновляем Auth
         val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(name)
         if (photoUrl != null) {
             profileUpdates.setPhotoUri(Uri.parse(photoUrl))
@@ -141,7 +171,6 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
 
         val partnerCode = generatePartnerCode()
 
-        // Обновляем Firestore
         val userData = hashMapOf(
             "name" to name,
             "birthDate" to date,
@@ -160,18 +189,16 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
     }
 
     private suspend fun compressAndResizeImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
-        // 1. Получаем оригинал Bitmap
+        val context = requireContext()
         val originalBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
             ImageDecoder.decodeBitmap(source)
         } else {
             @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
-                requireContext().contentResolver, uri
+                context.contentResolver, uri
             )
         }
 
-        // 2. Уменьшаем размер (Scale)
-        // Если картинка больше 800px, уменьшаем её, сохраняя пропорции
         val maxDimension = 800
         val scale = Math.min(
             maxDimension.toDouble() / originalBitmap.width,
@@ -186,13 +213,11 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
                 true
             )
         } else {
-            originalBitmap // Если картинка и так маленькая, не трогаем
+            originalBitmap
         }
 
-        // 3. Сжимаем в JPEG (Compress)
         val outputStream = ByteArrayOutputStream()
         scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
-
         outputStream.toByteArray()
     }
 
@@ -247,9 +272,6 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         dialog.show()
     }
 
-    /**
-     *
-     */
     private fun generatePartnerCode(): String {
         return Random.nextInt(10000000, 99999999).toString()
     }

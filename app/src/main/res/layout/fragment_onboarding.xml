@@ -8,11 +8,11 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardIllustration"
-        android:layout_width="match_parent"
-        android:layout_height="320dp"
+        android:layout_width="wrap_content"
+        android:layout_height="320sp"
         android:layout_marginTop="40dp"
-        app:cardBackgroundColor="#FAD1E6"
         app:cardCornerRadius="32dp"
+        android:maxHeight="320sp"
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,10 +21,7 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="40dp"
-            android:scaleType="centerInside"
-            android:src="@android:drawable/ic_menu_gallery"
-            app:tint="#FFFFFF" />
+            android:src="@drawable/photo_for_onboarding" />
     </androidx.cardview.widget.CardView>
 
     <TextView

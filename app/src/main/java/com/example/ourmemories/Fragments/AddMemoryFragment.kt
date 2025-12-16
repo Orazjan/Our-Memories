@@ -7,25 +7,30 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.ourmemories.Adapters.SelectedImagesAdapter
 import com.example.ourmemories.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -33,59 +38,117 @@ import java.io.ByteArrayOutputStream
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-// Ссылаемся на созданный XML (fab_fragment)
-class AddMemoryFragment : Fragment(R.layout.fab_fragment) {
+class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
 
+    private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
     private val storage = Firebase.storage
-    private val auth = FirebaseAuth.getInstance()
+    private val TAG = "AddMemoryFragment"
 
-    private var selectedImageUri: Uri? = null
-    private var uploadTask: Deferred<String?>? = null
+    // Список выбранных URI
+    private val selectedUris = mutableListOf<Uri>()
+    private lateinit var imagesAdapter: SelectedImagesAdapter
+
+    // URI выбранной обложки (по умолчанию будет первой)
+    private var coverUri: Uri? = null
+
     private var selectedDateTimestamp: Long = System.currentTimeMillis()
 
-    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            selectedImageUri = uri
-            val ivImage = view?.findViewById<ImageView>(R.id.ivSelectedImage)
-            val placeholder = view?.findViewById<LinearLayout>(R.id.layoutPlaceholder)
+    // Photo Picker (Мульти-выбор)
+    private val pickImages =
+        registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(10)) { uris ->
+            if (uris.isNotEmpty()) {
+                val isFirstLoad = selectedUris.isEmpty()
+                selectedUris.addAll(uris)
 
-            ivImage?.setImageURI(uri)
-            ivImage?.scaleType = ImageView.ScaleType.CENTER_CROP
-            placeholder?.visibility = View.GONE
+                // Если обложка еще не выбрана, ставим первую из списка
+                if (coverUri == null && selectedUris.isNotEmpty()) {
+                    coverUri = selectedUris[0]
+                }
 
-            // Определяем дату из фото
-            tryExtractDateFromPhoto(uri)
+                if (isFirstLoad) {
+                    tryExtractDateFromImage(uris[0])
+                }
 
-            // Начинаем загрузку фоном сразу после выбора
-            uploadTask = lifecycleScope.async {
-                uploadImageToStorage(uri)
-            }
+                updateImagesList()
         }
     }
 
+    /**
+     * Инициализация фрагмента.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val btnBack = view.findViewById<View>(R.id.btnBack)
-        val cardImage = view.findViewById<View>(R.id.cardImageUpload)
+        val cardAddPhoto = view.findViewById<View>(R.id.cardAddPhoto)
+        val rvSelectedImages = view.findViewById<RecyclerView>(R.id.rvSelectedImages)
         val etTitle = view.findViewById<EditText>(R.id.etTitle)
         val etDate = view.findViewById<EditText>(R.id.etDate)
-        val etDesc = view.findViewById<EditText>(R.id.etDescription)
+        val etDescription = view.findViewById<EditText>(R.id.etDescription)
         val btnSave = view.findViewById<Button>(R.id.btnSaveMemory)
 
-        // Ставим текущую дату
-        updateDateText(etDate, selectedDateTimestamp)
+        // Защита от случайного выхода
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (selectedUris.isNotEmpty() || etTitle.text.isNotEmpty()) {
+                    showExitConfirmationDialog()
+                } else {
+                    isEnabled = false
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
 
+        // Настройка адаптера
+        imagesAdapter = SelectedImagesAdapter(images = selectedUris, onRemoveClick = { position ->
+            if (position in selectedUris.indices) {
+                val removedUri = selectedUris[position]
+
+                // Обновляем логику обложки (визуально)
+                imagesAdapter.adjustCoverPositionAfterRemoval(position)
+
+                // Удаляем из данных
+                selectedUris.removeAt(position)
+                imagesAdapter.notifyItemRemoved(position)
+                imagesAdapter.notifyItemRangeChanged(position, selectedUris.size)
+
+                // Если удалили текущую обложку, назначаем новую
+                if (removedUri == coverUri) {
+                    coverUri = selectedUris.firstOrNull()
+                }
+
+                updateImagesList()
+            }
+        }, onImageClick = { position ->
+            // Пользователь кликнул на фото -> делаем его обложкой
+            if (position in selectedUris.indices) {
+                coverUri = selectedUris[position]
+            }
+        })
+
+        rvSelectedImages.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        rvSelectedImages.adapter = imagesAdapter
+
+        updateDateLabel(etDate)
+
+        // Обработчики
         btnBack.setOnClickListener {
-            parentFragmentManager.popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
-        cardImage.setOnClickListener {
-            pickImage.launch("image/*")
+        cardAddPhoto.setOnClickListener {
+            try {
+                pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            } catch (e: Exception) {
+                Toast.makeText(context, "Не удалось открыть галерею", Toast.LENGTH_SHORT).show()
+            }
         }
 
         etDate.setOnClickListener {
@@ -94,123 +157,189 @@ class AddMemoryFragment : Fragment(R.layout.fab_fragment) {
 
         btnSave.setOnClickListener {
             val title = etTitle.text.toString().trim()
-            val description = etDesc.text.toString().trim()
+            val desc = etDescription.text.toString().trim()
+
+            if (selectedUris.isEmpty()) {
+                Toast.makeText(context, "Выберите хотя бы одно фото", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             if (title.isEmpty()) {
-                etTitle.error = "Введите название"
-                return@setOnClickListener
-            }
-            if (selectedImageUri == null) {
-                Toast.makeText(context, "Выберите фото", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Введите название события", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            lifecycleScope.launch {
-                btnSave.isEnabled = false
-                btnSave.text = "Сохранение..."
+            uploadMemories(title, desc)
+        }
+    }
 
-                // Блокируем экран, чтобы пользователь не нажал назад
-                val loadingOverlay =
-                    view.findViewById<View>(R.id.layoutPlaceholder)
+    /**
+     * Показывает диалоговое окно для подтверждения выхода.
+     */
+    private fun showExitConfirmationDialog() {
+        AlertDialog.Builder(requireContext()).setTitle("Отменить создание?")
+            .setMessage("Все несохраненные данные будут потеряны.")
+            .setPositiveButton("Выйти") { _, _ ->
+                parentFragmentManager.popBackStack()
+            }.setNegativeButton("Остаться", null).show()
+    }
 
-                try {
-                    saveMemory(title, description)
-                } catch (e: Exception) {
-                    Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
-                    btnSave.isEnabled = true
-                    btnSave.text = "Сохранить воспоминание"
+    /**
+     * Обновление списка выбранных фото.
+     */
+    private fun updateImagesList() {
+        val rv = view?.findViewById<RecyclerView>(R.id.rvSelectedImages)
+        if (selectedUris.isNotEmpty()) {
+            rv?.visibility = View.VISIBLE
+            // Если адаптер был пуст или view пересоздана
+            if (rv?.adapter == null) rv?.adapter = imagesAdapter
+        } else {
+            rv?.visibility = View.GONE
+        }
+    }
+
+    /**
+     * Загрузка фото в БД.
+     */
+    private fun uploadMemories(title: String, desc: String) {
+        val user = auth.currentUser ?: return
+        val loadingOverlay = view?.findViewById<View>(R.id.loadingOverlay)
+        loadingOverlay?.visibility = View.VISIBLE
+
+        lifecycleScope.launch {
+            try {
+                // 1. Загрузка всех фото параллельно
+                // Нам нужно знать, какой URL соответствует какому URI, чтобы найти обложку
+                val uploadJobs = selectedUris.map { uri ->
+                    async {
+                        val url = uploadSingleImage(uri, user.uid)
+                        Pair(uri, url)
+                    }
+                }
+
+                val uploadedPairs = uploadJobs.awaitAll()
+
+                // Получаем просто список ссылок
+                val allUrls = uploadedPairs.map { it.second }
+
+                // Находим URL для обложки (сопоставляем по URI)
+                val coverPair = uploadedPairs.find { it.first == coverUri }
+                val finalCoverUrl = coverPair?.second ?: allUrls.firstOrNull() ?: ""
+
+                // 2. Сохранение АЛЬБОМА (одна запись) в БД
+                if (allUrls.isNotEmpty()) {
+                    val memoryMap = hashMapOf(
+                        "uploaderUid" to user.uid,
+                        "title" to title,
+                        "description" to desc,
+                        "timestamp" to selectedDateTimestamp,
+                        "createdAt" to System.currentTimeMillis(),
+
+                        // Сохраняем список всех ссылок (для просмотра альбома)
+                        "images" to allUrls,
+
+                        // Сохраняем выбранную обложку (для ленты)
+                        "imageUrl" to finalCoverUrl
+                    )
+
+                    db.collection("memories").add(memoryMap).await()
+                }
+
+                withContext(Dispatchers.Main) {
+                    loadingOverlay?.visibility = View.GONE
+                    Toast.makeText(context, "Альбом сохранен!", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    loadingOverlay?.visibility = View.GONE
+                    val msg =
+                        if (e.message?.contains("Unable to resolve host") == true) "Нет интернета" else e.localizedMessage
+                    Toast.makeText(context, "Ошибка: $msg", Toast.LENGTH_LONG).show()
                 }
             }
         }
     }
 
-    private fun tryExtractDateFromPhoto(uri: Uri) {
+    /**
+     * Загрузка одного фото в БД.
+     */
+    private suspend fun uploadSingleImage(uri: Uri, uid: String): String {
+        return withContext(Dispatchers.IO) {
+            val compressedData = compressImage(uri)
+            val fileName = UUID.randomUUID().toString()
+            val ref = storage.reference.child("memories/$uid/$fileName.jpg")
+            ref.putBytes(compressedData).await()
+            ref.downloadUrl.await().toString()
+        }
+    }
+
+    /**
+     * Сжатие фото до 1280x1280.
+     */
+    private fun compressImage(uri: Uri): ByteArray {
+        val context = requireContext()
+        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+        }
+
+        val scaledBitmap = scaleBitmap(bitmap, 1280)
+        val outputStream = ByteArrayOutputStream()
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 75, outputStream)
+        return outputStream.toByteArray()
+    }
+
+    private fun scaleBitmap(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val originalWidth = bitmap.width
+        val originalHeight = bitmap.height
+        var newWidth = originalWidth
+        var newHeight = originalHeight
+
+        if (originalWidth > maxDimension || originalHeight > maxDimension) {
+            if (originalWidth > originalHeight) {
+                newWidth = maxDimension
+                newHeight = (newWidth * originalHeight) / originalWidth
+            } else {
+                newHeight = maxDimension
+                newWidth = (newHeight * originalWidth) / originalHeight
+            }
+        }
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
+
+    /**
+     * Чтение даты из фото.
+     */
+    private fun tryExtractDateFromImage(uri: Uri) {
         try {
             requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    val exifInterface = ExifInterface(inputStream)
-                    val dateTimeString =
-                        exifInterface.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
-                            ?: exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
+                val exifInterface = ExifInterface(inputStream)
+                val dateString = exifInterface.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                    ?: exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
 
-                    if (dateTimeString != null) {
-                        val exifFormat =
-                            SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.getDefault())
-                        val date = exifFormat.parse(dateTimeString)
-                        if (date != null) {
-                            selectedDateTimestamp = date.time
-                            val etDate = view?.findViewById<EditText>(R.id.etDate)
-                            if (etDate != null) {
-                                updateDateText(etDate, selectedDateTimestamp)
-                                Toast.makeText(context, "Дата взята из фото", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                        }
+                if (dateString != null) {
+                    val format =
+                        if (dateString.contains("-")) "yyyy-MM-dd HH:mm:ss" else "yyyy:MM:dd HH:mm:ss"
+                    val sdf = SimpleDateFormat(format, Locale.US)
+                    val date = sdf.parse(dateString)
+                    if (date != null) {
+                        selectedDateTimestamp = date.time
+                        view?.findViewById<EditText>(R.id.etDate)?.let { updateDateLabel(it) }
                     }
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Ошибка чтения даты: ${e.message}")
         }
     }
 
-    private suspend fun saveMemory(title: String, description: String) {
-        val user = auth.currentUser ?: throw Exception("Вы не авторизованы")
-
-        // Ждем завершения загрузки фото (если оно еще грузится)
-        val photoUrl = uploadTask?.await() ?: throw Exception("Не удалось загрузить фото")
-        val memoryId = UUID.randomUUID().toString()
-
-        // Объединяем Заголовок и Описание, так как в модели нет Title
-        val combinedDescription = "$title\n\n$description"
-
-        val memoryMap = hashMapOf(
-            "id" to memoryId,
-            "description" to combinedDescription,
-            "imageUrl" to photoUrl,
-            "timestamp" to selectedDateTimestamp,
-            "createdAt" to System.currentTimeMillis(),
-            "uploaderUid" to user.uid
-        )
-
-        db.collection("memories").document(memoryId).set(memoryMap).await()
-
-        withContext(Dispatchers.Main) {
-            Toast.makeText(context, "Воспоминание сохранено!", Toast.LENGTH_SHORT).show()
-            parentFragmentManager.popBackStack()
-        }
-    }
-
-    private suspend fun uploadImageToStorage(uri: Uri): String? {
-        val user = auth.currentUser ?: return null
-        return try {
-            val compressedData = compressImage(uri)
-            val fileName = UUID.randomUUID().toString()
-            val storageRef = storage.reference.child("memories/${user.uid}/$fileName.jpg")
-
-            storageRef.putBytes(compressedData).await()
-            storageRef.downloadUrl.await().toString()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private suspend fun compressImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
-                requireContext().contentResolver,
-                uri
-            )
-        }
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
-        outputStream.toByteArray()
-    }
-
+    /**
+     * Показывает диалоговое окно для выбора даты.
+     */
     private fun showWheelDatePicker(editText: EditText) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -224,9 +353,10 @@ class AddMemoryFragment : Fragment(R.layout.fab_fragment) {
 
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = selectedDateTimestamp
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
-        npYear.minValue = 1990
-        npYear.maxValue = Calendar.getInstance().get(Calendar.YEAR)
+        npYear.minValue = 1980
+        npYear.maxValue = currentYear
         npYear.value = calendar.get(Calendar.YEAR)
         npYear.wrapSelectorWheel = false
 
@@ -247,30 +377,29 @@ class AddMemoryFragment : Fragment(R.layout.fab_fragment) {
             cal.set(Calendar.DAY_OF_MONTH, 1)
             npDay.maxValue = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         }
-        updateDaysInMonth()
 
         npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
         npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
+        updateDaysInMonth()
 
         btnConfirm.setOnClickListener {
-            val selectedCalendar = Calendar.getInstance()
-            selectedCalendar.set(Calendar.YEAR, npYear.value)
-            selectedCalendar.set(Calendar.MONTH, npMonth.value)
-            selectedCalendar.set(Calendar.DAY_OF_MONTH, npDay.value)
+            val selectedCal = Calendar.getInstance()
+            selectedCal.set(Calendar.YEAR, npYear.value)
+            selectedCal.set(Calendar.MONTH, npMonth.value)
+            selectedCal.set(Calendar.DAY_OF_MONTH, npDay.value)
 
-            selectedDateTimestamp = selectedCalendar.timeInMillis
-            updateDateText(editText, selectedDateTimestamp)
+            selectedDateTimestamp = selectedCal.timeInMillis
+            updateDateLabel(editText)
             dialog.dismiss()
         }
         dialog.show()
     }
 
-    private fun updateDateText(editText: EditText, timestamp: Long) {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = timestamp
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-        val month = calendar.get(Calendar.MONTH) + 1
-        val year = calendar.get(Calendar.YEAR)
-        editText.setText(String.format("%02d.%02d.%d", day, month, year))
+    /**
+     * Обновление метки даты.
+     */
+    private fun updateDateLabel(editText: EditText) {
+        val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+        editText.setText(sdf.format(Date(selectedDateTimestamp)))
     }
 }

@@ -23,6 +23,20 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
         setupSpinner()
         setupSpinnerListener()
 
+        // Кнопка Назад
+        view.findViewById<View>(R.id.btnBack).setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
+        // Текущая версия внизу
+        try {
+            val pInfo =
+                requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+            view.findViewById<TextView>(R.id.tvAppVersion).text =
+                "Текущая версия: ${pInfo.versionName}"
+        } catch (e: Exception) {
+        }
+
         if (versionNames.isNotEmpty()) {
             val initialVersionName = versionNames[0]
             infoText.text = versionDescriptions[initialVersionName]
@@ -38,12 +52,33 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
     private fun setupVersionData() {
         val descriptions = LinkedHashMap<String, String>()
 
-        descriptions["V 0.1"] =
-            "V 0.1.4\n Добавлено: \n– Установлена кнопка смотреть все на главном экране\n– Добавлена анимация биения сердца\n– Исправлена вкладка галерея и отображение последних воспоминаний в главном фрагменте\n– Добавлена политика конфиденциальности\n– Изменён прогресс бар при загрузке фотографии на профиле\n– Исправлена вкладка галерея. Добавлено долгое нажатие на фотографию\n– При нажатии на кнопку 'Редактировать профиль' открывается новая вкладка для редактирования\n– При нажатии на кнопку назад переходим на главный экран\n– При двойном нажатии кнопки назад на главной странице выходим из приложения" +
-                    "\n\nV 0.1.3 \nДобавлено: \n– Убрано панель управления\n– Переработано страница профиля\n– Исправлены мелкие недочёты\n– Исправлены вкладки календарь и профиль\n– Во вкладке профиль добавлены новые элементы" +
-                    "\n\nV 0.1.2 \nДобавлено: \n– Все кнопки рабочие\n– Дизайн окончательный\n– Окно для регистрации и входа сделаны" +
-                    "\n\nV 0.1.1 \nДобавлено:\n– Экран профиля\n– Настроен автовход\n– Выход из аккаунта\n– Возможность смены имени и изображения\n– Настроена панель 'Последние воспоминания\n– Страница галереи" +
-                    "\n\nV 0.1.0 \nДобавлено:\n– Языки русский и английский\n– Вход через email\n– Регистрация через email\n– Восстановление пароля\n– Экран приветствия\n– Настройка и запонение профиля"
+        // Данные обновлений
+        descriptions["V 0.1.x (Текущая)"] =
+            "V 0.1.5\n" +
+                    "• Добавлены записки для партнёра\n" +
+                    "• Добавлены статусы (эмодзи и текст)\n" +
+                    "• Новый дизайн выбора даты\n" +
+                    "• Возможность выбора обложки альбома\n" +
+                    "• Исправлена загрузка фото в галерее\n" +
+                    "• Обновлены экраны входа и регистрации\n\n" +
+                    "V 0.1.4\n" +
+                    "• Анимация сердца на главном экране\n" +
+                    "• Кнопка 'Смотреть все' в ленте\n" +
+                    "• Политика конфиденциальности\n" +
+                    "• Долгое нажатие на фото в галерее\n" +
+                    "• Защита от случайного выхода"
+
+        descriptions["V 0.0.x (Архив)"] =
+            "V 0.1.3\n" +
+                    "• Обновлен дизайн профиля\n" +
+                    "• Исправлены баги календаря\n\n" +
+                    "V 0.1.2\n" +
+                    "• Финальный дизайн кнопок\n" +
+                    "• Рабочая регистрация\n\n" +
+                    "V 0.1.1\n" +
+                    "• Экран профиля\n" +
+                    "• Автовход и выход\n" +
+                    "• Смена имени и фото"
 
         versionDescriptions = descriptions
         versionNames = ArrayList(descriptions.keys)
@@ -61,15 +96,11 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
             val selectedVersion = versionNames[position]
             val description = versionDescriptions[selectedVersion]
 
-            infoText.text = description ?: "$selectedVersion. Информация отсутствует."
+            infoText.text = description ?: "Информация отсутствует."
         }
 
         versionSpinner.setOnClickListener {
             versionSpinner.showDropDown()
         }
-    }
-
-    companion object {
-        private const val TAG = "VersionInfoFragment"
     }
 }

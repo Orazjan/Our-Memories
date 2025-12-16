@@ -17,6 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
@@ -89,187 +90,231 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/tvDaysCount" />
 
-                        <!-- Блок с аватарками -->
-                        <LinearLayout
+                        <!-- === СЕРДЦЕ (Центральный якорь) === -->
+                        <TextView
+                            android:id="@+id/tvHeartIcon"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="24dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
+                            android:layout_marginTop="50dp"
+                            android:text="❤️"
+                            android:textSize="40sp"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/tvDaysLabel">
+                            app:layout_constraintTop_toBottomOf="@id/tvDaysLabel"
+                            app:tint="@color/heart_red" />
 
-                            <!-- ЛЕВЫЙ ПОЛЬЗОВАТЕЛЬ (Я) -->
-                            <LinearLayout
-                                android:id="@+id/layoutMe"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_horizontal"
-                                android:orientation="vertical">
+                        <!-- === ЛЕВЫЙ ПОЛЬЗОВАТЕЛЬ (Я) === -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardMyAvatar"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:layout_marginEnd="16dp"
+                            app:cardBackgroundColor="@android:color/white"
+                            app:cardCornerRadius="40dp"
+                            app:cardElevation="2dp"
+                            app:layout_constraintBottom_toBottomOf="@id/tvHeartIcon"
+                            app:layout_constraintEnd_toStartOf="@id/tvHeartIcon"
+                            app:layout_constraintTop_toTopOf="@id/tvHeartIcon">
 
-                                <androidx.cardview.widget.CardView
-                                    android:layout_width="80dp"
-                                    android:layout_height="80dp"
-                                    app:cardBackgroundColor="@android:color/white"
-                                    app:cardCornerRadius="40dp"
-                                    app:cardElevation="2dp">
+                            <ImageView
+                                android:id="@+id/ivMyAvatar"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                tools:src="@tools:sample/avatars" />
+                        </androidx.cardview.widget.CardView>
 
-                                    <ImageView
-                                        android:id="@+id/ivMyAvatar"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:scaleType="centerCrop"
-                                        tools:src="@tools:sample/avatars" />
-                                </androidx.cardview.widget.CardView>
+                        <!-- Мой Статус (Пузырек) -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardMyStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="-4dp"
+                            android:layout_marginBottom="-4dp"
+                            android:visibility="gone"
+                            app:cardBackgroundColor="@color/white"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="6dp"
+                            app:contentPadding="4dp"
+                            app:layout_constraintBottom_toTopOf="@id/cardMyAvatar"
+                            app:layout_constraintEnd_toEndOf="@id/cardMyAvatar"
+                            tools:visibility="visible">
 
-                                <TextView
-                                    android:id="@+id/tvMyName"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:ellipsize="end"
-                                    android:fontFamily="@font/tiktokshrift"
-                                    android:maxWidth="90dp"
-                                    android:maxLines="1"
-                                    android:text="Я"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <!-- Сердечко -->
                             <TextView
-                                android:id="@+id/tvHeartIcon"
+                                android:id="@+id/tvMyStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginHorizontal="16dp"
-                                android:layout_marginTop="10sp"
-                                android:layout_marginBottom="20dp"
-                                android:gravity="center|bottom"
-                                android:text="❤️"
-                                android:textSize="40sp"
-                                app:tint="@color/heart_red" />
+                                android:ellipsize="end"
+                                android:gravity="center"
+                                android:maxWidth="100dp"
+                                android:maxHeight="150sp"
+                                android:paddingHorizontal="4dp"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                tools:text="Я тебя очень люблю d" />
+                        </androidx.cardview.widget.CardView>
 
-                            <!-- ПРАВЫЙ ПОЛЬЗОВАТЕЛЬ (ПАРТНЕР) -->
-                            <LinearLayout
-                                android:id="@+id/layoutPartner"
+                        <TextView
+                            android:id="@+id/tvMyName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/tiktokshrift"
+                            android:maxWidth="100dp"
+                            android:maxLines="1"
+                            android:text="Я"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="@id/cardMyAvatar"
+                            app:layout_constraintStart_toStartOf="@id/cardMyAvatar"
+                            app:layout_constraintTop_toBottomOf="@id/cardMyAvatar" />
+
+
+                        <!-- === ПРАВЫЙ ПОЛЬЗОВАТЕЛЬ (ПАРТНЕР) === -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardPartnerAvatar"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:layout_marginStart="16dp"
+                            app:cardBackgroundColor="@android:color/white"
+                            app:cardCornerRadius="40dp"
+                            app:cardElevation="2dp"
+                            app:layout_constraintBottom_toBottomOf="@id/tvHeartIcon"
+                            app:layout_constraintStart_toEndOf="@id/tvHeartIcon"
+                            app:layout_constraintTop_toTopOf="@id/tvHeartIcon">
+
+                            <ImageView
+                                android:id="@+id/ivPartnerAvatar"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="20dp"
+                                android:scaleType="centerCrop"
+                                android:src="@android:drawable/ic_input_add"
+                                app:tint="@color/text_secondary" />
+                        </androidx.cardview.widget.CardView>
+
+                        <!-- Статус Партнера -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardPartnerStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="-30dp"
+                            android:layout_marginBottom="-4dp"
+                            android:visibility="gone"
+                            app:cardBackgroundColor="@color/white"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="6dp"
+                            app:contentPadding="4dp"
+                            app:layout_constraintBottom_toTopOf="@id/cardPartnerAvatar"
+                            app:layout_constraintEnd_toEndOf="@id/cardPartnerAvatar"
+                            tools:visibility="visible">
+
+                            <TextView
+                                android:id="@+id/tvPartnerStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:gravity="center_horizontal"
-                                android:orientation="vertical">
+                                android:ellipsize="end"
+                                android:gravity="center"
+                                android:maxWidth="100dp"
+                                android:maxHeight="150sp"
+                                android:paddingHorizontal="4dp"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                tools:text="Я тебя очень люблю" />
+                        </androidx.cardview.widget.CardView>
 
-                                <androidx.cardview.widget.CardView
-                                    android:layout_width="80dp"
-                                    android:layout_height="80dp"
-                                    app:cardBackgroundColor="@android:color/white"
-                                    app:cardCornerRadius="40dp"
-                                    app:cardElevation="2dp">
+                        <TextView
+                            android:id="@+id/tvPartnerName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/tiktokshrift"
+                            android:maxWidth="100dp"
+                            android:maxLines="1"
+                            android:text="@string/invite"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="@id/cardPartnerAvatar"
+                            app:layout_constraintStart_toStartOf="@id/cardPartnerAvatar"
+                            app:layout_constraintTop_toBottomOf="@id/cardPartnerAvatar" />
 
-                                    <ImageView
-                                        android:id="@+id/ivPartnerAvatar"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:padding="20dp"
-                                        android:scaleType="centerCrop"
-                                        android:src="@android:drawable/ic_input_add"
-                                        app:tint="@color/text_secondary" />
-                                </androidx.cardview.widget.CardView>
+                        <!-- КЛИКАБЕЛЬНАЯ ЗОНА ДЛЯ ПАРТНЕРА (Прозрачный слой) -->
+                        <LinearLayout
+                            android:id="@+id/layoutPartner"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:orientation="vertical"
+                            app:layout_constraintBottom_toBottomOf="@id/tvPartnerName"
+                            app:layout_constraintEnd_toEndOf="@id/cardPartnerAvatar"
+                            app:layout_constraintStart_toStartOf="@id/cardPartnerAvatar"
+                            app:layout_constraintTop_toTopOf="@id/cardPartnerAvatar" />
 
-                                <TextView
-                                    android:id="@+id/tvPartnerName"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:ellipsize="end"
-                                    android:fontFamily="@font/tiktokshrift"
-                                    android:maxWidth="90dp"
-                                    android:maxLines="1"
-                                    android:text="@string/invite"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-                        </LinearLayout>
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- === ЗАГОЛОВОК "ПОСЛЕДНИЕ ВОСПОМИНАНИЯ" === -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginTop="32dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-bold"
-                        android:text="@string/last_memories"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/tvSeeAllMemories"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/see_all"
-                        android:textColor="@color/primary_lavender"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:visibility="gone" /> <!-- Скрыто если пусто -->
-                </LinearLayout>
-
-                <!-- === 1. СОСТОЯНИЕ: НЕТ ВОСПОМИНАНИЙ (Empty State) === -->
-                <LinearLayout
-                    android:id="@+id/layoutEmptyMemories"
+                <!-- === ЗАПИСКА НА ХОЛОДИЛЬНИКЕ (НОВОЕ) === -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardFridge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_input_field"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="32dp"
-                    android:visibility="visible"> <!-- Виден по умолчанию -->
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:cardBackgroundColor="#FFF9C4"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
 
-                    <ImageView
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
-                        android:src="@android:drawable/ic_menu_gallery"
-                        app:tint="#E0E0E0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:gravity="center"
-                        android:text="Пока у вас нет общих воспоминаний"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="16sp" />
-                </LinearLayout>
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                <!-- === 2. СОСТОЯНИЕ: ЕСТЬ ВОСПОМИНАНИЯ (Динамическая лента) === -->
-                <!-- Заменили HorizontalScrollView на RecyclerView для динамических данных -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvRecentMemories"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:clipToPadding="false"
-                    android:orientation="horizontal"
-                    android:overScrollMode="never"
-                    android:paddingHorizontal="16dp"
-                    android:visibility="gone"
-                    tools:listitem="@layout/item_memory_horizontal" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@android:drawable/ic_menu_edit"
+                                app:tint="#FBC02D" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="На холодильнике"
+                                android:textColor="#FBC02D"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvFridgeNote"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="Оставьте записку для любимого человека..."
+                            android:textColor="#5D4037"
+                            android:textSize="18sp" />
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

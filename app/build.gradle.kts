@@ -6,7 +6,7 @@ plugins {
 
 }
 
-val version = "0.1"
+val version = "0.1.5"
 
 android {
     namespace = "com.example.ourmemories"
@@ -19,6 +19,9 @@ android {
         versionCode = 1
         versionName = version
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

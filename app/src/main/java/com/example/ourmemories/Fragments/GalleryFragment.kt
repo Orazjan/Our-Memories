@@ -16,8 +16,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Adapters.MemoryAdapter
 import com.example.ourmemories.Models.Memory
@@ -47,7 +47,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
     private var isNewestFirst = true
 
     // Пагинация
-    private var queryLimit: Long = 20 // Начинаем с 20 фото
+    private var queryLimit: Long = 20
     private var isLoadingMore = false
 
     private var userListener: ListenerRegistration? = null
@@ -71,14 +71,14 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         val btnSearch = view.findViewById<View>(R.id.btnSearch)
         val btnSort = view.findViewById<View>(R.id.btnSort)
 
-        // Настройка RecyclerView
-        val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        layoutManager.gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
+        // Настройка RecyclerView (Вертикальный список альбомов)
+        val layoutManager = LinearLayoutManager(context)
         rvGallery.layoutManager = layoutManager
         rvGallery.itemAnimator = null
 
-        // Инициализация адаптера с обработкой долгого нажатия
-        adapter = MemoryAdapter(onClick = { memory ->
+        // Инициализация адаптера с макетом АЛЬБОМА
+        adapter = MemoryAdapter(layoutResId = R.layout.item_album, onClick = { memory ->
+            // Открытие деталей (обычный клик)
             val detailFragment = MemoryDetailFragment.newInstance(
                 memory.id,
                 memory.title,
@@ -116,7 +116,6 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             override fun afterTextChanged(s: Editable?) {
                 filterMemories(s.toString())
             }
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
@@ -138,12 +137,11 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
                 }
 
                 // Пагинация (подгрузка при достижении низа)
-                val visibleItemPositions = layoutManager.findLastVisibleItemPositions(null)
-                val maxVisibleItemPosition = visibleItemPositions.maxOrNull() ?: 0
+                val visibleItemCount = layoutManager.childCount
                 val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
 
-                if (!isLoadingMore && totalItemCount > 0 && maxVisibleItemPosition >= totalItemCount - 4) {
-                    // Если до конца осталось меньше 4 элементов — грузим еще
+                if (!isLoadingMore && (visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
                     isLoadingMore = true
                     loadMoreMemories(tvEmpty, swipeRefresh)
                 }
@@ -171,9 +169,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
     }
 
     private fun loadMoreMemories(tvEmpty: View, swipeRefresh: SwipeRefreshLayout) {
-        // Увеличиваем лимит и перезапускаем слушатель
         queryLimit += 20
-        // Небольшая задержка, чтобы не спамить запросами
         Handler(Looper.getMainLooper()).postDelayed({
             if (currentUidsToLoad != null) {
                 setupMemoriesListener(currentUidsToLoad!!, tvEmpty, swipeRefresh)
@@ -181,7 +177,10 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         }, 500)
     }
 
-    // === ДИАЛОГ ОПЦИЙ (Long Press) ===
+
+    /**
+     * ДИАЛОГ ОПЦИЙ (Long press)
+     */
     private fun showMemoryOptions(memory: Memory) {
         val options = arrayOf("Поделиться", "Удалить")
         AlertDialog.Builder(requireContext()).setTitle(memory.title.ifEmpty { "Воспоминание" })
@@ -193,8 +192,10 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             }.show()
     }
 
+    /**
+     * ПОДЕЛИТЬСЯ
+     */
     private fun shareMemoryImage(memory: Memory) {
-        // Просто отправляем ссылку текстом (для простоты)
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, "Посмотри наше воспоминание! ${memory.imageUrl}")
@@ -203,6 +204,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         startActivity(Intent.createChooser(shareIntent, "Поделиться"))
     }
 
+    /**
+     * Удаление
+     */
     private fun confirmDelete(memory: Memory) {
         AlertDialog.Builder(requireContext()).setTitle("Удалить фото?")
             .setPositiveButton("Удалить") { _, _ ->
@@ -210,6 +214,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             }.setNegativeButton("Отмена", null).show()
     }
 
+    /**
+     * УДАЛЕНИЕ
+     */
     private fun deleteMemory(memory: Memory) {
         lifecycleScope.launch {
             try {
@@ -231,9 +238,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         }
     }
 
-    // ... (Остальные методы: showSortMenu, reloadMemories, filterMemories, applySort, setupUserListener) ...
-    // Они остаются такими же, как в предыдущей версии, но я их включу для полноты картины
-
+    /**
+     * ВЫБОР СОРТИРОВКИ
+     */
     private fun showSortMenu(anchor: View) {
         val popup = PopupMenu(context, anchor)
         popup.menu.add(0, 1, 0, "Сначала новые")
@@ -257,6 +264,10 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         popup.show()
     }
 
+    /**
+     * ОБНОВЛЕНИЕ
+     *
+     */
     private fun reloadMemories() {
         if (currentUidsToLoad != null) {
             val tvEmpty = view?.findViewById<View>(R.id.tvEmptyGallery)
@@ -268,6 +279,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         }
     }
 
+    /**
+     * ФИЛЬТР
+     */
     private fun filterMemories(query: String) {
         val filteredList = if (query.isEmpty()) allMemories else allMemories.filter {
             it.title.contains(query, ignoreCase = true) || it.description.contains(
@@ -279,13 +293,12 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         adapter.submitList(sortedList)
     }
 
-    private fun applySort() {
-        val query = view?.findViewById<EditText>(R.id.etSearch)?.text.toString()
-        filterMemories(query)
-    }
-
+    /**
+     * ОБРАБОТКА ИЗМЕНЕНИЙ ПОЛЬЗОВАТЕЛЯ
+     */
     private fun setupUserListener(tvEmpty: View, swipeRefresh: SwipeRefreshLayout) {
         val myUid = auth.currentUser?.uid ?: return
+        swipeRefresh.isRefreshing = true
         userListener?.remove()
         userListener = db.collection("users").document(myUid).addSnapshotListener { snapshot, e ->
             if (!isAdded) return@addSnapshotListener
@@ -308,6 +321,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         }
     }
 
+    /**
+     * ОБРАБОТКА ИЗМЕНЕНИЙ АЛЬБОМА
+     */
     private fun setupMemoriesListener(
         uids: List<String>, tvEmpty: View, swipeRefresh: SwipeRefreshLayout
     ) {
@@ -316,10 +332,8 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
 
         memoriesListener =
             db.collection("memories").whereIn("uploaderUid", uids).orderBy("timestamp", direction)
-                // Используем динамический лимит
                 .limit(queryLimit).addSnapshotListener { snapshots, e ->
-                    isLoadingMore = false // Сброс флага загрузки
-
+                    isLoadingMore = false
                     if (e != null) {
                         if (isAdded) swipeRefresh.isRefreshing = false
                         return@addSnapshotListener
@@ -329,7 +343,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
                         allMemories = snapshots.map { doc ->
                             doc.toObject(Memory::class.java).copy(id = doc.id)
                         }
-                        applySort()
+                        // Применяем фильтр (если есть текст поиска) и отправляем в адаптер
+                        filterMemories(view?.findViewById<EditText>(R.id.etSearch)?.text.toString())
+
                         if (isAdded) {
                             tvEmpty.visibility =
                                 if (allMemories.isEmpty()) View.VISIBLE else View.GONE

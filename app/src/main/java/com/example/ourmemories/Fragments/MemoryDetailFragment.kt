@@ -1,34 +1,41 @@
 package com.example.ourmemories.Fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
+import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.ourmemories.R
+import com.example.ourmemories.Utils.GlideHelper
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
+import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
     private val db = Firebase.firestore
     private val storage = Firebase.storage
-    private val auth = FirebaseAuth.getInstance()
+
+    // Данные альбома
+    private var memoryId: String = ""
+    private var imagesList = mutableListOf<String>()
+    private var currentTimestamp: Long = 0
 
     companion object {
         fun newInstance(
@@ -39,7 +46,6 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             timestamp: Long,
             uploaderUid: String
         ): MemoryDetailFragment {
-            val fragment = MemoryDetailFragment()
             val args = Bundle()
             args.putString("id", id)
             args.putString("title", title)
@@ -47,6 +53,7 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             args.putString("imageUrl", imageUrl)
             args.putLong("timestamp", timestamp)
             args.putString("uploaderUid", uploaderUid)
+            val fragment = MemoryDetailFragment()
             fragment.arguments = args
             return fragment
         }
@@ -55,137 +62,245 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val id = arguments?.getString("id") ?: ""
-        var title = arguments?.getString("title") ?: ""
-        var description = arguments?.getString("description") ?: ""
-        val imageUrl = arguments?.getString("imageUrl") ?: ""
-        val timestamp = arguments?.getLong("timestamp") ?: 0L
+        val args = arguments ?: return
+        memoryId = args.getString("id") ?: return
+        val title = args.getString("title") ?: ""
+        val description = args.getString("description") ?: ""
+        currentTimestamp = args.getLong("timestamp")
+        val coverUrl = args.getString("imageUrl") ?: ""
 
-        val ivFullImage = view.findViewById<ImageView>(R.id.ivFullImage)
+        // Инициализация Views
+        val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
+        val ivCover = view.findViewById<ImageView>(R.id.ivCover)
         val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val tvDescription = view.findViewById<TextView>(R.id.tvDescription)
         val tvDate = view.findViewById<TextView>(R.id.tvDate)
-        val btnBack = view.findViewById<View>(R.id.btnBack)
-        val btnDelete = view.findViewById<View>(R.id.btnDelete)
         val btnEdit = view.findViewById<View>(R.id.btnEdit)
+        val rvPhotos = view.findViewById<RecyclerView>(R.id.rvPhotos)
 
-        // Кнопки видны всем (общая собственность)
-        btnDelete.visibility = View.VISIBLE
-        btnEdit.visibility = View.VISIBLE
+        // Настройка Toolbar
+        toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
+        // Заполнение данными
         tvTitle.text = title
         tvDescription.text = description
-        val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-        tvDate.text = sdf.format(timestamp)
+        updateDateText(tvDate, currentTimestamp)
+        GlideHelper.loadGalleryImage(ivCover, coverUrl)
 
-        Glide.with(this)
-            .load(imageUrl)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .into(ivFullImage)
+        // Настройка сетки фото (3 колонки)
+        rvPhotos.layoutManager = GridLayoutManager(context, 3)
+        val adapter = AlbumPhotosAdapter(images = imagesList, onClick = { position ->
+            // Открываем полноэкранный просмотр
+            openFullScreenViewer(position)
+        }, onLongClick = { url ->
+            // Предлагаем сделать обложкой
+            showSetCoverDialog(url, ivCover)
+        })
+        rvPhotos.adapter = adapter
 
-        btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
+        // Загрузка списка фото из базы
+        loadImages(coverUrl, adapter)
 
-        btnDelete.setOnClickListener { showDeleteDialog(id, imageUrl) }
-
+        // Редактирование
         btnEdit.setOnClickListener {
-            showEditDialog(id, title, description) { newTitle, newDesc ->
-                // Обновляем UI локально
-                tvTitle.text = newTitle
-                tvDescription.text = newDesc
-                title = newTitle
-                description = newDesc
+            showEditDialog(tvTitle, tvDescription, tvDate)
+        }
+    }
+
+    private fun loadImages(coverUrl: String, adapter: AlbumPhotosAdapter) {
+        db.collection("memories").document(memoryId).get().addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                // Если поле images есть - берем его, если нет - берем imageUrl как одно фото
+                val list = document.get("images") as? List<String>
+                    ?: listOf(coverUrl).filter { it.isNotEmpty() }
+
+                imagesList.clear()
+                imagesList.addAll(list)
+                adapter.notifyDataSetChanged()
             }
         }
     }
 
-    private fun showEditDialog(
-        id: String,
-        currentTitle: String,
-        currentDesc: String,
-        onUpdated: (String, String) -> Unit
-    ) {
-        val dialogView = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(50, 40, 50, 10)
+    private fun openFullScreenViewer(position: Int) {
+        // Передаем список URL и позицию в новый фрагмент просмотра
+        val viewerFragment = PhotoViewerFragment.newInstance(ArrayList(imagesList), position)
+
+        parentFragmentManager.beginTransaction().setCustomAnimations(
+            android.R.anim.fade_in,
+            android.R.anim.fade_out,
+            android.R.anim.fade_in,
+            android.R.anim.fade_out
+        ).add(R.id.fragment_container, viewerFragment) // Add поверх текущего
+            .addToBackStack(null).commit()
+    }
+
+    private fun showEditDialog(tvTitle: TextView, tvDesc: TextView, tvDate: TextView) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_memory, null)
+        val etTitle = dialogView.findViewById<EditText>(R.id.etEditTitle)
+        val etDesc = dialogView.findViewById<EditText>(R.id.etEditDesc)
+        val etDateView = dialogView.findViewById<TextView>(R.id.tvEditDate)
+
+        etTitle.setText(tvTitle.text)
+        etDesc.setText(tvDesc.text)
+
+        // Временная метка для диалога
+        var newTimestamp = currentTimestamp
+        val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        etDateView.text = sdf.format(Date(newTimestamp))
+
+        // Используем кастомный пикер даты
+        etDateView.setOnClickListener {
+            showWheelDatePicker(newTimestamp) { selectedTime ->
+                newTimestamp = selectedTime
+                etDateView.text = sdf.format(Date(newTimestamp))
+            }
         }
 
-        val etTitle = EditText(context).apply {
-            hint = "Название"
-            setText(currentTitle)
-        }
-        val etDesc = EditText(context).apply {
-            hint = "Описание"
-            setText(currentDesc)
-            minLines = 3
-        }
-
-        dialogView.addView(etTitle)
-        dialogView.addView(etDesc)
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Редактировать")
+        AlertDialog.Builder(requireContext()).setTitle("Редактировать альбом")
             .setView(dialogView)
             .setPositiveButton("Сохранить") { _, _ ->
                 val newTitle = etTitle.text.toString().trim()
                 val newDesc = etDesc.text.toString().trim()
-                updateMemory(id, newTitle, newDesc, onUpdated)
+
+                if (newTitle.isNotEmpty()) {
+                    saveChanges(newTitle, newDesc, newTimestamp)
+                    tvTitle.text = newTitle
+                    tvDesc.text = newDesc
+                    currentTimestamp = newTimestamp
+                    updateDateText(tvDate, currentTimestamp)
+                }
             }
             .setNegativeButton("Отмена", null)
             .show()
     }
 
-    private fun updateMemory(
-        id: String,
-        title: String,
-        desc: String,
-        onUpdated: (String, String) -> Unit
-    ) {
-        lifecycleScope.launch {
-            try {
-                db.collection("memories").document(id)
-                    .update(mapOf("title" to title, "description" to desc))
-                    .await()
+    /**
+     * Показывает диалоговое окно для выбора даты.
+     */
+    private fun showWheelDatePicker(initialTimestamp: Long, onDateSelected: (Long) -> Unit) {
+        val dialog = BottomSheetDialog(
+            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
+        )
+        dialog.setContentView(R.layout.dialog_wheel_date_picker)
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Обновлено!", Toast.LENGTH_SHORT).show()
-                    onUpdated(title, desc)
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
+        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
+        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth)!!
+        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear)!!
+        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate)!!
+
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = initialTimestamp
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+        npYear.minValue = 1980
+        npYear.maxValue = currentYear
+        npYear.value = calendar.get(Calendar.YEAR)
+        npYear.wrapSelectorWheel = false
+
+        val months = DateFormatSymbols(Locale.getDefault()).shortMonths
+        npMonth.minValue = 0
+        npMonth.maxValue = months.size - 1
+        npMonth.displayedValues = months
+        npMonth.value = calendar.get(Calendar.MONTH)
+
+        npDay.minValue = 1
+        npDay.maxValue = 31
+        npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
+
+        fun updateDaysInMonth() {
+            val cal = Calendar.getInstance()
+            cal.set(Calendar.YEAR, npYear.value)
+            cal.set(Calendar.MONTH, npMonth.value)
+            cal.set(Calendar.DAY_OF_MONTH, 1)
+            npDay.maxValue = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        }
+
+        npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
+        npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
+        updateDaysInMonth()
+
+        btnConfirm.setOnClickListener {
+            val selectedCal = Calendar.getInstance()
+            selectedCal.set(Calendar.YEAR, npYear.value)
+            selectedCal.set(Calendar.MONTH, npMonth.value)
+            selectedCal.set(Calendar.DAY_OF_MONTH, npDay.value)
+
+            onDateSelected(selectedCal.timeInMillis)
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
+    /**
+     * Сохранение изменений в базе данных.
+     */
+    private fun saveChanges(title: String, desc: String, timestamp: Long) {
+        db.collection("memories").document(memoryId).update(
+            mapOf(
+                "title" to title, "description" to desc, "timestamp" to timestamp
+            )
+        ).addOnSuccessListener {
+            Toast.makeText(context, "Сохранено", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun showDeleteDialog(memoryId: String, imageUrl: String) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Удалить воспоминание?")
-            .setMessage("Это действие удалит фото у обоих партнеров.")
-            .setPositiveButton("Удалить") { _, _ ->
-                lifecycleScope.launch { deleteMemory(memoryId, imageUrl) }
+    /**
+     * Предлагаем сделать выбранное фото обложкой.
+     */
+    private fun showSetCoverDialog(url: String, ivCover: ImageView) {
+        AlertDialog.Builder(requireContext()).setTitle("Сделать обложкой?")
+            .setMessage("Это фото будет отображаться в ленте.").setPositiveButton("Да") { _, _ ->
+                db.collection("memories").document(memoryId).update("imageUrl", url)
+                    .addOnSuccessListener {
+                        GlideHelper.loadGalleryImage(ivCover, url)
+                        Toast.makeText(context, "Обложка обновлена", Toast.LENGTH_SHORT).show()
+                    }
             }
             .setNegativeButton("Отмена", null)
             .show()
     }
 
-    private suspend fun deleteMemory(memoryId: String, imageUrl: String) {
-        try {
-            db.collection("memories").document(memoryId).delete().await()
-            if (imageUrl.isNotEmpty()) {
-                try {
-                    storage.getReferenceFromUrl(imageUrl).delete().await()
-                } catch (e: Exception) {
-                }
-            }
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Удалено", Toast.LENGTH_SHORT).show()
-                parentFragmentManager.popBackStack()
-            }
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+    /**
+     * Обновление текста даты на экране.
+     */
+    private fun updateDateText(textView: TextView, timestamp: Long) {
+        if (timestamp > 0) {
+            val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+            textView.text = sdf.format(Date(timestamp)).uppercase()
+        }
+    }
+
+    /**
+     * Адаптер для сетки фото в фрагменте просмотра альбома.
+     */
+    class AlbumPhotosAdapter(
+        private val images: List<String>,
+        private val onClick: (Int) -> Unit,
+        private val onLongClick: (String) -> Unit
+    ) : RecyclerView.Adapter<AlbumPhotosAdapter.ViewHolder>() {
+
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            // Используем стандартный item_memory, так как он квадратный и подходит для сетки
+            val imageView: ImageView = view.findViewById(R.id.ivMemory)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view =
+                LayoutInflater.from(parent.context).inflate(R.layout.item_memory, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val url = images[position]
+            GlideHelper.loadGalleryImage(holder.imageView, url)
+
+            holder.itemView.setOnClickListener { onClick(position) }
+            holder.itemView.setOnLongClickListener {
+                onLongClick(url)
+                true
             }
         }
+
+        override fun getItemCount() = images.size
     }
 }
