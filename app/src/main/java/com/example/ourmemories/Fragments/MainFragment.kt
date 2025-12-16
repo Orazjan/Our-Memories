@@ -122,11 +122,15 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             etNote.setText(currentText)
         }
 
-        AlertDialog.Builder(requireContext()).setTitle("Записка на холодильнике")
-            .setView(dialogView).setPositiveButton("Сохранить") { _, _ ->
+        AlertDialog.Builder(requireContext())
+            .setTitle("Записка для тебя")
+            .setView(dialogView)
+            .setPositiveButton("Сохранить") { _, _ ->
                 val newNote = etNote.text.toString().trim()
                 updateSharedNote(newNote)
-            }.setNegativeButton("Отмена", null).show()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
 
     private fun updateSharedNote(text: String) {
@@ -139,16 +143,14 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val myRef = db.collection("users").document(myUid)
         batch.update(myRef, updates)
 
-        // Если есть партнер - обновляем и у него (чтобы он увидел сразу)
+        // Если есть партнер - обновляем и у него
         if (currentPartnerUid != null) {
             val partnerRef = db.collection("users").document(currentPartnerUid!!)
             batch.update(partnerRef, updates)
         }
 
         batch.commit().addOnSuccessListener {
-            Toast.makeText(
-                context, "Записка обновлена!", Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(context, "Записка обновлена!", Toast.LENGTH_SHORT).show()
         }.addOnFailureListener {
             Toast.makeText(context, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
         }
@@ -178,21 +180,34 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 val myName = document.getString("name") ?: "Я"
                 val myPhotoUrl = document.getString("photoUrl")
                 val myStatus = document.getString("status")
+                val sharedNote = document.getString("sharedNote")
 
                 val tvMyName = view.findViewById<TextView>(R.id.tvMyName)
                 val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
                 val tvMyStatus = view.findViewById<TextView>(R.id.tvMyStatus)
                 val cardMyStatus = view.findViewById<View>(R.id.cardMyStatus)
 
+                val tvFridgeNote = view.findViewById<TextView>(R.id.tvFridgeNote)
+
                 tvMyName.text = myName
                 GlideHelper.loadAvatar(ivMyAvatar, myPhotoUrl, "MY_AVATAR")
 
-                // Обновляем UI статуса
+                // Статус
                 if (!myStatus.isNullOrEmpty()) {
                     cardMyStatus.visibility = View.VISIBLE
                     tvMyStatus.text = myStatus
                 } else {
                     cardMyStatus.visibility = View.GONE
+                }
+
+                if (tvFridgeNote != null) {
+                    if (!sharedNote.isNullOrEmpty()) {
+                        tvFridgeNote.text = sharedNote
+                        val textForyour = view.findViewById<TextView>(R.id.tvTextForYou)
+                        textForyour.text = "Нажмите чтобы оставить записку"
+                    } else {
+                        tvFridgeNote.text = "Оставьте записку для любимого человека..."
+                    }
                 }
 
                 val relationshipDate = document.getLong("relationshipDate")
@@ -210,8 +225,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                     tvDaysCount.alpha = 0.5f
                 }
 
-                val uidsToLoad = mutableListOf(myUid)
-                if (partnerUid != null) uidsToLoad.add(partnerUid)
+                // Кэшируем ID партнера для обновления записки
+                currentPartnerUid = partnerUid
 
                 handlePartnerState(view, myUid, partnerUid)
             }
