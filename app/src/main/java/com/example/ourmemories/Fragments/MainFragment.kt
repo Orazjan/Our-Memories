@@ -1,6 +1,5 @@
 package com.example.ourmemories.Fragments
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +13,7 @@ import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.NumberPicker
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -45,6 +45,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private var currentPartnerUid: String? = null
     private var currentRelationshipTimestamp: Long? = null
 
+    // Переменная для хранения текущих очков дерева
+    private var currentTreePoints: Long = 0
+
     // === ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ ДНЕЙ ===
     private val updateHandler = Handler(Looper.getMainLooper())
     private val updateRunnable = Runnable {
@@ -65,19 +68,25 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
         val cardMyStatus = view.findViewById<View>(R.id.cardMyStatus)
+
+        // 1. Записка на холодильнике
         val cardFridge = view.findViewById<View>(R.id.cardFridge)
         cardFridge?.setOnClickListener {
             showEditNoteDialog()
         }
 
-        // Анимация сердца
+        // 2. Дерево Любви
+        val cardTree = view.findViewById<View>(R.id.cardTree)
+        cardTree?.setOnClickListener {
+            showTreeDialog()
+        }
+
+        // 3. Анимация сердца
         val tvHeart = view.findViewById<TextView>(R.id.tvHeartIcon)
         if (tvHeart != null) {
             val pulseAnimation = AnimationUtils.loadAnimation(context, R.anim.heart_beat)
             tvHeart.startAnimation(pulseAnimation)
         }
-
-        // Настройка списка (ЛЕНТА)
 
         tvDaysCount.isEnabled = false
         tvDaysCount.alpha = 0.5f
@@ -100,6 +109,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             if (user != null) showStatusPickerDialog(user.uid)
         }
 
+        // Swipe Refresh
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light)
         swipeRefreshLayout.setOnRefreshListener {
             Log.d(TAG, "Свайп обновления")
@@ -111,6 +121,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         scheduleNextUpdate()
     }
 
+    // === ЛОГИКА ЗАПИСКИ ===
     private fun showEditNoteDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_edit_note, null)
         val etNote = dialogView.findViewById<EditText>(R.id.etNote)
@@ -122,8 +133,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             etNote.setText(currentText)
         }
 
-        AlertDialog.Builder(requireContext())
-            .setTitle("Записка для тебя")
+        AlertDialog.Builder(requireContext()).setTitle("Записка на холодильнике")
             .setView(dialogView)
             .setPositiveButton("Сохранить") { _, _ ->
                 val newNote = etNote.text.toString().trim()
@@ -143,22 +153,68 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val myRef = db.collection("users").document(myUid)
         batch.update(myRef, updates)
 
-        // Если есть партнер - обновляем и у него
+        // Если есть партнер - обновляем и у него (чтобы он увидел сразу)
         if (currentPartnerUid != null) {
             val partnerRef = db.collection("users").document(currentPartnerUid!!)
             batch.update(partnerRef, updates)
         }
 
         batch.commit().addOnSuccessListener {
-            Toast.makeText(context, "Записка обновлена!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context, "Записка обновлена!", Toast.LENGTH_SHORT
+            ).show()
         }.addOnFailureListener {
             Toast.makeText(context, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
         }
     }
 
-    /**
-     * Инициализация слушателей
-     */
+    // === ДЕРЕВО ЛЮБВИ (UI + Диалог) ===
+    private fun updateTreeUI(points: Long) {
+        currentTreePoints = points
+        val ivTree = view?.findViewById<ImageView>(R.id.ivTreeIcon)
+        val tvLevel = view?.findViewById<TextView>(R.id.tvTreeLevel)
+        val progress = view?.findViewById<ProgressBar>(R.id.progressTree)
+
+        if (ivTree == null) return
+
+        var maxPoints = 50
+        var levelName = "Росток"
+        var iconRes = R.drawable.ic_tree_stage_1
+
+        if (points >= 1000) {
+            maxPoints = 2000; levelName = "Древо Вечной Любви"; iconRes =
+                R.drawable.ic_tree_stage_10
+        } else if (points >= 800) {
+            maxPoints = 1000; levelName = "Волшебное Дерево"; iconRes = R.drawable.ic_tree_stage_9
+        } else if (points >= 650) {
+            maxPoints = 800; levelName = "Изобильное Дерево"; iconRes = R.drawable.ic_tree_stage_8
+        } else if (points >= 500) {
+            maxPoints = 650; levelName = "Дерево Любви"; iconRes = R.drawable.ic_tree_stage_7
+        } else if (points >= 350) {
+            maxPoints = 500; levelName = "Цветущее Дерево"; iconRes = R.drawable.ic_tree_stage_6
+        } else if (points >= 200) {
+            maxPoints = 350; levelName = "Взрослое Дерево"; iconRes = R.drawable.ic_tree_stage_5
+        } else if (points >= 100) {
+            maxPoints = 200; levelName = "Крепкое Дерево"; iconRes = R.drawable.ic_tree_stage_4
+        } else if (points >= 50) {
+            maxPoints = 100; levelName = "Молодое Дерево"; iconRes = R.drawable.ic_tree_stage_3
+        } else if (points >= 20) {
+            maxPoints = 50; levelName = "Саженец"; iconRes = R.drawable.ic_tree_stage_2
+        }
+
+        ivTree.setImageResource(iconRes)
+        tvLevel?.text = "$levelName ($points очков)"
+        progress?.max = maxPoints
+        progress?.progress = points.toInt()
+    }
+
+    private fun showTreeDialog() {
+        AlertDialog.Builder(requireContext()).setTitle("🌳 Дерево Любви")
+            .setMessage("Растите ваше дерево, заходя в приложение и добавляя воспоминания!\n\nТекущие очки: $currentTreePoints")
+            .setPositiveButton("Отлично") { _, _ -> }.show()
+    }
+
+    // === СЛУШАТЕЛИ FIREBASE ===
     private fun setupListeners(view: View) {
         val currentUser = auth.currentUser
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
@@ -174,25 +230,32 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         myListener = db.collection("users").document(myUid).addSnapshotListener { document, e ->
             swipeRefreshLayout.isRefreshing = false
-            if (e != null) return@addSnapshotListener
+            if (e != null) {
+                Log.e(TAG, "Ошибка слушателя: ${e.message}")
+                return@addSnapshotListener
+            }
 
             if (isAdded && document != null && document.exists()) {
                 val myName = document.getString("name") ?: "Я"
                 val myPhotoUrl = document.getString("photoUrl")
                 val myStatus = document.getString("status")
+                // === 1. ЧИТАЕМ ЗАПИСКУ ===
                 val sharedNote = document.getString("sharedNote")
+                // === 2. ЧИТАЕМ ОЧКИ ДЕРЕВА ===
+                val treePoints = document.getLong("treePoints") ?: 0
 
                 val tvMyName = view.findViewById<TextView>(R.id.tvMyName)
                 val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
                 val tvMyStatus = view.findViewById<TextView>(R.id.tvMyStatus)
                 val cardMyStatus = view.findViewById<View>(R.id.cardMyStatus)
-
+                // === 3. НАХОДИМ TextView ЗАПИСКИ ===
                 val tvFridgeNote = view.findViewById<TextView>(R.id.tvFridgeNote)
 
                 tvMyName.text = myName
                 GlideHelper.loadAvatar(ivMyAvatar, myPhotoUrl, "MY_AVATAR")
+                updateTreeUI(treePoints) // Обновляем дерево
 
-                // Статус
+                // Обновляем UI статуса
                 if (!myStatus.isNullOrEmpty()) {
                     cardMyStatus.visibility = View.VISIBLE
                     tvMyStatus.text = myStatus
@@ -200,11 +263,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                     cardMyStatus.visibility = View.GONE
                 }
 
+                // === 4. ОТОБРАЖАЕМ ЗАПИСКУ ===
                 if (tvFridgeNote != null) {
                     if (!sharedNote.isNullOrEmpty()) {
                         tvFridgeNote.text = sharedNote
-                        val textForyour = view.findViewById<TextView>(R.id.tvTextForYou)
-                        textForyour.text = "Нажмите чтобы оставить записку"
                     } else {
                         tvFridgeNote.text = "Оставьте записку для любимого человека..."
                     }
@@ -213,6 +275,29 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 val relationshipDate = document.getLong("relationshipDate")
                 currentRelationshipTimestamp = relationshipDate
                 updateDaysCounter(view, relationshipDate)
+
+                // === ЛОГИКА ЕЖЕДНЕВНЫХ ОЧКОВ ===
+                val lastDailyDate = document.getLong("lastDailyDate") ?: 0L
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                if (lastDailyDate < today) {
+                    val dailyBonus = 10L
+                    db.collection("users").document(myUid).update(
+                        mapOf(
+                            "treePoints" to FieldValue.increment(dailyBonus),
+                            "lastDailyDate" to today
+                        )
+                    ).addOnSuccessListener {
+                        Toast.makeText(
+                            context, "Ежедневный бонус: +$dailyBonus очков! 🌳", Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
 
                 val partnerUid = document.getString("partnerUid")
                 val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
@@ -225,7 +310,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                     tvDaysCount.alpha = 0.5f
                 }
 
-                // Кэшируем ID партнера для обновления записки
+                // Сохраняем ID партнера для записки
                 currentPartnerUid = partnerUid
 
                 handlePartnerState(view, myUid, partnerUid)
@@ -233,9 +318,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    /**
-     * Обработка состояния партнёра
-     */
     private fun handlePartnerState(view: View, myUid: String, partnerUid: String?) {
         val layoutPartner = view.findViewById<LinearLayout>(R.id.layoutPartner)
         val tvPartnerName = view.findViewById<TextView>(R.id.tvPartnerName)
@@ -251,7 +333,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             }
 
             if (partnerUid != currentPartnerUid || partnerListener == null) {
-                currentPartnerUid = partnerUid
                 partnerListener?.remove()
 
                 partnerListener =
@@ -279,7 +360,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             }
         } else {
             partnerListener?.remove()
-            currentPartnerUid = null
+            // currentPartnerUid = null
 
             tvPartnerName.text = getString(R.string.invite)
             ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
@@ -292,9 +373,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    /**
-     * ВЫБОР СТАТУСА
-     */
+    // === ВЫБОР СТАТУСА ===
     private fun showStatusPickerDialog(uid: String) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -305,7 +384,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val etCustomStatus = dialog.findViewById<EditText>(R.id.etCustomStatus)
         val btnSaveStatus = dialog.findViewById<Button>(R.id.btnSaveStatus)
 
-        // Кнопка сохранения текста
+        // Сохранение текста
         btnSaveStatus?.setOnClickListener {
             val text = etCustomStatus?.text.toString().trim()
             if (text.isNotEmpty()) {
@@ -318,7 +397,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             }
         }
 
-        // Генерируем кнопки эмодзи
+        // Кнопки эмодзи
         availableStatuses.forEach { emoji ->
             val button = TextView(requireContext()).apply {
                 text = emoji
@@ -338,14 +417,13 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 }
             }
 
-            // ИСПОЛЬЗУЕМ WRAP_CONTENT ВМЕСТО 0 ДЛЯ ШИРИНЫ
             val params = GridLayout.LayoutParams(
                 GridLayout.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED)
             ).apply {
                 width = GridLayout.LayoutParams.WRAP_CONTENT
                 height = GridLayout.LayoutParams.WRAP_CONTENT
                 setMargins(8, 8, 8, 8)
-                setGravity(Gravity.CENTER) // Центрируем элемент в ячейке
+                setGravity(Gravity.CENTER)
             }
             grid?.addView(button, params)
         }
@@ -358,9 +436,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.show()
     }
 
-    /**
-     * ОБНОВЛЕНИЕ СТАТУСА
-     */
     private fun updateStatus(uid: String, status: String?) {
         val updates = if (status == null) {
             mapOf("status" to FieldValue.delete())
@@ -372,9 +447,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    /**
-     * ОБНОВЛЕНИЕ ДНЕЙ
-     */
+    // === ТАЙМЕР ===
     private fun updateDaysCounter(view: View, date: Long?) {
         val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
         if (date != null) {
@@ -385,9 +458,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    /**
-     * ОБНОВЛЕНИЕ ДНЕЙ
-     */
     private fun updateDaysUI() {
         if (isAdded && currentRelationshipTimestamp != null) {
             val days = calculateDays(currentRelationshipTimestamp!!)
@@ -396,9 +466,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    /**
-     * ЗАПУСК ТАЙМЕРА
-     */
     private fun scheduleNextUpdate() {
         val now = Calendar.getInstance()
         val tomorrow = Calendar.getInstance().apply {
@@ -413,9 +480,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         updateHandler.postDelayed(updateRunnable, delay)
     }
 
-    /**
-     * ВЫЧИСЛЕНИЕ ДНЕЙ
-     */
     private fun calculateDays(startTimeInMillis: Long): Long {
         val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(
@@ -431,9 +495,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         return if (diff < 0) 0 else TimeUnit.MILLISECONDS.toDays(diff)
     }
 
-    /**
-     * ОБНОВЛЕНИЕ ДНЕЙ
-     */
     private fun saveRelationshipDate(uid: String, timestamp: Long) {
         val updates = mapOf("relationshipDate" to timestamp)
         db.collection("users").document(uid).update(updates)
@@ -442,9 +503,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    /**
-     * ВЫБОР ДАТЫ
-     */
     private fun showRelationshipDatePicker(uid: String) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -489,9 +547,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.show()
     }
 
-    /**
-     * ВЫБОР Партнёра
-     */
     private fun showInvitePartnerDialog(myUid: String) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_invite_partner, null)
         val etCode = dialogView.findViewById<EditText>(R.id.etPartnerCode)
@@ -510,13 +565,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.show()
     }
 
-    /**
-     * ПОДКЛЮЧЕНИЕ Партнёра
-     */
     private fun connectPartner(myUid: String, code: String, dialog: AlertDialog) {
         val btnConnect = dialog.findViewById<Button>(R.id.btnConnect)
 
-        // ПРОВЕРКА: У меня уже есть партнер?
+        // 1. ПРОВЕРКА: У меня уже есть партнер?
         if (currentPartnerUid != null) {
             Toast.makeText(
                 context, "У вас уже есть партнер! Сначала отключитесь.", Toast.LENGTH_SHORT
@@ -536,7 +588,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                     val partnerDoc = documents.documents[0]
                     val partnerUid = partnerDoc.id
 
-                    // ПРОВЕРКА: Это я сам?
+                    // 2. ПРОВЕРКА: Это я сам?
                     if (partnerUid == myUid) {
                         Toast.makeText(
                             context,
@@ -547,7 +599,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                         return@addOnSuccessListener
                     }
 
-                    // ПРОВЕРКА: У партнера уже есть кто-то?
+                    // 3. ПРОВЕРКА: У партнера уже есть кто-то?
                     val targetCurrentPartner = partnerDoc.getString("partnerUid")
                     if (!targetCurrentPartner.isNullOrEmpty()) {
                         Toast.makeText(context, "Этот пользователь уже занят", Toast.LENGTH_SHORT)
@@ -582,10 +634,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             }
     }
 
-    /**
-     * ВЫБОР Партнёра
-     */
-    @SuppressLint("StringFormatInvalid")
     private fun showPartnerOptions(partnerUid: String, partnerName: String) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -603,9 +651,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.show()
     }
 
-    /**
-     * ВЫКЛЮЧЕНИЕ Партнёра
-     */
     private fun disconnectPartner(partnerUid: String) {
         val myUid = auth.currentUser?.uid ?: return
         val myRef = db.collection("users").document(myUid)
@@ -617,6 +662,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             Toast.makeText(
                 context, getString(R.string.partner_disconnected), Toast.LENGTH_SHORT
             ).show()
+            currentPartnerUid = null // Обнуляем локально
+            partnerListener?.remove()
+            partnerListener = null
         }
     }
 

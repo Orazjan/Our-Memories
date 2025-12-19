@@ -26,6 +26,7 @@ import com.example.ourmemories.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +71,7 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
                     coverUri = selectedUris[0]
                 }
 
+                // Пытаемся достать дату из первого фото
                 if (isFirstLoad) {
                     tryExtractDateFromImage(uris[0])
                 }
@@ -78,9 +80,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
-    /**
-     * Инициализация фрагмента.
-     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -173,9 +172,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
-    /**
-     * Показывает диалоговое окно для подтверждения выхода.
-     */
     private fun showExitConfirmationDialog() {
         AlertDialog.Builder(requireContext()).setTitle("Отменить создание?")
             .setMessage("Все несохраненные данные будут потеряны.")
@@ -184,9 +180,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             }.setNegativeButton("Остаться", null).show()
     }
 
-    /**
-     * Обновление списка выбранных фото.
-     */
     private fun updateImagesList() {
         val rv = view?.findViewById<RecyclerView>(R.id.rvSelectedImages)
         if (selectedUris.isNotEmpty()) {
@@ -198,9 +191,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
-    /**
-     * Загрузка фото в БД.
-     */
     private fun uploadMemories(title: String, desc: String) {
         val user = auth.currentUser ?: return
         val loadingOverlay = view?.findViewById<View>(R.id.loadingOverlay)
@@ -209,7 +199,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         lifecycleScope.launch {
             try {
                 // 1. Загрузка всех фото параллельно
-                // Нам нужно знать, какой URL соответствует какому URI, чтобы найти обложку
                 val uploadJobs = selectedUris.map { uri ->
                     async {
                         val url = uploadSingleImage(uri, user.uid)
@@ -234,20 +223,26 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
                         "description" to desc,
                         "timestamp" to selectedDateTimestamp,
                         "createdAt" to System.currentTimeMillis(),
-
-                        // Сохраняем список всех ссылок (для просмотра альбома)
                         "images" to allUrls,
-
-                        // Сохраняем выбранную обложку (для ленты)
                         "imageUrl" to finalCoverUrl
                     )
 
                     db.collection("memories").add(memoryMap).await()
+
+                    // === НАЧИСЛЕНИЕ ОЧКОВ ЗА ФОТО ===
+                    // 5 очков за каждую фотографию
+                    val pointsToAdd = selectedUris.size * 5L
+                    db.collection("users").document(user.uid)
+                        .update("treePoints", FieldValue.increment(pointsToAdd))
                 }
 
                 withContext(Dispatchers.Main) {
                     loadingOverlay?.visibility = View.GONE
-                    Toast.makeText(context, "Альбом сохранен!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        "Альбом сохранен! +${selectedUris.size * 5} очков",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     parentFragmentManager.popBackStack()
                 }
 
@@ -262,9 +257,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
-    /**
-     * Загрузка одного фото в БД.
-     */
     private suspend fun uploadSingleImage(uri: Uri, uid: String): String {
         return withContext(Dispatchers.IO) {
             val compressedData = compressImage(uri)
@@ -275,9 +267,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
-    /**
-     * Сжатие фото до 1280x1280.
-     */
     private fun compressImage(uri: Uri): ByteArray {
         val context = requireContext()
         val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -311,9 +300,7 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
     }
 
-    /**
-     * Чтение даты из фото.
-     */
+    // === EXIF Чтение даты ===
     private fun tryExtractDateFromImage(uri: Uri) {
         try {
             requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -337,9 +324,7 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
-    /**
-     * Показывает диалоговое окно для выбора даты.
-     */
+    // === КАСТОМНЫЙ DATE PICKER ===
     private fun showWheelDatePicker(editText: EditText) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -395,9 +380,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         dialog.show()
     }
 
-    /**
-     * Обновление метки даты.
-     */
     private fun updateDateLabel(editText: EditText) {
         val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
         editText.setText(sdf.format(Date(selectedDateTimestamp)))
