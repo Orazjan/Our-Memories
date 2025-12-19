@@ -42,7 +42,7 @@ class CoupleWidget : AppWidgetProvider() {
             try {
                 val views = RemoteViews(context.packageName, R.layout.widget_couple)
 
-                // 1. Интент для открытия приложения
+                // Интент для открытия приложения
                 val intent = Intent(context, MainActivity::class.java)
                 val pendingIntent = PendingIntent.getActivity(
                     context,
@@ -52,7 +52,7 @@ class CoupleWidget : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.ivWidgetPhoto, pendingIntent)
 
-                // 2. Читаем данные из КЭША
+                // Читаем данные из КЭША
                 val prefs = context.getSharedPreferences("AppCache", Context.MODE_PRIVATE)
                 val date = prefs.getLong("relationship_date", 0)
                 val photoUrl =
@@ -60,7 +60,7 @@ class CoupleWidget : AppWidgetProvider() {
 
                 Log.d(TAG, "Loaded from cache: date=$date, photoUrl=$photoUrl")
 
-                // 3. Текст (Дни)
+                // Текст (Дни)
                 val days = if (date > 0) calculateDays(date) else 0
                 views.setTextViewText(R.id.tvWidgetDays, days.toString())
                 Log.d(TAG, "Calculated days: $days")
@@ -69,7 +69,7 @@ class CoupleWidget : AppWidgetProvider() {
                 views.setImageViewResource(R.id.ivWidgetPhoto, R.mipmap.logotype)
                 appWidgetManager.updateAppWidget(appWidgetId, views)
 
-                // 4. Грузим фото асинхронно
+                // Грузим фото асинхронно
                 if (!photoUrl.isNullOrEmpty()) {
                     Log.d(TAG, "Starting Glide load for URL: $photoUrl")
 

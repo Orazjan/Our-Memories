@@ -9,10 +9,10 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
-import com.example.ourmemories.Fragments.CalendarFragment
 import com.example.ourmemories.Fragments.GalleryFragment
 import com.example.ourmemories.Fragments.MainFragment
 import com.example.ourmemories.Fragments.ProfileFragment
+import com.example.ourmemories.Fragments.WishlistFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 /**
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private val MAIN_TAG = "main_fragment"
     private val GALLERY_TAG = "gallery_fragment"
-    private val CALENDAR_TAG = "calendar_fragment"
+    private val WISHLIST_TAG = "wishlist_fragment"
     private val PROFILE_TAG = "profile_fragment"
 
     // Переменная для хранения времени последнего нажатия "Назад"
@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
             val selectedTag = when (item.itemId) {
                 R.id.nav_home -> MAIN_TAG
                 R.id.nav_gallery -> GALLERY_TAG
-                R.id.nav_calendar -> CALENDAR_TAG
+                R.id.nav_wishlist -> WISHLIST_TAG
                 R.id.nav_profile -> PROFILE_TAG
                 else -> return@setOnItemSelectedListener false
             }
@@ -64,19 +64,19 @@ class MainActivity : AppCompatActivity() {
         // === ОБРАБОТКА КНОПКИ НАЗАД ===
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // 1. Если есть открытые фрагменты в стеке (детали, настройки) -> закрываем их
+                // Если есть открытые фрагменты в стеке (детали, настройки) -> закрываем их
                 if (supportFragmentManager.backStackEntryCount > 0) {
                     supportFragmentManager.popBackStack()
                     return
                 }
 
-                // 2. Если мы НЕ на главной вкладке -> переходим на Главную
+                // Если мы НЕ на главной вкладке -> переходим на Главную
                 if (bottomNav.selectedItemId != R.id.nav_home) {
                     bottomNav.selectedItemId = R.id.nav_home
                     return
                 }
 
-                // 3. Если мы на Главной -> двойное нажатие для выхода
+                //  Если мы на Главной -> двойное нажатие для выхода
                 if (backPressedTime + 2000 > System.currentTimeMillis()) {
                     finish() // Закрываем приложение
                 } else {
@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity() {
             fragment = when (tag) {
                 MAIN_TAG -> MainFragment()
                 GALLERY_TAG -> GalleryFragment()
-                CALENDAR_TAG -> CalendarFragment()
+                WISHLIST_TAG -> WishlistFragment()
                 PROFILE_TAG -> ProfileFragment()
                 else -> MainFragment()
             }

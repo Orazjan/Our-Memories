@@ -115,7 +115,7 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
             try {
                 var photoUrl = user.photoUrl?.toString()
 
-                // 1. Если выбрали новое фото -> Грузим
+                // Если выбрали новое фото -> Грузим
                 if (selectedImageUri != null) {
                     val compressedData = compressImage(selectedImageUri!!)
                     val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
@@ -123,7 +123,7 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
                     photoUrl = storageRef.downloadUrl.await().toString()
                 }
 
-                // 2. Обновляем Auth (Имя + Фото)
+                // Обновляем Auth (Имя + Фото)
                 val updates = UserProfileChangeRequest.Builder()
                     .setDisplayName(name)
                 if (photoUrl != null) {
@@ -131,7 +131,7 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
                 }
                 user.updateProfile(updates.build()).await()
 
-                // 3. Обновляем Firestore
+                // Обновляем Firestore
                 val updateMap = hashMapOf<String, Any>(
                     "name" to name,
                     "birthDate" to date
@@ -140,7 +140,7 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
 
                 db.collection("users").document(user.uid).update(updateMap).await()
 
-                // 4. Успех
+                // Успех
                 withContext(Dispatchers.Main) {
                     loadingOverlay.visibility = View.GONE
                     Toast.makeText(context, "Профиль обновлен!", Toast.LENGTH_SHORT).show()

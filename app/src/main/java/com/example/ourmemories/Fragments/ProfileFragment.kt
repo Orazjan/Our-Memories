@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -60,6 +61,9 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val cardPrivacy = view.findViewById<View>(R.id.cardPrivacy)
         val cardLogout = view.findViewById<View>(R.id.cardLogout)
         val cardDelete = view.findViewById<View>(R.id.cardDeleteAccount)
+        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val isDark = currentNightMode == Configuration.UI_MODE_NIGHT_YES
+        val themeTitle = if (isDark) "Тёмная тема" else "Светлая тема"
 
         /**
          * Настройка меню
@@ -67,7 +71,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
         setupMenuCard(cardEdit, "Редактировать профиль", android.R.drawable.ic_menu_edit, "#BDE0FE")
         setupMenuCard(cardShare, "Поделиться кодом", android.R.drawable.ic_menu_share, "#FAD1E6")
-        setupMenuCard(cardTheme, "Тема приложения", android.R.drawable.ic_menu_view, "#EEEEEE")
+        setupMenuCard(cardTheme, themeTitle, android.R.drawable.ic_menu_view, "#EEEEEE")
         setupMenuCard(
             cardContact,
             "Написать разработчику",
@@ -324,12 +328,27 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
      */
     private fun toggleTheme() {
         val currentMode = AppCompatDelegate.getDefaultNightMode()
-        if (currentMode == AppCompatDelegate.MODE_NIGHT_YES) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            Toast.makeText(context, "Светлая тема", Toast.LENGTH_SHORT).show()
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-            Toast.makeText(context, "Темная тема", Toast.LENGTH_SHORT).show()
+
+        val newMode = when (currentMode) {
+            // Если принудительно включена темная -> включаем светлую
+            AppCompatDelegate.MODE_NIGHT_YES -> AppCompatDelegate.MODE_NIGHT_NO
+
+            // Если принудительно включена светлая -> включаем темную
+            AppCompatDelegate.MODE_NIGHT_NO -> AppCompatDelegate.MODE_NIGHT_YES
+
+            // Если стоит "Системная" (по умолчанию), проверяем текущее состояние системы
+            else -> {
+                val uiMode =
+                    requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                if (uiMode == Configuration.UI_MODE_NIGHT_YES) {
+                    // Система в темном -> ставим светлую
+                    AppCompatDelegate.MODE_NIGHT_NO
+                } else {
+                    // Система в светлом -> ставим темную
+                    AppCompatDelegate.MODE_NIGHT_YES
+                }
+            }
         }
+        AppCompatDelegate.setDefaultNightMode(newMode)
     }
 }

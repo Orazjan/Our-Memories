@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Новое желание"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/etTitle"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="Название (например: Кино)"
+        android:inputType="textCapSentences"
+        android:background="@drawable/bg_input_field"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/etDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="56dp"
+        android:hint="Описание (необязательно)"
+        android:inputType="textCapSentences|textMultiLine"
+        android:background="@drawable/bg_input_field"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"/>
+
+</LinearLayout>
