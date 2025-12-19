@@ -176,14 +176,16 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         }
 
         // Пасхалка с версией
-        // Получаем версию внутри onViewCreated, когда контекст доступен
-        var versionName: String? = "0.1.5"
-        try {
-            val pInfo =
-                requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
-            versionName = pInfo.versionName
-        } catch (e: Exception) {
-            e.printStackTrace()
+        val packageManager = requireContext().packageManager
+        val packageName = requireContext().packageName
+
+        val versionName = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            packageManager.getPackageInfo(
+                packageName,
+                android.content.pm.PackageManager.PackageInfoFlags.of(0)
+            ).versionName
+        } else {
+            packageManager.getPackageInfo(packageName, 0).versionName
         }
 
         textVersion.text = "V $versionName"

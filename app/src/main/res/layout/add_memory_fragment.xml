@@ -55,7 +55,7 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Область выбора фото -->
+            <!-- Область выбора фото (Кнопка) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardAddPhoto"
                 android:layout_width="match_parent"

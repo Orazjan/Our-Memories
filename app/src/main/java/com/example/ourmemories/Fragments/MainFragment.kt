@@ -1,5 +1,10 @@
 package com.example.ourmemories.Fragments
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +27,7 @@ import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
+import com.example.ourmemories.Widget.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -39,29 +45,30 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private val auth = FirebaseAuth.getInstance()
     private val TAG = "MainFragment"
 
+    private lateinit var prefs: SharedPreferences
+
     private var myListener: ListenerRegistration? = null
     private var partnerListener: ListenerRegistration? = null
 
     private var currentPartnerUid: String? = null
     private var currentRelationshipTimestamp: Long? = null
 
-    // Переменная для хранения текущих очков дерева
     private var currentTreePoints: Long = 0
 
-    // === ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ ДНЕЙ ===
     private val updateHandler = Handler(Looper.getMainLooper())
     private val updateRunnable = Runnable {
         updateDaysUI()
         scheduleNextUpdate()
     }
 
-    // Список доступных статусов
     private val availableStatuses = listOf(
-        "😴", "💼", "❤️", "🏠", "🎮", "🍔", "☕", "💪", "🎧", "🚗"
+        "😴", "💼", "❤️", "🏠", "🎮", "🍔", "☕", "🎉", "💪", "🎧", "🚗", "📚"
     )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
 
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
         val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
@@ -69,20 +76,15 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
         val cardMyStatus = view.findViewById<View>(R.id.cardMyStatus)
 
-        // 1. Записка на холодильнике
+        // Карточки
         val cardFridge = view.findViewById<View>(R.id.cardFridge)
-        cardFridge?.setOnClickListener {
-            showEditNoteDialog()
-        }
-
-        // 2. Дерево Любви
         val cardTree = view.findViewById<View>(R.id.cardTree)
-        cardTree?.setOnClickListener {
-            showTreeDialog()
-        }
-
-        // 3. Анимация сердца
         val tvHeart = view.findViewById<TextView>(R.id.tvHeartIcon)
+
+        // Обработчики
+        cardFridge?.setOnClickListener { showEditNoteDialog() }
+        cardTree?.setOnClickListener { showTreeDialog() }
+
         if (tvHeart != null) {
             val pulseAnimation = AnimationUtils.loadAnimation(context, R.anim.heart_beat)
             tvHeart.startAnimation(pulseAnimation)
@@ -97,78 +99,264 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             if (user != null) showRelationshipDatePicker(user.uid)
         }
 
-        // Клик по аватарке -> Выбор статуса
         ivMyAvatar.setOnClickListener {
             val user = auth.currentUser
             if (user != null) showStatusPickerDialog(user.uid)
         }
 
-        // Клик по баблу статуса
         cardMyStatus.setOnClickListener {
             val user = auth.currentUser
             if (user != null) showStatusPickerDialog(user.uid)
         }
 
-        // Swipe Refresh
+        // Загрузка кэша
+        loadCachedData(view)
+
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light)
         swipeRefreshLayout.setOnRefreshListener {
             Log.d(TAG, "Свайп обновления")
+            // Сбрасываем партнеров, чтобы переподключиться
             currentPartnerUid = null
-            setupListeners(view)
+            partnerListener?.remove()
+            partnerListener = null
+            setupListeners(view, swipeRefreshLayout)
         }
 
-        setupListeners(view)
+        setupListeners(view, swipeRefreshLayout)
         scheduleNextUpdate()
     }
 
-    // === ЛОГИКА ЗАПИСКИ ===
-    private fun showEditNoteDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_note, null)
-        val etNote = dialogView.findViewById<EditText>(R.id.etNote)
-        val tvCurrent = view?.findViewById<TextView>(R.id.tvFridgeNote)
+    // === ВИДЖЕТ И КЭШ ===
+    private fun updateWidget() {
+        try {
+            val context = requireContext()
+            val intent = Intent(context, CoupleWidget::class.java)
+            intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            val ids = AppWidgetManager.getInstance(context)
+                .getAppWidgetIds(ComponentName(context, CoupleWidget::class.java))
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+            context.sendBroadcast(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка виджета", e)
+        }
+    }
 
-        // Предзаполняем текущим текстом
-        val currentText = tvCurrent?.text.toString()
-        if (currentText != "Оставьте записку для любимого человека...") {
-            etNote.setText(currentText)
+    private fun loadCachedData(view: View) {
+        val cachedDate = prefs.getLong("relationship_date", 0)
+        if (cachedDate > 0) {
+            currentRelationshipTimestamp = cachedDate
+            updateDaysCounter(view, cachedDate)
+            view.findViewById<TextView>(R.id.tvDaysCount)
+                .let { it.isEnabled = true; it.alpha = 1.0f }
         }
 
-        AlertDialog.Builder(requireContext()).setTitle("Записка на холодильнике")
-            .setView(dialogView)
-            .setPositiveButton("Сохранить") { _, _ ->
-                val newNote = etNote.text.toString().trim()
-                updateSharedNote(newNote)
+        val cachedNote = prefs.getString("shared_note", "")
+        if (!cachedNote.isNullOrEmpty()) {
+            view.findViewById<TextView>(R.id.tvFridgeNote)?.text = cachedNote
+        }
+
+        // Мои данные
+        val myName = prefs.getString("my_name", "Я")
+        val myPhoto = prefs.getString("my_photo", null)
+        val myStatus = prefs.getString("my_status", null)
+
+        view.findViewById<TextView>(R.id.tvMyName).text = myName
+        GlideHelper.loadAvatar(view.findViewById(R.id.ivMyAvatar), myPhoto, "CACHE_MY")
+        updateStatusUI(
+            view.findViewById(R.id.cardMyStatus), view.findViewById(R.id.tvMyStatus), myStatus
+        )
+
+        // Партнер
+        val pUid = prefs.getString("partner_uid", null)
+        currentPartnerUid = pUid
+
+        if (pUid != null) {
+            val pName = prefs.getString("partner_name", "Партнёр")
+            val pPhoto = prefs.getString("partner_photo", null)
+            val pStatus = prefs.getString("partner_status", null)
+
+            val layoutPartner = view.findViewById<LinearLayout>(R.id.layoutPartner)
+            val tvPartnerName = view.findViewById<TextView>(R.id.tvPartnerName)
+            val ivPartnerAvatar = view.findViewById<ImageView>(R.id.ivPartnerAvatar)
+            val cardPartnerStatus = view.findViewById<View>(R.id.cardPartnerStatus)
+            val tvPartnerStatus = view.findViewById<TextView>(R.id.tvPartnerStatus)
+
+            tvPartnerName.text = pName
+            GlideHelper.loadAvatar(ivPartnerAvatar, pPhoto, "CACHE_PARTNER")
+            updateStatusUI(cardPartnerStatus, tvPartnerStatus, pStatus)
+
+            layoutPartner.setOnClickListener { showPartnerOptions(pUid, pName!!) }
+        }
+    }
+
+    private fun saveToCache(key: String, value: String?) {
+        prefs.edit().putString(key, value).apply()
+    }
+
+    private fun saveLongToCache(key: String, value: Long) {
+        prefs.edit().putLong(key, value).apply()
+    }
+
+    private fun updateStatusUI(card: View?, text: TextView?, status: String?) {
+        if (!status.isNullOrEmpty()) {
+            card?.visibility = View.VISIBLE
+            text?.text = status
+        } else {
+            card?.visibility = View.GONE
+        }
+    }
+
+    // === СЛУШАТЕЛИ FIREBASE ===
+    private fun setupListeners(view: View, swipeRefreshLayout: SwipeRefreshLayout) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            swipeRefreshLayout.isRefreshing = false
+            return
+        }
+        val myUid = currentUser.uid
+
+        myListener?.remove()
+
+        myListener = db.collection("users").document(myUid).addSnapshotListener { document, e ->
+            swipeRefreshLayout.isRefreshing = false
+            if (e != null) return@addSnapshotListener
+
+            if (isAdded && document != null && document.exists()) {
+                val myName = document.getString("name") ?: "Я"
+                val myPhotoUrl = document.getString("photoUrl")
+                val myStatus = document.getString("status")
+                val sharedNote = document.getString("sharedNote")
+                val treePoints = document.getLong("treePoints") ?: 0
+                val partnerUid = document.getString("partnerUid")
+                val relationshipDate = document.getLong("relationshipDate") ?: 0
+
+                // Ежедневный бонус
+                val lastDailyDate = document.getLong("lastDailyDate") ?: 0L
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(
+                    Calendar.SECOND, 0
+                ); set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                if (lastDailyDate < today) {
+                    val dailyBonus = 10L
+                    db.collection("users").document(myUid).update(
+                        mapOf(
+                            "treePoints" to FieldValue.increment(dailyBonus),
+                            "lastDailyDate" to today
+                        )
+                    ).addOnSuccessListener {
+                        Toast.makeText(
+                            context, "Ежедневный бонус: +$dailyBonus очков! 🌳", Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                // Кэш и Виджет
+                saveToCache("my_name", myName)
+                saveToCache("my_photo", myPhotoUrl)
+                saveToCache("my_status", myStatus)
+                saveToCache("shared_note", sharedNote)
+                saveToCache("partner_uid", partnerUid)
+                saveLongToCache("relationship_date", relationshipDate)
+                updateWidget()
+
+                // UI
+                view.findViewById<TextView>(R.id.tvMyName).text = myName
+                GlideHelper.loadAvatar(view.findViewById(R.id.ivMyAvatar), myPhotoUrl, "MY_AVATAR")
+                updateTreeUI(treePoints)
+                updateStatusUI(
+                    view.findViewById(R.id.cardMyStatus),
+                    view.findViewById(R.id.tvMyStatus),
+                    myStatus
+                )
+
+                if (view.findViewById<TextView>(R.id.tvFridgeNote) != null) {
+                    val noteText =
+                        if (sharedNote.isNullOrEmpty()) "Оставьте записку для любимого человека..." else sharedNote
+                    view.findViewById<TextView>(R.id.tvFridgeNote).text = noteText
+                }
+
+                currentRelationshipTimestamp = relationshipDate
+                updateDaysCounter(view, relationshipDate)
+
+                val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
+                if (partnerUid != null) {
+                    tvDaysCount.isEnabled = true
+                    tvDaysCount.alpha = 1.0f
+                } else {
+                    tvDaysCount.isEnabled = false
+                    tvDaysCount.alpha = 0.5f
+                    saveToCache("partner_name", null)
+                    saveToCache("partner_photo", null)
+                    updateWidget()
+                }
+
+                // Исправлено: Не обновляем currentPartnerUid здесь, чтобы сработала проверка в handlePartnerState
+                handlePartnerState(view, myUid, partnerUid)
             }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
-    private fun updateSharedNote(text: String) {
-        val myUid = auth.currentUser?.uid ?: return
-        val updates = hashMapOf<String, Any>("sharedNote" to text)
-
-        val batch = db.batch()
-
-        // Обновляем у себя
-        val myRef = db.collection("users").document(myUid)
-        batch.update(myRef, updates)
-
-        // Если есть партнер - обновляем и у него (чтобы он увидел сразу)
-        if (currentPartnerUid != null) {
-            val partnerRef = db.collection("users").document(currentPartnerUid!!)
-            batch.update(partnerRef, updates)
-        }
-
-        batch.commit().addOnSuccessListener {
-            Toast.makeText(
-                context, "Записка обновлена!", Toast.LENGTH_SHORT
-            ).show()
-        }.addOnFailureListener {
-            Toast.makeText(context, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // === ДЕРЕВО ЛЮБВИ (UI + Диалог) ===
+    private fun handlePartnerState(view: View, myUid: String, partnerUid: String?) {
+        val layoutPartner = view.findViewById<LinearLayout>(R.id.layoutPartner)
+        val tvPartnerName = view.findViewById<TextView>(R.id.tvPartnerName)
+        val ivPartnerAvatar = view.findViewById<ImageView>(R.id.ivPartnerAvatar)
+
+        val cardPartnerStatus = view.findViewById<View>(R.id.cardPartnerStatus)
+        val tvPartnerStatus = view.findViewById<TextView>(R.id.tvPartnerStatus)
+
+        if (partnerUid != null) {
+            layoutPartner.setOnClickListener {
+                val name = tvPartnerName.text.toString()
+                showPartnerOptions(partnerUid, name)
+            }
+
+            // ПРОВЕРКА ИСПРАВЛЕНА: Теперь мы обновляем currentPartnerUid внутри
+            if (partnerUid != currentPartnerUid || partnerListener == null) {
+                currentPartnerUid = partnerUid
+                partnerListener?.remove()
+
+                partnerListener =
+                    db.collection("users").document(partnerUid).addSnapshotListener { pDoc, pE ->
+                        if (!isAdded) return@addSnapshotListener
+                        if (pE != null) return@addSnapshotListener
+
+                        if (pDoc != null && pDoc.exists()) {
+                            val pName = pDoc.getString("name") ?: "Партнёр"
+                            val pPhoto = pDoc.getString("photoUrl")
+                            val pStatus = pDoc.getString("status")
+
+                            saveToCache("partner_name", pName)
+                            saveToCache("partner_photo", pPhoto)
+                            saveToCache("partner_status", pStatus)
+                            updateWidget()
+
+                            tvPartnerName.text = pName
+                            GlideHelper.loadAvatar(ivPartnerAvatar, pPhoto, "PARTNER_AVATAR")
+                            updateStatusUI(cardPartnerStatus, tvPartnerStatus, pStatus)
+                        }
+                    }
+            }
+        } else {
+            partnerListener?.remove()
+            partnerListener = null
+            currentPartnerUid = null
+
+            tvPartnerName.text = getString(R.string.invite)
+            ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
+            ivPartnerAvatar.setColorFilter(android.graphics.Color.GRAY)
+            ivPartnerAvatar.setPadding(20, 20, 20, 20)
+
+            cardPartnerStatus.visibility = View.GONE
+            layoutPartner.setOnClickListener { showInvitePartnerDialog(myUid) }
+        }
+    }
+
+    // ... Остальные методы (updateTreeUI, showTreeDialog, showEditNoteDialog, updateSharedNote, showStatusPickerDialog, updateStatus, showInvitePartnerDialog, connectPartner, showPartnerOptions, disconnectPartner, updateDaysCounter, calculateDays, updateDaysUI, scheduleNextUpdate, saveRelationshipDate, showRelationshipDatePicker, onDestroyView) ...
+    // Вставьте сюда остальные методы из вашего файла или предыдущих ответов (они корректны)
+
+    // === ДЕРЕВО ЛЮБВИ (10 СТАДИЙ) ===
     private fun updateTreeUI(points: Long) {
         currentTreePoints = points
         val ivTree = view?.findViewById<ImageView>(R.id.ivTreeIcon)
@@ -211,169 +399,46 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private fun showTreeDialog() {
         AlertDialog.Builder(requireContext()).setTitle("🌳 Дерево Любви")
             .setMessage("Растите ваше дерево, заходя в приложение и добавляя воспоминания!\n\nТекущие очки: $currentTreePoints")
-            .setPositiveButton("Отлично") { _, _ -> }.show()
+            .setPositiveButton("Понятно", null).show()
     }
 
-    // === СЛУШАТЕЛИ FIREBASE ===
-    private fun setupListeners(view: View) {
-        val currentUser = auth.currentUser
-        val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
+    // === ЗАПИСКА НА ХОЛОДИЛЬНИКЕ ===
+    private fun showEditNoteDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_note, null)
+        val etNote = dialogView.findViewById<EditText>(R.id.etNote)
+        val tvCurrent = view?.findViewById<TextView>(R.id.tvFridgeNote)
 
-        if (currentUser == null) {
-            swipeRefreshLayout.isRefreshing = false
-            return
+        val currentText = tvCurrent?.text.toString()
+        if (currentText != "Оставьте записку..." && currentText != "Оставьте записку для любимого человека...") {
+            etNote.setText(currentText)
         }
-        val myUid = currentUser.uid
 
-        myListener?.remove()
-        partnerListener?.remove()
+        AlertDialog.Builder(requireContext()).setTitle("Записка на холодильнике")
+            .setView(dialogView).setPositiveButton("Сохранить") { _, _ ->
+                val newNote = etNote.text.toString().trim()
+                updateSharedNote(newNote)
+            }.setNegativeButton("Отмена", null).show()
+    }
 
-        myListener = db.collection("users").document(myUid).addSnapshotListener { document, e ->
-            swipeRefreshLayout.isRefreshing = false
-            if (e != null) {
-                Log.e(TAG, "Ошибка слушателя: ${e.message}")
-                return@addSnapshotListener
-            }
+    private fun updateSharedNote(text: String) {
+        val myUid = auth.currentUser?.uid ?: return
+        val updates = hashMapOf<String, Any>("sharedNote" to text)
+        val batch = db.batch()
 
-            if (isAdded && document != null && document.exists()) {
-                val myName = document.getString("name") ?: "Я"
-                val myPhotoUrl = document.getString("photoUrl")
-                val myStatus = document.getString("status")
-                // === 1. ЧИТАЕМ ЗАПИСКУ ===
-                val sharedNote = document.getString("sharedNote")
-                // === 2. ЧИТАЕМ ОЧКИ ДЕРЕВА ===
-                val treePoints = document.getLong("treePoints") ?: 0
+        batch.update(db.collection("users").document(myUid), updates)
+        if (currentPartnerUid != null) {
+            batch.update(db.collection("users").document(currentPartnerUid!!), updates)
+        }
 
-                val tvMyName = view.findViewById<TextView>(R.id.tvMyName)
-                val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
-                val tvMyStatus = view.findViewById<TextView>(R.id.tvMyStatus)
-                val cardMyStatus = view.findViewById<View>(R.id.cardMyStatus)
-                // === 3. НАХОДИМ TextView ЗАПИСКИ ===
-                val tvFridgeNote = view.findViewById<TextView>(R.id.tvFridgeNote)
-
-                tvMyName.text = myName
-                GlideHelper.loadAvatar(ivMyAvatar, myPhotoUrl, "MY_AVATAR")
-                updateTreeUI(treePoints) // Обновляем дерево
-
-                // Обновляем UI статуса
-                if (!myStatus.isNullOrEmpty()) {
-                    cardMyStatus.visibility = View.VISIBLE
-                    tvMyStatus.text = myStatus
-                } else {
-                    cardMyStatus.visibility = View.GONE
-                }
-
-                // === 4. ОТОБРАЖАЕМ ЗАПИСКУ ===
-                if (tvFridgeNote != null) {
-                    if (!sharedNote.isNullOrEmpty()) {
-                        tvFridgeNote.text = sharedNote
-                    } else {
-                        tvFridgeNote.text = "Оставьте записку для любимого человека..."
-                    }
-                }
-
-                val relationshipDate = document.getLong("relationshipDate")
-                currentRelationshipTimestamp = relationshipDate
-                updateDaysCounter(view, relationshipDate)
-
-                // === ЛОГИКА ЕЖЕДНЕВНЫХ ОЧКОВ ===
-                val lastDailyDate = document.getLong("lastDailyDate") ?: 0L
-                val today = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-
-                if (lastDailyDate < today) {
-                    val dailyBonus = 10L
-                    db.collection("users").document(myUid).update(
-                        mapOf(
-                            "treePoints" to FieldValue.increment(dailyBonus),
-                            "lastDailyDate" to today
-                        )
-                    ).addOnSuccessListener {
-                        Toast.makeText(
-                            context, "Ежедневный бонус: +$dailyBonus очков! 🌳", Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-
-                val partnerUid = document.getString("partnerUid")
-                val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
-
-                if (partnerUid != null) {
-                    tvDaysCount.isEnabled = true
-                    tvDaysCount.alpha = 1.0f
-                } else {
-                    tvDaysCount.isEnabled = false
-                    tvDaysCount.alpha = 0.5f
-                }
-
-                // Сохраняем ID партнера для записки
-                currentPartnerUid = partnerUid
-
-                handlePartnerState(view, myUid, partnerUid)
-            }
+        batch.commit().addOnSuccessListener {
+            saveToCache("shared_note", text)
+            Toast.makeText(context, "Записка обновлена!", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(context, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun handlePartnerState(view: View, myUid: String, partnerUid: String?) {
-        val layoutPartner = view.findViewById<LinearLayout>(R.id.layoutPartner)
-        val tvPartnerName = view.findViewById<TextView>(R.id.tvPartnerName)
-        val ivPartnerAvatar = view.findViewById<ImageView>(R.id.ivPartnerAvatar)
-
-        val cardPartnerStatus = view.findViewById<View>(R.id.cardPartnerStatus)
-        val tvPartnerStatus = view.findViewById<TextView>(R.id.tvPartnerStatus)
-
-        if (partnerUid != null) {
-            layoutPartner.setOnClickListener {
-                val name = tvPartnerName.text.toString()
-                showPartnerOptions(partnerUid, name)
-            }
-
-            if (partnerUid != currentPartnerUid || partnerListener == null) {
-                partnerListener?.remove()
-
-                partnerListener =
-                    db.collection("users").document(partnerUid).addSnapshotListener { pDoc, pE ->
-                        if (!isAdded) return@addSnapshotListener
-                        if (pE != null) return@addSnapshotListener
-
-                        if (pDoc != null && pDoc.exists()) {
-                            val pName = pDoc.getString("name") ?: "Партнёр"
-                            val pPhoto = pDoc.getString("photoUrl")
-                            val pStatus = pDoc.getString("status")
-
-                            tvPartnerName.text = pName
-                            GlideHelper.loadAvatar(ivPartnerAvatar, pPhoto, "PARTNER_AVATAR")
-
-                            // Статус партнера
-                            if (!pStatus.isNullOrEmpty()) {
-                                cardPartnerStatus.visibility = View.VISIBLE
-                                tvPartnerStatus.text = pStatus
-                            } else {
-                                cardPartnerStatus.visibility = View.GONE
-                            }
-                        }
-                    }
-            }
-        } else {
-            partnerListener?.remove()
-            // currentPartnerUid = null
-
-            tvPartnerName.text = getString(R.string.invite)
-            ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
-            ivPartnerAvatar.setColorFilter(android.graphics.Color.GRAY)
-            ivPartnerAvatar.setPadding(20, 20, 20, 20)
-
-            cardPartnerStatus.visibility = View.GONE
-
-            layoutPartner.setOnClickListener { showInvitePartnerDialog(myUid) }
-        }
-    }
-
-    // === ВЫБОР СТАТУСА ===
+    // === СТАТУСЫ ===
     private fun showStatusPickerDialog(uid: String) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -384,20 +449,17 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val etCustomStatus = dialog.findViewById<EditText>(R.id.etCustomStatus)
         val btnSaveStatus = dialog.findViewById<Button>(R.id.btnSaveStatus)
 
-        // Сохранение текста
         btnSaveStatus?.setOnClickListener {
             val text = etCustomStatus?.text.toString().trim()
             if (text.isNotEmpty()) {
                 if (text.length <= 20) {
-                    updateStatus(uid, text)
-                    dialog.dismiss()
+                    updateStatus(uid, text); dialog.dismiss()
                 } else {
                     Toast.makeText(context, "Максимум 20 символов", Toast.LENGTH_SHORT).show()
                 }
             }
         }
 
-        // Кнопки эмодзи
         availableStatuses.forEach { emoji ->
             val button = TextView(requireContext()).apply {
                 text = emoji
@@ -410,44 +472,125 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                     android.R.attr.selectableItemBackground, outValue, true
                 )
                 setBackgroundResource(outValue.resourceId)
-
-                setOnClickListener {
-                    updateStatus(uid, emoji)
-                    dialog.dismiss()
-                }
+                setOnClickListener { updateStatus(uid, emoji); dialog.dismiss() }
             }
-
             val params = GridLayout.LayoutParams(
                 GridLayout.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED)
             ).apply {
-                width = GridLayout.LayoutParams.WRAP_CONTENT
-                height = GridLayout.LayoutParams.WRAP_CONTENT
-                setMargins(8, 8, 8, 8)
-                setGravity(Gravity.CENTER)
+                width = GridLayout.LayoutParams.WRAP_CONTENT; height =
+                GridLayout.LayoutParams.WRAP_CONTENT
+                setMargins(8, 8, 8, 8); setGravity(Gravity.CENTER)
             }
             grid?.addView(button, params)
         }
 
-        dialog.findViewById<View>(R.id.btnClearStatus)?.setOnClickListener {
-            updateStatus(uid, null) // Сброс
-            dialog.dismiss()
-        }
-
+        dialog.findViewById<View>(R.id.btnClearStatus)
+            ?.setOnClickListener { updateStatus(uid, null); dialog.dismiss() }
         dialog.show()
     }
 
     private fun updateStatus(uid: String, status: String?) {
-        val updates = if (status == null) {
-            mapOf("status" to FieldValue.delete())
-        } else {
-            mapOf("status" to status)
-        }
+        val updates =
+            if (status == null) mapOf("status" to FieldValue.delete()) else mapOf("status" to status)
         db.collection("users").document(uid).update(updates).addOnFailureListener {
-            Toast.makeText(context, "Ошибка обновления статуса", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context, "Ошибка обновления статуса", Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
-    // === ТАЙМЕР ===
+    // === ДИАЛОГИ И ЛОГИКА ===
+    private fun showInvitePartnerDialog(myUid: String) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_invite_partner, null)
+        val etCode = dialogView.findViewById<EditText>(R.id.etPartnerCode)
+        val btnConnect = dialogView.findViewById<Button>(R.id.btnConnect)
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        btnConnect.setOnClickListener {
+            val code = etCode.text.toString().trim()
+            if (code.length == 8) {
+                btnConnect.isEnabled = false; btnConnect.text = getString(R.string.Searching)
+                connectPartner(myUid, code, dialog)
+            } else {
+                Toast.makeText(context, "Введите 8 цифр", Toast.LENGTH_SHORT).show()
+            }
+        }
+        dialog.show()
+    }
+
+    private fun connectPartner(myUid: String, code: String, dialog: AlertDialog) {
+        val btnConnect = dialog.findViewById<Button>(R.id.btnConnect)
+        if (currentPartnerUid != null) {
+            Toast.makeText(context, "У вас уже есть партнер!", Toast.LENGTH_SHORT).show()
+            btnConnect?.isEnabled = true; btnConnect?.text = getString(R.string.connect)
+            return
+        }
+
+        db.collection("users").whereEqualTo("partnerCode", code).get()
+            .addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    Toast.makeText(context, getString(R.string.Code_not_found), Toast.LENGTH_SHORT)
+                        .show()
+                    btnConnect?.isEnabled = true; btnConnect?.text = getString(R.string.connect)
+                } else {
+                    val partnerDoc = documents.documents[0]
+                    val partnerUid = partnerDoc.id
+                    if (partnerUid == myUid || !partnerDoc.getString("partnerUid")
+                            .isNullOrEmpty()
+                    ) {
+                        Toast.makeText(context, "Невозможно подключиться", Toast.LENGTH_SHORT)
+                            .show()
+                        btnConnect?.isEnabled = true; btnConnect?.text = getString(R.string.connect)
+                        return@addOnSuccessListener
+                    }
+                    val myRef = db.collection("users").document(myUid)
+                    val partnerRef = db.collection("users").document(partnerUid)
+                    db.runBatch { batch ->
+                        batch.update(
+                            myRef, "partnerUid", partnerUid
+                        ); batch.update(partnerRef, "partnerUid", myUid)
+                    }.addOnSuccessListener {
+                        Toast.makeText(
+                            context, getString(R.string.connected), Toast.LENGTH_LONG
+                        ).show(); dialog.dismiss()
+                    }
+                }
+            }
+    }
+
+    private fun showPartnerOptions(partnerUid: String, partnerName: String) {
+        val dialog = BottomSheetDialog(
+            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
+        )
+        dialog.setContentView(R.layout.bottom_sheet_partner_options)
+        dialog.findViewById<View>(R.id.btnDisconnect)?.setOnClickListener {
+            dialog.dismiss()
+            AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.disconnect_partner_title))
+                .setMessage(getString(R.string.disconnect_partner_message, partnerName))
+                .setPositiveButton(getString(R.string.yes)) { _, _ -> disconnectPartner(partnerUid) }
+                .setNegativeButton("Нет", null).show()
+        }
+        dialog.show()
+    }
+
+    private fun disconnectPartner(partnerUid: String) {
+        val myUid = auth.currentUser?.uid ?: return
+        val myRef = db.collection("users").document(myUid)
+        val partnerRef = db.collection("users").document(partnerUid)
+        db.runBatch { batch ->
+            batch.update(myRef, "partnerUid", null); batch.update(
+            partnerRef, "partnerUid", null
+        )
+        }.addOnSuccessListener {
+            saveToCache("partner_uid", null)
+            updateWidget()
+            Toast.makeText(
+                context, getString(R.string.partner_disconnected), Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     private fun updateDaysCounter(view: View, date: Long?) {
         val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
         if (date != null) {
@@ -469,11 +612,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private fun scheduleNextUpdate() {
         val now = Calendar.getInstance()
         val tomorrow = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+            add(Calendar.DAY_OF_YEAR, 1); set(
+            Calendar.HOUR_OF_DAY, 0
+        ); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }
         val delay = tomorrow.timeInMillis - now.timeInMillis + 1000
         updateHandler.removeCallbacks(updateRunnable)
@@ -498,9 +639,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private fun saveRelationshipDate(uid: String, timestamp: Long) {
         val updates = mapOf("relationshipDate" to timestamp)
         db.collection("users").document(uid).update(updates)
-        if (currentPartnerUid != null) {
-            db.collection("users").document(currentPartnerUid!!).update(updates)
-        }
+        if (currentPartnerUid != null) db.collection("users").document(currentPartnerUid!!)
+            .update(updates)
+        saveLongToCache("relationship_date", timestamp)
+        updateWidget()
     }
 
     private fun showRelationshipDatePicker(uid: String) {
@@ -538,134 +680,13 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         btnConfirm.setOnClickListener {
             val selectedCalendar = Calendar.getInstance()
-            selectedCalendar.set(Calendar.YEAR, npYear.value)
-            selectedCalendar.set(Calendar.MONTH, npMonth.value)
-            selectedCalendar.set(Calendar.DAY_OF_MONTH, npDay.value)
+            selectedCalendar.set(Calendar.YEAR, npYear.value); selectedCalendar.set(
+            Calendar.MONTH, npMonth.value
+        ); selectedCalendar.set(Calendar.DAY_OF_MONTH, npDay.value)
             saveRelationshipDate(uid, selectedCalendar.timeInMillis)
             dialog.dismiss()
         }
         dialog.show()
-    }
-
-    private fun showInvitePartnerDialog(myUid: String) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_invite_partner, null)
-        val etCode = dialogView.findViewById<EditText>(R.id.etPartnerCode)
-        val btnConnect = dialogView.findViewById<Button>(R.id.btnConnect)
-        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        btnConnect.setOnClickListener {
-            val code = etCode.text.toString().trim()
-            if (code.length == 8) {
-                btnConnect.isEnabled = false; btnConnect.text = getString(R.string.Searching)
-                connectPartner(myUid, code, dialog)
-            } else {
-                Toast.makeText(context, "Введите 8 цифр", Toast.LENGTH_SHORT).show()
-            }
-        }
-        dialog.show()
-    }
-
-    private fun connectPartner(myUid: String, code: String, dialog: AlertDialog) {
-        val btnConnect = dialog.findViewById<Button>(R.id.btnConnect)
-
-        // 1. ПРОВЕРКА: У меня уже есть партнер?
-        if (currentPartnerUid != null) {
-            Toast.makeText(
-                context, "У вас уже есть партнер! Сначала отключитесь.", Toast.LENGTH_SHORT
-            ).show()
-            btnConnect?.isEnabled = true
-            btnConnect?.text = getString(R.string.connect)
-            return
-        }
-
-        db.collection("users").whereEqualTo("partnerCode", code).get()
-            .addOnSuccessListener { documents ->
-                if (documents.isEmpty) {
-                    Toast.makeText(context, getString(R.string.Code_not_found), Toast.LENGTH_SHORT)
-                        .show()
-                    btnConnect?.isEnabled = true; btnConnect?.text = getString(R.string.connect)
-                } else {
-                    val partnerDoc = documents.documents[0]
-                    val partnerUid = partnerDoc.id
-
-                    // 2. ПРОВЕРКА: Это я сам?
-                    if (partnerUid == myUid) {
-                        Toast.makeText(
-                            context,
-                            getString(R.string.cant_add_yourself),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        btnConnect?.isEnabled = true; btnConnect?.text = getString(R.string.connect)
-                        return@addOnSuccessListener
-                    }
-
-                    // 3. ПРОВЕРКА: У партнера уже есть кто-то?
-                    val targetCurrentPartner = partnerDoc.getString("partnerUid")
-                    if (!targetCurrentPartner.isNullOrEmpty()) {
-                        Toast.makeText(context, "Этот пользователь уже занят", Toast.LENGTH_SHORT)
-                            .show()
-                        btnConnect?.isEnabled = true; btnConnect?.text = getString(R.string.connect)
-                        return@addOnSuccessListener
-                    }
-
-                    val myRef = db.collection("users").document(myUid)
-                    val partnerRef = db.collection("users").document(partnerUid)
-                    db.runBatch { batch ->
-                        batch.update(myRef, "partnerUid", partnerUid)
-                        batch.update(partnerRef, "partnerUid", myUid)
-                    }.addOnSuccessListener {
-                        Toast.makeText(context, getString(R.string.connected), Toast.LENGTH_LONG)
-                            .show()
-                        dialog.dismiss()
-                    }.addOnFailureListener { e ->
-                        Toast.makeText(
-                            context,
-                            "${getString(R.string.error)}: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        btnConnect?.isEnabled = true
-                        btnConnect?.text = getString(R.string.connect)
-                    }
-                }
-            }.addOnFailureListener {
-                Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
-                btnConnect?.isEnabled = true
-                btnConnect?.text = getString(R.string.connect)
-            }
-    }
-
-    private fun showPartnerOptions(partnerUid: String, partnerName: String) {
-        val dialog = BottomSheetDialog(
-            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
-        )
-        dialog.setContentView(R.layout.bottom_sheet_partner_options)
-        val btnDisconnect = dialog.findViewById<View>(R.id.btnDisconnect)
-        btnDisconnect?.setOnClickListener {
-            dialog.dismiss()
-            AlertDialog.Builder(requireContext())
-                .setTitle(getString(R.string.disconnect_partner_title))
-                .setMessage(getString(R.string.disconnect_partner_message, partnerName))
-                .setPositiveButton(getString(R.string.yes)) { _, _ -> disconnectPartner(partnerUid) }
-                .setNegativeButton(getString(R.string.cancel), null).show()
-        }
-        dialog.show()
-    }
-
-    private fun disconnectPartner(partnerUid: String) {
-        val myUid = auth.currentUser?.uid ?: return
-        val myRef = db.collection("users").document(myUid)
-        val partnerRef = db.collection("users").document(partnerUid)
-        db.runBatch { batch ->
-            batch.update(myRef, "partnerUid", null)
-            batch.update(partnerRef, "partnerUid", null)
-        }.addOnSuccessListener {
-            Toast.makeText(
-                context, getString(R.string.partner_disconnected), Toast.LENGTH_SHORT
-            ).show()
-            currentPartnerUid = null // Обнуляем локально
-            partnerListener?.remove()
-            partnerListener = null
-        }
     }
 
     override fun onDestroyView() {

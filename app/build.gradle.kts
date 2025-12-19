@@ -6,7 +6,7 @@ plugins {
 
 }
 
-val version = "0.1.5"
+val version = "0.1.6"
 
 android {
     namespace = "com.example.ourmemories"

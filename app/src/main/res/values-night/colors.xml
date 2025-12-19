@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Основные цвета бренда (адаптированные под ночь) -->
+    <color name="primary_lavender">#D0BCFF</color> <!-- Светло-фиолетовый для темного фона -->
+
+    <!-- Фон: Почти черный, стандарт Material Design -->
+    <color name="background_light">#121212</color>
+
+    <!-- Текст: Инвертируем цвета -->
+    <color name="text_primary">#E6E1E5</color> <!-- Почти белый -->
+    <color name="text_secondary">#CAC4D0</color> <!-- Светло-серый -->
+
+    <!-- Акцентные цвета для карточек (затемненные версии) -->
+    <color name="mint_green">#2D3836</color>
+
+    <!-- Розовый для карточек (например, таймер): Делаем темно-бордовым/сливовым -->
+    <color name="baby_pink">#38242C</color>
+
+    <color name="light_blue">#28323B</color>
+
+    <color name="heart_red">#F2B8B5</color> <!-- Более мягкий красный -->
+
+    <!-- "Белый" цвет (поверхности карточек) становится темно-серым -->
+    <color name="white">#1E1E1E</color>
+
+    <color name="nav_icon_active">#4A303A</color>
+    <color name="nav_icon_inactive">#49454F</color>
+</resources>
