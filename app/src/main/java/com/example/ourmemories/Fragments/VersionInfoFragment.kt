@@ -55,6 +55,7 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
         // Данные обновлений
         descriptions["V 0.1.x (Текущая)"] =
             "V 0.1.6\n" +
+                    "• Добавлены уведомления\n" +
                     "• Удалён кадендарь\n" +
                     "• Добавлен список желаний\n" +
                     "• Добавлено дерево Любви\n" +

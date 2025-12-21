@@ -45,6 +45,11 @@ android {
 }
 
 dependencies {
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    implementation(libs.firebase.messaging)
+
     implementation(libs.glide)
     kapt(libs.glideCompiler)
     implementation(libs.photoview)

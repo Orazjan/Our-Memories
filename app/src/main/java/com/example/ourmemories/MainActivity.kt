@@ -1,10 +1,16 @@
 package com.example.ourmemories
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -14,9 +20,14 @@ import com.example.ourmemories.Fragments.MainFragment
 import com.example.ourmemories.Fragments.ProfileFragment
 import com.example.ourmemories.Fragments.WishlistFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
+import com.google.firebase.messaging.FirebaseMessaging
 
 /**
  * Основное активити приложения.
+ * Управляет навигацией и правами доступа.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -25,18 +36,35 @@ class MainActivity : AppCompatActivity() {
     private val WISHLIST_TAG = "wishlist_fragment"
     private val PROFILE_TAG = "profile_fragment"
 
-    // Переменная для хранения времени последнего нажатия "Назад"
     private var backPressedTime: Long = 0
+
+    // Запрос разрешения на уведомления (Android 13+)
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (!isGranted) {
+            Toast.makeText(
+                this, "Необходимо разрешение для уведомлений", Toast.LENGTH_SHORT
+            )
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Скрываем системные панели для полного погружения
         hideSystemUI()
+
+        // 1. Запрашиваем права на уведомления
+        askNotificationPermission()
+
+        // 2. Сохраняем токен для пушей
+        updateFcmToken()
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-        // Автоматическое скрытие меню при открытии деталей
+        // Автоматически скрываем меню, если открыт детальный фрагмент (в стеке > 0)
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount > 0) {
                 bottomNav.visibility = View.GONE
@@ -61,24 +89,22 @@ class MainActivity : AppCompatActivity() {
             bottomNav.selectedItemId = R.id.nav_home
         }
 
-        // === ОБРАБОТКА КНОПКИ НАЗАД ===
+        // Обработка кнопки Назад
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Если есть открытые фрагменты в стеке (детали, настройки) -> закрываем их
+                // Если есть фрагменты в стеке (например, детали фото) -> закрываем их
                 if (supportFragmentManager.backStackEntryCount > 0) {
                     supportFragmentManager.popBackStack()
                     return
                 }
-
-                // Если мы НЕ на главной вкладке -> переходим на Главную
+                // Если мы не на главной -> идем на главную
                 if (bottomNav.selectedItemId != R.id.nav_home) {
                     bottomNav.selectedItemId = R.id.nav_home
                     return
                 }
-
-                //  Если мы на Главной -> двойное нажатие для выхода
+                // Если мы на главной -> двойной клик для выхода
                 if (backPressedTime + 2000 > System.currentTimeMillis()) {
-                    finish() // Закрываем приложение
+                    finish()
                 } else {
                     Toast.makeText(
                         this@MainActivity,
@@ -91,6 +117,34 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private fun updateFcmToken() {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+            val token = task.result
+            Log.d("FCM", "Token: $token")
+
+            // Сохраняем токен в Firestore
+            Firebase.firestore.collection("users").document(user.uid).update("fcmToken", token)
+                .addOnFailureListener { e -> Log.e("FCM", "Error saving token", e) }
+        }
+    }
+
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).let { controller ->
@@ -100,6 +154,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Публичный метод для открытия фрагментов из других мест
+     */
     fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(
