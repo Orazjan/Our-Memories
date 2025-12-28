@@ -2,7 +2,7 @@
 
 <!-- ЛОГОТИП -->
 
-<img src="https://www.google.com/search?q=https://img.icons8.com/clouds/200/000000/love.png" alt="logo" width="120" height="120" />
+<img src="screenshots/logo.png" alt="logo" width="120" height="120" />
 
 ❤️ Our Memories
 
@@ -12,16 +12,13 @@
 
 <p>
 <a href="https://kotlinlang.org/">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Kotlin-1.9.0-7F52FF%3Fstyle%3Dfor-the-badge%26logo%3Dkotlin%26logoColor%3Dwhite" alt="Kotlin" />
+<img src="https://www.google.com/search?q=kotlin+logo&sca_esv=374d1c7e43054324&udm=2&biw=1396&bih=675&sxsrf=AE3TifOgmqhJAEaLPBXzUWtx2J50fhcvKA%3A1766948548413&ei=xH5RaZ3hGOC2wPAP0fy28Qg&ved=0ahUKEwid08Gk_OCRAxVgGxAIHVG-LY4Q4dUDCBI&uact=5&oq=kotlin+logo&gs_lp=Egtnd3Mtd2l6LWltZyILa290bGluIGxvZ28yBRAAGIAEMgUQABiABDIEEAAYHjIEEAAYHjIEEAAYHjIEEAAYHjIEEAAYHjIEEAAYHjIEEAAYHjIEEAAYHkiHGVAAWOkWcAB4AJABAJgB2QGgAccOqgEFMC45LjK4AQPIAQD4AQGYAgugAuQPwgIIEAAYgAQYsQPCAgsQABiABBixAxiDAcICChAAGIAEGIoFGEOYAwCSBwUwLjguM6AHrC-yBwUwLjguM7gH5A_CBwQzLTExyAeCAYAIAQ&sclient=gws-wiz-img#sv=CAMSVhoyKhBlLXRBUkNLZFFaNjFQSVpNMg50QVJDS2RRWjYxUElaTToOVUdfeTJzMmk1UWFMRU0gBCocCgZtb3NhaWMSEGUtdEFSQ0tkUVo2MVBJWk0YADABGAcg1dbNrQkwAkoKCAIQAhgCIAIoAg" alt="Kotlin" />
 </a>
 <a href="https://developer.android.com/">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Android-3DDC84%3Fstyle%3Dfor-the-badge%26logo%3Dandroid%26logoColor%3Dwhite" alt="Android" />
+<img src="https://www.google.com/search?q=androidlogo&sca_esv=374d1c7e43054324&udm=2&biw=1396&bih=675&sxsrf=AE3TifNPbfIayTek1dOOFUUGV1qKU3vLWw%3A1766948557108&ei=zX5RaZiiBo_zwPAP9KL3wAc&ved=0ahUKEwjYvNSo_OCRAxWPORAIHXTRHXgQ4dUDCBI&uact=5&oq=androidlogo&gs_lp=Egtnd3Mtd2l6LWltZyILYW5kcm9pZGxvZ28yCBAAGAcYHhgTMggQABgHGB4YEzIIEAAYBxgeGBMyCBAAGAcYHhgTMggQABgHGB4YEzIIEAAYBxgeGBMyCBAAGAcYHhgTMggQABgHGB4YEzIIEAAYBxgeGBMyCBAAGAcYHhgTSLEkUP8bWMIicAJ4AJABAJgBpwKgAeYJqgEFMC4zLjO4AQPIAQD4AQGYAgOgAvUBwgIGEAAYBxgewgIKEAAYgAQYigUYQ8ICBRAAGIAEwgIEEAAYHpgDAIgGAZIHBTIuMC4xoAfuGrIHAzItMbgH5wHCBwUyLTIuMcgHFYAIAQ&sclient=gws-wiz-img#sv=CAMSVhoyKhBlLUd6Z0NlaUdJWVFwWXdNMg5HemdDZWlHSVlRcFl3TToONmd4OVFRRDlLX2E5Uk0gBCocCgZtb3NhaWMSEGUtR3pnQ2VpR0lZUXBZd00YADABGAcgz6Oz-QIwAkoKCAIQAhgCIAIoAg" alt="Android" />
 </a>
 <a href="https://firebase.google.com/">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Backend-Firebase-FFCA28%3Fstyle%3Dfor-the-badge%26logo%3Dfirebase%26logoColor%3Dblack" alt="Firebase" />
-</a>
-<a href="#">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Status-Active-success%3Fstyle%3Dfor-the-badge" alt="Status" />
+<img src="https://www.google.com/search?q=firebase+logo&sca_esv=374d1c7e43054324&udm=2&biw=1396&bih=675&sxsrf=AE3TifMQxf5IFEg9q8-U8ZIj5ZaZu198zg%3A1766948613670&ei=BX9Raf_TKPbRwPAPn-DliA0&ved=0ahUKEwi_6tDD_OCRAxX2KBAIHR9wGdEQ4dUDCBI&uact=5&oq=firebase+logo&gs_lp=Egtnd3Mtd2l6LWltZyINZmlyZWJhc2UgbG9nbzIGEAAYBxgeMgYQABgHGB4yBhAAGAcYHjIGEAAYBxgeMgYQABgHGB4yBhAAGAcYHjIGEAAYBxgeMgYQABgHGB4yBhAAGAcYHjIGEAAYBxgeSLUbUJsJWNAWcAF4AJABApgBrgWgAekaqgELMC4zLjEuMS4xLjO4AQPIAQD4AQGYAgOgAooHwgIJEAAYgAQYChgLwgIIEAAYBxgeGBOYAwCIBgGSBwcxLjMtMS4xoAeJKrIHBTMtMS4xuAeCB8IHBTItMS4yyAchgAgB&sclient=gws-wiz-img#sv=CAMSVhoyKhBlLWU5dlMyMmxRTlBmMXBNMg5lOXZTMjJsUU5QZjFwTToOUmJGUHRSQXB6Z2JWS00gBCocCgZtb3NhaWMSEGUtZTl2UzIybFFOUGYxcE0YADABGAcgsavmtwwwAkoKCAIQAhgCIAIoAg" alt="Firebase" />
 </a>
 </p>
 
