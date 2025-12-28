@@ -1,14 +1,40 @@
-❤️ Our Memories — Пространство для двоих
+<div align="center">
 
-<!-- Баннер (Замените на реальную ссылку на картинку или удалите) -->
+<!-- ЛОГОТИП -->
 
-<!-- Бейджи технологий -->
+<img src="https://www.google.com/search?q=https://img.icons8.com/clouds/200/000000/love.png" alt="logo" width="120" height="120" />
 
-Our Memories — это уютное мобильное приложение для пар, помогающее сохранять воспоминания,
-синхронизировать желания и оставаться на связи, даже находясь на расстоянии.
+❤️ Our Memories
 
-Это личный цифровой уголок для двоих, где можно хранить фотографии, вести общие списки и следить за
-развитием отношений через игровые механики.
+Уютное пространство для двоих
+
+<!-- БЕЙДЖИ -->
+
+<p>
+<a href="https://kotlinlang.org/">
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/Kotlin-1.9.0-7F52FF%3Fstyle%3Dfor-the-badge%26logo%3Dkotlin%26logoColor%3Dwhite" alt="Kotlin" />
+</a>
+<a href="https://developer.android.com/">
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/Android-3DDC84%3Fstyle%3Dfor-the-badge%26logo%3Dandroid%26logoColor%3Dwhite" alt="Android" />
+</a>
+<a href="https://firebase.google.com/">
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/Backend-Firebase-FFCA28%3Fstyle%3Dfor-the-badge%26logo%3Dfirebase%26logoColor%3Dblack" alt="Firebase" />
+</a>
+<a href="#">
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/Status-Active-success%3Fstyle%3Dfor-the-badge" alt="Status" />
+</a>
+</p>
+
+<p>
+<i>Сохраняйте воспоминания, синхронизируйте желания и растите свою любовь.</i>
+</p>
+</div>
+
+📖 О проекте
+
+Our Memories — это уютное мобильное приложение для пар, помогающее сохранять воспоминания, синхронизировать желания и оставаться на связи, даже находясь на расстоянии.
+
+Это личный цифровой уголок для двоих, где можно хранить фотографии, вести общие списки и следить за развитием отношений через игровые механики.
 
 ✨ Основные возможности
 
@@ -18,11 +44,9 @@ Our Memories — это уютное мобильное приложение д�
 
 ❤️ Таймер отношений: Красивый счетчик дней, проведенных вместе.
 
-💭 Живые статусы: Устанавливайте эмодзи-статус (😴, 💼, ❤️) или пишите свой текст, чтобы партнер знал,
-чем вы заняты.
+💭 Живые статусы: Устанавливайте эмодзи-статус (😴, 💼, ❤️) или пишите свой текст, чтобы партнер знал, чем вы заняты.
 
-📝 Записка на холодильнике: Общее текстовое поле, синхронизируемое в реальном времени. Оставляйте
-послания, напоминания или признания.
+📝 Записка на холодильнике: Общее текстовое поле, синхронизируемое в реальном времени. Оставляйте послания, напоминания или признания.
 
 🌳 Дерево Любви (Тамагочи): Геймификация отношений!
 
@@ -50,8 +74,7 @@ Our Memories — это уютное мобильное приложение д�
 
 Место для ваших планов и мечт.
 
-🔄 Синхронизация: Добавляйте фильмы, места для свиданий или список покупок — партнер увидит это
-мгновенно.
+🔄 Синхронизация: Добавляйте фильмы, места для свиданий или список покупок — партнер увидит это мгновенно.
 
 ✅ Чек-боксы: Отмечайте выполненные желания (они автоматически перемещаются вниз списка).
 
@@ -119,11 +142,15 @@ Firebase
 
 • Glide: Загрузка и кэширование изображений
 
+
+
 • PhotoView: Просмотр изображений с жестами зума
+
+
 
 • Material Design Components: Современный UI/UX
 
-🔔 Система уведомлений
+🔔 Умные уведомления
 
 Приложение держит вас в курсе событий благодаря Cloud Functions (Node.js backend):
 
@@ -154,11 +181,28 @@ Firebase
 📱 Скриншоты
 
 <div align="center">
-<img src="screenshots/main_day.jpg" width="200" alt="Главная (День)" />
-<img src="screenshots/main_night.jpg" width="200" alt="Главная (Ночь)" />
-<img src="screenshots/gallery.jpg" width="200" alt="Галерея" />
-<img src="screenshots/wishlist.jpg" width="200" alt="Список желаний" />
-<img src="screenshots/profile.jpg" width="200" alt="Профиль" />
+<table>
+<tr>
+<td align="center"><b>Главная (День)</b></td>
+<td align="center"><b>Главная (Ночь)</b></td>
+<td align="center"><b>Галерея</b></td>
+</tr>
+<tr>
+<td><img src="screenshots/main_day.jpg" width="220" /></td>
+<td><img src="screenshots/main_night.jpg" width="220" /></td>
+<td><img src="screenshots/gallery.jpg" width="220" /></td>
+</tr>
+<tr>
+<td align="center"><b>Профиль</b></td>
+<td align="center"><b>Виджет</b></td>
+<td align="center"><b>Список желаний</b></td>
+</tr>
+<tr>
+<td><img src="screenshots/profile.jpg" width="220" /></td>
+<td><img src="screenshots/widget.jpg" width="220" /></td>
+<td><img src="screenshots/wishlist.jpg" width="220" /></td>
+</tr>
+</table>
 </div>
 
 
@@ -166,8 +210,16 @@ Firebase
 
 
 <div align="center">
-<img src="screenshots/add_memory.jpg" width="200" alt="Добавление воспоминаний" />
-<img src="screenshots/add_wish.jpg" width="200" alt="Добавление желаний" />
+<table>
+<tr>
+<td align="center"><b>Добавление воспоминаний</b></td>
+<td align="center"><b>Добавление желаний</b></td>
+</tr>
+<tr>
+<td><img src="screenshots/add_memory.jpg" width="220" /></td>
+<td><img src="screenshots/add_wish.jpg" width="220" /></td>
+</tr>
+</table>
 </div>
 
 🚀 Установка и запуск
@@ -175,6 +227,7 @@ Firebase
 Клонируйте репозиторий:
 
 git clone [https://github.com/Orazjan/Our-Memories.git](https://github.com/Orazjan/Our-Memories.git)
+
 
 Откройте проект в Android Studio.
 
@@ -192,6 +245,8 @@ cd functions
 npm install
 firebase deploy --only functions
 
+
+Запуск:
 Соберите и запустите приложение на устройстве!
 
 🤝 Контакты
