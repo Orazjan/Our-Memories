@@ -45,7 +45,6 @@
             android:textStyle="bold" />
 
         <ImageView
-            android:id="@+id/ivArrow"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/ic_media_play"

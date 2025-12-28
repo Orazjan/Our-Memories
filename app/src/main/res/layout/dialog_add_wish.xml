@@ -46,7 +46,6 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:id="@+id/catOther"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:background="@drawable/selector_chip_category"

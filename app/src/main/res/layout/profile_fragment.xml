@@ -119,7 +119,6 @@
 
                             <!-- НОВЫЙ ПРОГРЕСС БАР (Крутится прямо на фото) -->
                             <ProgressBar
-                                android:id="@+id/progressBarImage"
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:layout_gravity="center"

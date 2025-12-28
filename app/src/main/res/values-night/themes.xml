@@ -18,18 +18,4 @@
         <item name="postSplashScreenTheme">@style/Theme.OurMemories</item>
     </style>
 
-    <style name="CalendarDay">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">48dp</item>
-        <item name="android:layout_columnWeight">1</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textSize">14sp</item>
-    </style>
-
-    <style name="CalenderViewCustom" parent="Theme.AppCompat">
-        <item name="colorAccent">@color/heart_red</item>
-        <item name="colorPrimary">@color/heart_red</item>
-        <item name="android:textColorPrimary">@color/text_primary</item>
-    </style>
 </resources>
