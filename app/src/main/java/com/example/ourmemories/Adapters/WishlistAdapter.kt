@@ -5,12 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourmemories.Models.WishItem
 import com.example.ourmemories.R
+import com.example.ourmemories.Utils.GlideHelper
 
 class WishlistAdapter(
     private val onCheckClick: (WishItem, Boolean) -> Unit,
@@ -20,6 +22,8 @@ class WishlistAdapter(
     inner class WishViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
         val tvDescription: TextView = itemView.findViewById(R.id.tvDescription)
+        val tvCategoryIcon: TextView = itemView.findViewById(R.id.tvCategoryIcon)
+        val ivAuthorAvatar: ImageView = itemView.findViewById(R.id.ivAuthorAvatar)
         val cbComplete: CheckBox = itemView.findViewById(R.id.cbComplete)
     }
 
@@ -30,9 +34,17 @@ class WishlistAdapter(
     }
 
     override fun onBindViewHolder(holder: WishViewHolder, position: Int) {
+        // Сброс состояния View после свайпа
+        holder.itemView.translationX = 0f
+        holder.itemView.alpha = 1f
+
         val item = getItem(position)
 
         holder.tvTitle.text = item.title
+        holder.tvCategoryIcon.text = getEmojiForCategory(item.category)
+
+        GlideHelper.loadAvatar(holder.ivAuthorAvatar, item.creatorPhotoUrl, "WishAuthor")
+
 
         if (item.description.isNotEmpty()) {
             holder.tvDescription.text = item.description
@@ -65,6 +77,17 @@ class WishlistAdapter(
         }
     }
 
+    private fun getEmojiForCategory(category: String): String {
+        return when (category) {
+            "movie" -> "🎬"
+            "shopping" -> "🛒"
+            "travel" -> "✈️"
+            "date" -> "❤️"
+            "food" -> "🍔"
+            else -> "✨"
+        }
+    }
+
     private fun updateStrikeThrough(title: TextView, desc: TextView, isCompleted: Boolean) {
         if (isCompleted) {
             title.paintFlags = title.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
@@ -78,12 +101,9 @@ class WishlistAdapter(
     }
 
     class WishDiffCallback : DiffUtil.ItemCallback<WishItem>() {
-        override fun areItemsTheSame(oldItem: WishItem, newItem: WishItem): Boolean {
-            return oldItem.id == newItem.id
-        }
+        override fun areItemsTheSame(oldItem: WishItem, newItem: WishItem) =
+            oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: WishItem, newItem: WishItem): Boolean {
-            return oldItem == newItem
-        }
+        override fun areContentsTheSame(oldItem: WishItem, newItem: WishItem) = oldItem == newItem
     }
 }

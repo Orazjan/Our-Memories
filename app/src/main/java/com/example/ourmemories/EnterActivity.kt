@@ -3,9 +3,12 @@ package com.example.ourmemories
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -13,6 +16,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
+import com.example.ourmemories.Fragments.ProfileFragment
 import com.example.ourmemories.LogAndReg.ForgotPasswordFragment
 import com.example.ourmemories.LogAndReg.LoginFragment
 import com.example.ourmemories.LogAndReg.OnboardingFragment
@@ -35,12 +39,17 @@ class EnterActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var prefs: SharedPreferences
 
-    // Флаг, чтобы держать Splash Screen
     private var isChecking = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // Применяем сохраненную тему
+        val themePrefs = getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+        val savedTheme = themePrefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(savedTheme)
 
         // Скрываем системные панели
         hideSystemUI()

@@ -4,14 +4,17 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.InputType
 import android.util.Log
 import android.view.View
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -20,18 +23,15 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
 import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 import com.google.firebase.Firebase
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
 class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
@@ -41,11 +41,17 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
 
+    private lateinit var prefs: SharedPreferences
+
     // Код партнера для шеринга
     private var myPartnerCode: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+        applySavedTheme()
+
 
         // Инициализация Views
         val username = view.findViewById<TextView>(R.id.userName)
@@ -61,9 +67,14 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val cardPrivacy = view.findViewById<View>(R.id.cardPrivacy)
         val cardLogout = view.findViewById<View>(R.id.cardLogout)
         val cardDelete = view.findViewById<View>(R.id.cardDeleteAccount)
-        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val isDark = currentNightMode == Configuration.UI_MODE_NIGHT_YES
-        val themeTitle = if (isDark) "Тёмная тема" else "Светлая тема"
+        val isSystemDark =
+            (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val currentNightMode = AppCompatDelegate.getDefaultNightMode()
+        val isDarkNow =
+            currentNightMode == AppCompatDelegate.MODE_NIGHT_YES || (currentNightMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM && isSystemDark)
+
+        val themeTitle = if (isDarkNow) "Светлая тема" else "Тёмная тема"
+
 
         /**
          * Настройка меню
@@ -294,32 +305,33 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
      */
     private fun deleteAccount() {
         val user = auth.currentUser ?: return
-        // Используем viewLifecycleOwner.lifecycleScope для операций во фрагменте
-        (activity as? MainActivity)?.lifecycleScope?.launch {
-            try {
-                // Удаляем данные из базы
-                db.collection("users").document(user.uid).delete().await()
-                // Удаляем сам аккаунт авторизации
-                user.delete().await()
 
-                withContext(Dispatchers.Main) {
+        // Сначала пробуем удалить документы из базы
+        db.collection("users").document(user.uid).delete().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                // Теперь удаляем самого юзера из Auth
+                user.delete().addOnSuccessListener {
                     Toast.makeText(context, "Аккаунт удален", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(requireActivity(), EnterActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
+                    restartApp()
+                }.addOnFailureListener { e ->
+                    // Если поймали ошибку "Требуется свежий вход"
+                    if (e is FirebaseAuthRecentLoginRequiredException) {
+                        showReauthDialog(user)
+                    } else {
+                        Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "Для удаления нужно выйти и войти снова",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    Log.e("ProfileFragment", "Error deleting account", e)
-                    auth.signOut()
-                    startActivity(Intent(requireActivity(), EnterActivity::class.java))
-                }
+            } else {
+                Toast.makeText(context, "Ошибка удаления данных", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun applySavedTheme() {
+        // Читаем из кэша (по умолчанию -1, что значит FOLLOW_SYSTEM)
+        val savedMode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        if (AppCompatDelegate.getDefaultNightMode() != savedMode) {
+            AppCompatDelegate.setDefaultNightMode(savedMode)
         }
     }
 
@@ -330,25 +342,53 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val currentMode = AppCompatDelegate.getDefaultNightMode()
 
         val newMode = when (currentMode) {
-            // Если принудительно включена темная -> включаем светлую
             AppCompatDelegate.MODE_NIGHT_YES -> AppCompatDelegate.MODE_NIGHT_NO
-
-            // Если принудительно включена светлая -> включаем темную
             AppCompatDelegate.MODE_NIGHT_NO -> AppCompatDelegate.MODE_NIGHT_YES
-
-            // Если стоит "Системная" (по умолчанию), проверяем текущее состояние системы
             else -> {
+                // Если было "Системная", смотрим текущую конфигурацию
                 val uiMode =
                     requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-                if (uiMode == Configuration.UI_MODE_NIGHT_YES) {
-                    // Система в темном -> ставим светлую
-                    AppCompatDelegate.MODE_NIGHT_NO
-                } else {
-                    // Система в светлом -> ставим темную
-                    AppCompatDelegate.MODE_NIGHT_YES
-                }
+                if (uiMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES
             }
         }
+
+        // Сохраняем выбор в настройки
+        prefs.edit().putInt("theme_mode", newMode).apply()
+
+        // Применяем
         AppCompatDelegate.setDefaultNightMode(newMode)
+    }
+
+    private fun showReauthDialog(user: com.google.firebase.auth.FirebaseUser) {
+        val passwordInput = EditText(context).apply {
+            hint = "Ваш текущий пароль"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+
+        AlertDialog.Builder(requireContext()).setTitle("Подтвердите удаление")
+            .setMessage("Для безопасности введите ваш пароль еще раз.").setView(passwordInput)
+            .setPositiveButton("Подтвердить") { _, _ ->
+                val password = passwordInput.text.toString()
+                if (password.isNotEmpty() && user.email != null) {
+                    val credential = EmailAuthProvider.getCredential(user.email!!, password)
+
+                    // Повторная авторизация
+                    user.reauthenticate(credential).addOnSuccessListener {
+                        // Теперь точно можно удалять
+                        user.delete().addOnSuccessListener {
+                            Toast.makeText(context, "Аккаунт удален", Toast.LENGTH_SHORT).show()
+                            restartApp()
+                        }
+                    }.addOnFailureListener {
+                        Toast.makeText(context, "Неверный пароль", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }.setNegativeButton("Отмена", null).show()
+    }
+
+    private fun restartApp() {
+        val intent = Intent(requireActivity(), EnterActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
     }
 }

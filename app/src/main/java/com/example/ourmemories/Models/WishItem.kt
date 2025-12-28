@@ -6,6 +6,8 @@ data class WishItem(
     val id: String = "",
     val title: String = "",
     val description: String = "",
+    val category: String = "other",
+    val creatorPhotoUrl: String? = null,
 
     @get:PropertyName("isCompleted")
     @set:PropertyName("isCompleted")
