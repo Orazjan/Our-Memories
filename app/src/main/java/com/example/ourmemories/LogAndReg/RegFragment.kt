@@ -2,7 +2,6 @@ package com.example.ourmemories.LogAndReg
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -12,20 +11,19 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.R
-import com.google.firebase.FirebaseNetworkException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.example.ourmemories.ViewModels.RegisterViewModel
 
 class RegFragment : Fragment(R.layout.register_fragment) {
 
-    private val TAG = "RegistrationFragment"
-    private val auth = FirebaseAuth.getInstance()
+    private lateinit var viewModel: RegisterViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel = ViewModelProvider(this)[RegisterViewModel::class.java]
 
         val btnRegister = view.findViewById<Button>(R.id.btn_register)
         val tvGoToLogin = view.findViewById<View>(R.id.tv_login)
@@ -40,83 +38,54 @@ class RegFragment : Fragment(R.layout.register_fragment) {
         fun validateInputs() {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
-
-            // Проверка формата Email
             val isEmailValid = email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
-            // Пароль минимум 6 символов
             val isPasswordValid = password.length >= 6
 
             btnRegister.isEnabled = isEmailValid && isPasswordValid
             btnRegister.alpha = if (btnRegister.isEnabled) 1.0f else 0.5f
         }
 
-        etEmail.doAfterTextChanged {
-            etEmail.error = null
-            validateInputs()
-        }
-
-        etPassword.doAfterTextChanged {
-            etPassword.error = null
-            if (it != null && it.length < 6) {
-                // etPassword.error = "Минимум 6 символов" // Можно включить, если нужно
-            }
-            validateInputs()
-        }
+        etEmail.doAfterTextChanged { validateInputs() }
+        etPassword.doAfterTextChanged { validateInputs() }
 
         btnRegister.setOnClickListener {
-            // Скрываем клавиатуру
-            val imm =
-                requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(view.windowToken, 0)
-
-            // Блокируем UI и показываем загрузку
-            btnRegister.visibility = View.INVISIBLE
-            progressBar.visibility = View.VISIBLE
-            etEmail.isEnabled = false
-            etPassword.isEnabled = false
-
+            hideKeyboard(view)
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(requireActivity()) { task ->
-                    if (task.isSuccessful) {
-                        val user = auth.currentUser
-
-                        // Отправляем письмо подтверждения (опционально, но хорошая практика)
-                        user?.sendEmailVerification()?.addOnCompleteListener { _ ->
-                            Toast.makeText(
-                                requireContext(),
-                                "Аккаунт создан!",
-                                Toast.LENGTH_LONG
-                            ).show()
-
-                            // Переходим к настройке профиля (или в приложение)
-                            // onAuthSuccess сам решит, куда направить (в SetupProfile, если профиля нет)
-                            (requireActivity() as? EnterActivity)?.onAuthSuccess()
-                        }
-                    } else {
-                        // Ошибка -> Возвращаем UI
-                        btnRegister.visibility = View.VISIBLE
-                        progressBar.visibility = View.GONE
-                        etEmail.isEnabled = true
-                        etPassword.isEnabled = true
-
-                        val exception = task.exception
-                        val errorMessage = when (exception) {
-                            is FirebaseAuthWeakPasswordException -> "Пароль слишком простой"
-                            is FirebaseAuthUserCollisionException -> "Этот Email уже занят"
-                            is FirebaseNetworkException -> "Нет интернета. Проверьте соединение"
-                            else -> "Ошибка: ${exception?.localizedMessage}"
-                        }
-                        Log.e(TAG, "Ошибка регистрации", exception)
-                        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
-                    }
-                }
+            viewModel.register(email, password)
         }
 
         tvGoToLogin.setOnClickListener {
             (requireActivity() as? EnterActivity)?.showLogin()
         }
+
+        observeViewModel(progressBar, btnRegister, etEmail, etPassword)
+    }
+
+    private fun observeViewModel(progressBar: ProgressBar, btn: Button, et1: EditText, et2: EditText) {
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            btn.visibility = if (isLoading) View.INVISIBLE else View.VISIBLE
+            et1.isEnabled = !isLoading
+            et2.isEnabled = !isLoading
+        }
+
+        viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
+            if (msg != null) {
+                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                viewModel.onToastShown()
+            }
+        }
+
+        viewModel.authSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                (requireActivity() as? EnterActivity)?.onAuthSuccess()
+            }
+        }
+    }
+
+    private fun hideKeyboard(view: View) {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 }

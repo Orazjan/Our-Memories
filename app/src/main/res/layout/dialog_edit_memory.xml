@@ -3,31 +3,55 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="?attr/colorSurface">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Редактировать"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/etEditTitle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
+        android:layout_height="56dp"
         android:hint="Название"
-        android:inputType="textCapSentences" />
+        android:inputType="textCapSentences"
+        android:background="@drawable/bg_input_soft"
+        android:paddingHorizontal="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?android:textColorSecondary"
+        android:layout_marginBottom="12dp"/>
 
+    <!-- Выбор даты (стилизован под инпут) -->
     <TextView
         android:id="@+id/tvEditDate"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:background="?attr/selectableItemBackground"
+        android:layout_height="56dp"
+        android:background="@drawable/bg_input_soft"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:text="20.05.2024"
+        android:textColor="?attr/colorOnSurface"
         android:drawableEnd="@android:drawable/ic_menu_my_calendar"
-        android:padding="12dp"
-        android:text="20.05.2024" />
+        android:drawableTint="?android:textColorSecondary"
+        android:layout_marginBottom="12dp"/>
 
     <EditText
         android:id="@+id/etEditDesc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="100dp"
         android:hint="Описание"
-        android:inputType="textCapSentences"
-        android:minLines="3" />
+        android:inputType="textCapSentences|textMultiLine"
+        android:gravity="top"
+        android:background="@drawable/bg_input_soft"
+        android:padding="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?android:textColorSecondary"/>
+
 </LinearLayout>

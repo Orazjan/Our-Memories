@@ -82,18 +82,20 @@ class SelectedImagesAdapter(
     override fun getItemCount(): Int = images.size
 
     /**
-     * Метод для корректировки индекса обложки при удалении элементов.
-     * Вызывается из фрагмента после удаления элемента из списка.
+     * Обновляет список изображений и перерисовывает RecyclerView.
+     * Используется во Fragment при наблюдении за ViewModel.
      */
-    fun adjustCoverPositionAfterRemoval(removedPosition: Int) {
-        if (selectedCoverPosition == removedPosition) {
-            // Если удалили саму обложку, назначаем обложкой первое фото (или -1, если список пуст)
-            selectedCoverPosition = if (images.isNotEmpty()) 0 else -1
-        } else if (selectedCoverPosition > removedPosition) {
-            // Если удалили фото, которое стояло ПЕРЕД обложкой, индекс обложки смещается на -1
-            selectedCoverPosition--
+    fun updateList(newImages: List<Uri>) {
+        images.clear()
+        images.addAll(newImages)
+
+        // Если список уменьшился и выбранный индекс вышел за пределы, сбрасываем на 0
+        if (selectedCoverPosition >= images.size && images.isNotEmpty()) {
+            selectedCoverPosition = 0
+        } else if (images.isEmpty()) {
+            selectedCoverPosition = 0
         }
-        // Перерисовываем список, чтобы обновить рамки
+
         notifyDataSetChanged()
     }
 }

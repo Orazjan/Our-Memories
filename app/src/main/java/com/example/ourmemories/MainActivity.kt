@@ -26,26 +26,32 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.messaging.FirebaseMessaging
 
 /**
- * Основное активити приложения.
- * Управляет навигацией и правами доступа.
+ * Главное Activity приложения.
+ *
+ * Выступает в роли хоста для фрагментов и управляет:
+ * 1. Нижней навигацией [BottomNavigationView].
+ * 2. Разрешениями на уведомления (POST_NOTIFICATIONS).
+ * 3. Актуализацией FCM токена для Push-уведомлений.
+ * 4. Обработкой нажатия кнопки "Назад".
  */
 class MainActivity : AppCompatActivity() {
 
-    private val MAIN_TAG = "main_fragment"
-    private val GALLERY_TAG = "gallery_fragment"
-    private val WISHLIST_TAG = "wishlist_fragment"
-    private val PROFILE_TAG = "profile_fragment"
+    private companion object {
+        const val MAIN_TAG = "main_fragment"
+        const val GALLERY_TAG = "gallery_fragment"
+        const val WISHLIST_TAG = "wishlist_fragment"
+        const val PROFILE_TAG = "profile_fragment"
+        const val BACK_PRESS_INTERVAL = 2000L
+    }
 
     private var backPressedTime: Long = 0
 
-    // Запрос разрешения на уведомления (Android 13+)
+    // Лаунчер для запроса разрешений (Android 13+)
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (!isGranted) {
-            Toast.makeText(
-                this, "Необходимо разрешение для уведомлений", Toast.LENGTH_SHORT
-            )
+            Toast.makeText(this, "Уведомления отключены", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -53,109 +59,118 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Скрываем системные панели для полного погружения
         hideSystemUI()
-
-        // 1. Запрашиваем права на уведомления
-        askNotificationPermission()
-
-        // 2. Сохраняем токен для пушей
+        checkNotificationPermission()
         updateFcmToken()
 
+        setupNavigation()
+        setupBackPressHandler()
+    }
+
+    /**
+     * Настройка нижней навигации и слушателей переключения фрагментов.
+     */
+    private fun setupNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-        // Автоматически скрываем меню, если открыт детальный фрагмент (в стеке > 0)
+        // Скрываем меню, если открыт вложенный фрагмент (детализация)
         supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount > 0) {
-                bottomNav.visibility = View.GONE
-            } else {
-                bottomNav.visibility = View.VISIBLE
-            }
+            bottomNav.visibility = if (supportFragmentManager.backStackEntryCount > 0) View.GONE else View.VISIBLE
         }
 
         bottomNav.setOnItemSelectedListener { item ->
-            val selectedTag = when (item.itemId) {
+            val tag = when (item.itemId) {
                 R.id.nav_home -> MAIN_TAG
                 R.id.nav_gallery -> GALLERY_TAG
                 R.id.nav_wishlist -> WISHLIST_TAG
                 R.id.nav_profile -> PROFILE_TAG
                 else -> return@setOnItemSelectedListener false
             }
-            switchFragment(selectedTag)
+            switchFragment(tag)
             true
         }
 
-        if (savedInstanceState == null) {
+        // Выбор стартового фрагмента
+        if (supportFragmentManager.findFragmentById(R.id.fragment_container) == null) {
             bottomNav.selectedItemId = R.id.nav_home
         }
+    }
 
-        // Обработка кнопки Назад
+    /**
+     * Логика обработки системной кнопки "Назад".
+     */
+    private fun setupBackPressHandler() {
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Если есть фрагменты в стеке (например, детали фото) -> закрываем их
+                // 1. Если есть фрагменты в стеке (детали) -> назад
                 if (supportFragmentManager.backStackEntryCount > 0) {
                     supportFragmentManager.popBackStack()
                     return
                 }
-                // Если мы не на главной -> идем на главную
+                // 2. Если не на главной вкладке -> переход на главную
                 if (bottomNav.selectedItemId != R.id.nav_home) {
                     bottomNav.selectedItemId = R.id.nav_home
                     return
                 }
-                // Если мы на главной -> двойной клик для выхода
-                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                // 3. Если на главной -> выход по двойному нажатию
+                if (System.currentTimeMillis() - backPressedTime < BACK_PRESS_INTERVAL) {
                     finish()
                 } else {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Нажмите еще раз для выхода",
-                        Toast.LENGTH_SHORT
-                    ).show()
                     backPressedTime = System.currentTimeMillis()
+                    Toast.makeText(this@MainActivity, "Нажмите еще раз для выхода", Toast.LENGTH_SHORT).show()
                 }
             }
         })
     }
 
-    private fun askNotificationPermission() {
+    /**
+     * Запрос разрешения на уведомления для Android 13 (Tiramisu) и выше.
+     */
+    private fun checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this, Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != 
+                PackageManager.PERMISSION_GRANTED) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
 
+    /**
+     * Обновляет FCM токен текущего пользователя в Firestore.
+     * Необходим для корректной работы пуш-уведомлений.
+     */
     private fun updateFcmToken() {
         val user = FirebaseAuth.getInstance().currentUser ?: return
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                return@addOnCompleteListener
-            }
+            if (!task.isSuccessful) return@addOnCompleteListener
+            
             val token = task.result
-            Log.d("FCM", "Token: $token")
-
-            // Сохраняем токен в Firestore
-            Firebase.firestore.collection("users").document(user.uid).update("fcmToken", token)
-                .addOnFailureListener { e -> Log.e("FCM", "Error saving token", e) }
+            Firebase.firestore.collection("users").document(user.uid)
+                .update("fcmToken", token)
+                .addOnFailureListener { e -> 
+                    Log.e("MainActivity", "Token update failed: ${e.localizedMessage}") 
+                }
         }
     }
 
+    /**
+     * Скрывает системные панели (status bar, navigation bar) для иммерсивного режима.
+     */
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).let { controller ->
             controller.hide(WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior =
+            controller.systemBarsBehavior = 
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 
     /**
-     * Публичный метод для открытия фрагментов из других мест
+     * Публичный метод для замены фрагментов с анимацией Fade.
+     * Используется для открытия детальных экранов.
      */
     fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
@@ -170,16 +185,18 @@ class MainActivity : AppCompatActivity() {
             .commitAllowingStateLoss()
     }
 
+    /**
+     * Переключает основные вкладки приложения, сохраняя их состояние (hide/show).
+     */
     private fun switchFragment(tag: String) {
-        val fragmentManager = supportFragmentManager
-        val transaction = fragmentManager.beginTransaction()
+        val transaction = supportFragmentManager.beginTransaction()
+        val currentFragment = supportFragmentManager.primaryNavigationFragment
 
-        val currentActiveFragment = fragmentManager.primaryNavigationFragment
-        if (currentActiveFragment != null) {
-            transaction.hide(currentActiveFragment)
+        if (currentFragment != null) {
+            transaction.hide(currentFragment)
         }
 
-        var fragment = fragmentManager.findFragmentByTag(tag)
+        var fragment = supportFragmentManager.findFragmentByTag(tag)
 
         if (fragment == null) {
             fragment = when (tag) {

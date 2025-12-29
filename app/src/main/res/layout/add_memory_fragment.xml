@@ -59,7 +59,7 @@
                 android:id="@+id/cardAddPhoto"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
-                app:cardBackgroundColor="#F0F0F0"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp">
 
@@ -74,7 +74,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:src="@android:drawable/ic_menu_camera"
-                        app:tint="#757575" />
+                        app:tint="@color/text_secondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -82,7 +82,7 @@
                         android:layout_marginTop="8dp"
                         android:text="Нажмите, чтобы\nвыбрать фото (можно несколько)"
                         android:textAlignment="center"
-                        android:textColor="#757575" />
+                        android:textColor="@color/text_secondary" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -116,7 +116,7 @@
                 android:inputType="textCapSentences"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
-                android:textColorHint="#9E9E9E" />
+                android:textColorHint="@color/text_secondary" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -140,7 +140,7 @@
                     android:layout_height="24dp"
                     android:layout_marginEnd="12dp"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    app:tint="#757575" />
+                    app:tint="@color/text_secondary" />
 
                 <EditText
                     android:id="@+id/etDate"
@@ -151,7 +151,7 @@
                     android:focusable="false"
                     android:hint="Выберите дату"
                     android:textColor="@color/text_primary"
-                    android:textColorHint="#9E9E9E" />
+                    android:textColorHint="@color/text_secondary" />
             </LinearLayout>
 
             <TextView
@@ -174,7 +174,7 @@
                 android:minHeight="100dp"
                 android:padding="16dp"
                 android:textColor="@color/text_primary"
-                android:textColorHint="#9E9E9E" />
+                android:textColorHint="@color/text_secondary" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnSaveMemory"

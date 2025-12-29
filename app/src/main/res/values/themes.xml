@@ -1,17 +1,24 @@
 <resources>
 
-    <style name="Base.Theme.OurMemories" parent="Theme.Material3.DayNight.NoActionBar" />
+    <style name="Base.Theme.OurMemories" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary_lavender</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <item name="android:windowBackground">@color/background_light</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
 
     <style name="Theme.OurMemories" parent="Base.Theme.OurMemories" />
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@android:color/white</item>
-
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
         <item name="windowSplashScreenAnimationDuration">1000</item>
-
         <item name="postSplashScreenTheme">@style/Theme.OurMemories</item>
     </style>
-
-
 </resources>

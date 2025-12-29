@@ -6,13 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.example.ourmemories.R
+import com.example.ourmemories.ViewModels.PhotoViewerViewModel
 import com.github.chrisbanes.photoview.PhotoView
 
 class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
+
+    private lateinit var viewModel: PhotoViewerViewModel
 
     companion object {
         fun newInstance(images: ArrayList<String>, startPosition: Int): PhotoViewerFragment {
@@ -28,31 +32,57 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val images = arguments?.getStringArrayList("images") ?: return
-        val startPos = arguments?.getInt("pos") ?: 0
+        viewModel = ViewModelProvider(this)[PhotoViewerViewModel::class.java]
 
+        // Передаем аргументы во ViewModel
+        val argsImages = arguments?.getStringArrayList("images")
+        val argsStartPos = arguments?.getInt("pos") ?: 0
+        viewModel.initData(argsImages, argsStartPos)
+
+        setupUI(view)
+        observeViewModel(view)
+    }
+
+    private fun setupUI(view: View) {
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
         val btnClose = view.findViewById<View>(R.id.btnClose)
-        val tvCounter = view.findViewById<TextView>(R.id.tvCounter)
-
-        // Настройка ViewPager
-        viewPager.adapter = FullScreenAdapter(images)
-        viewPager.setCurrentItem(startPos, false)
-
-        // Счетчик
-        tvCounter.text = "${startPos + 1} / ${images.size}"
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                tvCounter.text = "${position + 1} / ${images.size}"
-            }
-        })
 
         btnClose.setOnClickListener { parentFragmentManager.popBackStack() }
+
+        // Слушатель смены страниц
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                viewModel.onPageChanged(position)
+            }
+        })
+    }
+
+    private fun observeViewModel(view: View) {
+        val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
+        val tvCounter = view.findViewById<TextView>(R.id.tvCounter)
+
+        // Список изображений
+        viewModel.images.observe(viewLifecycleOwner) { images ->
+            if (images.isNotEmpty()) {
+                viewPager.adapter = FullScreenAdapter(images)
+
+                // Устанавливаем начальную позицию (без анимации)
+                val startPos = viewModel.currentPosition.value ?: 0
+                viewPager.setCurrentItem(startPos, false)
+            }
+        }
+
+        // Текущая позиция (обновляет счетчик)
+        viewModel.currentPosition.observe(viewLifecycleOwner) { pos ->
+            val total = viewModel.images.value?.size ?: 0
+            tvCounter.text = "${pos + 1} / $total"
+        }
     }
 
     // Адаптер для полноэкранного просмотра
     class FullScreenAdapter(private val images: List<String>) :
         RecyclerView.Adapter<FullScreenAdapter.ViewHolder>() {
+
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             val photoView: PhotoView = view.findViewById(R.id.ivFullPhoto)
         }

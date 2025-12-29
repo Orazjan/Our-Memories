@@ -1,11 +1,6 @@
 package com.example.ourmemories.Fragments
 
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -14,31 +9,18 @@ import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
+import com.example.ourmemories.ViewModels.EditProfileViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Locale
 
 class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
 
-    private val auth = FirebaseAuth.getInstance()
-    private val db = Firebase.firestore
-    private val storage = Firebase.storage
-
-    private var selectedImageUri: Uri? = null
+    private lateinit var viewModel: EditProfileViewModel
 
     // UI Elements
     private lateinit var ivAvatar: ImageView
@@ -48,14 +30,20 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            selectedImageUri = uri
-            ivAvatar.setImageURI(uri) // Показываем локально сразу
+            viewModel.selectImage(uri)
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel = ViewModelProvider(this)[EditProfileViewModel::class.java]
+
+        setupUI(view)
+        observeViewModel(view)
+    }
+
+    private fun setupUI(view: View) {
         ivAvatar = view.findViewById(R.id.ivAvatar)
         etName = view.findViewById(R.id.etName)
         etBirthDate = view.findViewById(R.id.etBirthDate)
@@ -65,10 +53,6 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         val btnSave = view.findViewById<Button>(R.id.btnSave)
         val cardAvatar = view.findViewById<View>(R.id.cardAvatar)
 
-        // 1. Загружаем текущие данные
-        loadCurrentData()
-
-        // 2. Обработчики
         btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
 
         cardAvatar.setOnClickListener { pickImage.launch("image/*") }
@@ -78,95 +62,58 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         btnSave.setOnClickListener {
             val name = etName.text.toString().trim()
             val date = etBirthDate.text.toString().trim()
-
-            if (name.isEmpty()) {
-                Toast.makeText(context, "Имя не может быть пустым", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            saveChanges(name, date)
+            viewModel.saveChanges(name, date)
         }
     }
 
-    private fun loadCurrentData() {
-        val user = auth.currentUser ?: return
-
-        // Фото и имя из Auth (быстро)
-        etName.setText(user.displayName)
-        GlideHelper.loadAvatar(ivAvatar, user.photoUrl?.toString(), "EditProfile")
-
-        // Дата из Firestore (чуть дольше)
-        db.collection("users").document(user.uid).get()
-            .addOnSuccessListener { doc ->
-                if (doc.exists()) {
-                    val birthDate = doc.getString("birthDate")
-                    // Если имени нет в Auth, берем из базы
-                    if (etName.text.isEmpty()) etName.setText(doc.getString("name"))
-                    etBirthDate.setText(birthDate)
-                }
-            }
-    }
-
-    private fun saveChanges(name: String, date: String) {
-        val user = auth.currentUser ?: return
-        loadingOverlay.visibility = View.VISIBLE // Блокируем экран
-
-        lifecycleScope.launch {
-            try {
-                var photoUrl = user.photoUrl?.toString()
-
-                // Если выбрали новое фото -> Грузим
-                if (selectedImageUri != null) {
-                    val compressedData = compressImage(selectedImageUri!!)
-                    val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
-                    storageRef.putBytes(compressedData).await()
-                    photoUrl = storageRef.downloadUrl.await().toString()
-                }
-
-                // Обновляем Auth (Имя + Фото)
-                val updates = UserProfileChangeRequest.Builder()
-                    .setDisplayName(name)
-                if (photoUrl != null) {
-                    updates.setPhotoUri(Uri.parse(photoUrl))
-                }
-                user.updateProfile(updates.build()).await()
-
-                // Обновляем Firestore
-                val updateMap = hashMapOf<String, Any>(
-                    "name" to name,
-                    "birthDate" to date
-                )
-                if (photoUrl != null) updateMap["photoUrl"] = photoUrl
-
-                db.collection("users").document(user.uid).update(updateMap).await()
-
-                // Успех
-                withContext(Dispatchers.Main) {
-                    loadingOverlay.visibility = View.GONE
-                    Toast.makeText(context, "Профиль обновлен!", Toast.LENGTH_SHORT).show()
-                    parentFragmentManager.popBackStack() // Возвращаемся назад
-                }
-
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    loadingOverlay.visibility = View.GONE
-                    Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
-                }
+    private fun observeViewModel(view: View) {
+        // 1. Загрузка данных (заполняем поля только один раз или если они пустые, чтобы не перетирать ввод пользователя)
+        viewModel.currentName.observe(viewLifecycleOwner) { name ->
+            if (etName.text.isEmpty() && name.isNotEmpty()) {
+                etName.setText(name)
             }
         }
-    }
-
-    private suspend fun compressImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Media.getBitmap(requireContext().contentResolver, uri)
+        
+        viewModel.currentBirthDate.observe(viewLifecycleOwner) { date ->
+            if (etBirthDate.text.isEmpty() && date.isNotEmpty()) {
+                etBirthDate.setText(date)
+            }
         }
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
-        outputStream.toByteArray()
+
+        // 2. Аватарка (текущая с сервера)
+        viewModel.currentPhotoUrl.observe(viewLifecycleOwner) { url ->
+            // Загружаем только если пользователь еще не выбрал новую локальную
+            if (viewModel.selectedImageUri.value == null) {
+                GlideHelper.loadAvatar(ivAvatar, url, "EditProfile")
+            }
+        }
+
+        // 3. Выбранное новое фото (локальное)
+        viewModel.selectedImageUri.observe(viewLifecycleOwner) { uri ->
+            if (uri != null) {
+                ivAvatar.setImageURI(uri)
+            }
+        }
+
+        // 4. Состояние загрузки
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        // 5. Успешное сохранение
+        viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                parentFragmentManager.popBackStack()
+            }
+        }
+
+        // 6. Сообщения
+        viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
+            if (msg != null) {
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                viewModel.onToastShown()
+            }
+        }
     }
 
     private fun showWheelDatePicker(editText: EditText) {
@@ -199,7 +146,6 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         npDay.maxValue = 31
         npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
 
-        // Обновляем дни в зависимости от месяца/года (упрощенно)
         fun updateDaysInMonth() {
             val cal = Calendar.getInstance()
             cal.set(Calendar.YEAR, npYear.value)

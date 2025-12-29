@@ -25,6 +25,34 @@ class WishlistAdapter(
         val tvCategoryIcon: TextView = itemView.findViewById(R.id.tvCategoryIcon)
         val ivAuthorAvatar: ImageView = itemView.findViewById(R.id.ivAuthorAvatar)
         val cbComplete: CheckBox = itemView.findViewById(R.id.cbComplete)
+
+        init {
+            // Обработка клика по чекбоксу
+            cbComplete.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val item = getItem(position)
+                    val isChecked = cbComplete.isChecked
+                    
+                    // Мгновенно обновляем визуал
+                    updateStrikeThrough(tvTitle, tvDescription, isChecked)
+                    
+                    // Отправляем событие во фрагмент
+                    onCheckClick(item, isChecked)
+                }
+            }
+
+            // Обработка долгого нажатия на элемент
+            itemView.setOnLongClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onLongClick(getItem(position))
+                    true
+                } else {
+                    false
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WishViewHolder {
@@ -34,17 +62,16 @@ class WishlistAdapter(
     }
 
     override fun onBindViewHolder(holder: WishViewHolder, position: Int) {
+        val item = getItem(position)
+
         // Сброс состояния View после свайпа
         holder.itemView.translationX = 0f
         holder.itemView.alpha = 1f
-
-        val item = getItem(position)
 
         holder.tvTitle.text = item.title
         holder.tvCategoryIcon.text = getEmojiForCategory(item.category)
 
         GlideHelper.loadAvatar(holder.ivAuthorAvatar, item.creatorPhotoUrl, "WishAuthor")
-
 
         if (item.description.isNotEmpty()) {
             holder.tvDescription.text = item.description
@@ -53,28 +80,12 @@ class WishlistAdapter(
             holder.tvDescription.visibility = View.GONE
         }
 
-        // Сначала снимаем слушатель, чтобы изменение isChecked не вызвало колбек
-        holder.cbComplete.setOnCheckedChangeListener(null)
-
-        // Устанавливаем текущее состояние
+        // Установка состояния чекбокса (важно: мы уже не вешаем слушатель здесь)
+        // Чтобы setChecked не триггерил анимацию или старые листнеры (хотя мы используем setOnClickListener, но всё же)
         holder.cbComplete.isChecked = item.isCompleted
 
-        // Применяем визуальное оформление (зачеркивание)
+        // Применяем визуальное оформление
         updateStrikeThrough(holder.tvTitle, holder.tvDescription, item.isCompleted)
-
-        // Используем setOnClickListener вместо setOnCheckedChangeListener для надежности
-        holder.cbComplete.setOnClickListener {
-            val isChecked = holder.cbComplete.isChecked
-            // Мгновенно обновляем визуал
-            updateStrikeThrough(holder.tvTitle, holder.tvDescription, isChecked)
-            // Отправляем событие во фрагмент
-            onCheckClick(item, isChecked)
-        }
-
-        holder.itemView.setOnLongClickListener {
-            onLongClick(item)
-            true
-        }
     }
 
     private fun getEmojiForCategory(category: String): String {

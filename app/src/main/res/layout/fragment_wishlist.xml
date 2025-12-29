@@ -62,7 +62,7 @@
                     android:layout_width="64dp"
                     android:layout_height="64dp"
                     android:src="@android:drawable/ic_menu_edit"
-                    app:tint="#D0D0D0" />
+                    app:tint="@color/text_secondary" />
 
                 <TextView
                     android:layout_width="wrap_content"

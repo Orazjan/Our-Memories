@@ -1,8 +1,6 @@
 package com.example.ourmemories.LogAndReg
 
-import android.content.ContentValues.TAG
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -10,16 +8,19 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.R
-import com.google.firebase.auth.FirebaseAuth
+import com.example.ourmemories.ViewModels.ForgotPasswordViewModel
 
 class ForgotPasswordFragment : Fragment(R.layout.forget_fragment) {
 
-    val auth = FirebaseAuth.getInstance()
+    private lateinit var viewModel: ForgotPasswordViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel = ViewModelProvider(this)[ForgotPasswordViewModel::class.java]
 
         val btnBack = view.findViewById<ImageView>(R.id.btnBack)
         val btnBackToLogin = view.findViewById<TextView>(R.id.btnBackToLogin)
@@ -35,26 +36,25 @@ class ForgotPasswordFragment : Fragment(R.layout.forget_fragment) {
         }
 
         btnSendReset.setOnClickListener {
-            val email = etEmail.text.toString()
-            if (email.isNotEmpty()) {
-                resetPassword(etEmail)
-            } else {
-                Toast.makeText(context, "Please enter email", Toast.LENGTH_SHORT).show()
+            val email = etEmail.text.toString().trim()
+            viewModel.resetPassword(email)
+        }
+
+        observeViewModel()
+    }
+
+    private fun observeViewModel() {
+        viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
+            if (msg != null) {
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                viewModel.onToastShown()
             }
         }
 
-    }
-
-    fun resetPassword(etEmail: EditText) {
-
-        val email = etEmail.text.toString()
-        auth.sendPasswordResetEmail(email).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Toast.makeText(context, "Проверьте почту $email", Toast.LENGTH_SHORT).show()
+        viewModel.resetSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                viewModel.onResetSuccessHandled()
                 (requireActivity() as EnterActivity).showLogin()
-            } else {
-                Toast.makeText(context, "Ошибка", Toast.LENGTH_SHORT).show()
-                Log.e(TAG, "Error sending email", task.exception)
             }
         }
     }

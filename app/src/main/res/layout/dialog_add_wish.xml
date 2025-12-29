@@ -3,13 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="?attr/colorSurface"> <!-- Автоматический цвет фона диалога -->
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Новое желание"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
@@ -20,16 +21,18 @@
         android:layout_height="56dp"
         android:hint="Чего хочется?"
         android:inputType="textCapSentences"
-        android:background="@drawable/bg_input_field"
+        android:background="@drawable/bg_input_soft"
         android:paddingHorizontal="16dp"
-        android:layout_marginBottom="12dp"/>
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?android:textColorSecondary"
+        android:layout_marginBottom="16dp"/>
 
     <!-- Выбор категории -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Категория"
-        android:textColor="@color/text_secondary"
+        android:textColor="?android:textColorSecondary"
         android:textSize="12sp"
         android:layout_marginBottom="8dp"/>
 
@@ -37,7 +40,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none"
-        android:layout_marginBottom="12dp">
+        android:clipToPadding="false"
+        android:layout_marginBottom="16dp">
 
         <RadioGroup
             android:id="@+id/rgCategories"
@@ -51,7 +55,7 @@
                 android:background="@drawable/selector_chip_category"
                 android:button="@null"
                 android:text="✨ Разное"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
                 android:paddingHorizontal="16dp"
                 android:layout_marginEnd="8dp"
                 android:checked="true"/>
@@ -63,7 +67,7 @@
                 android:background="@drawable/selector_chip_category"
                 android:button="@null"
                 android:text="🎬 Кино"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
                 android:paddingHorizontal="16dp"
                 android:layout_marginEnd="8dp"/>
 
@@ -74,7 +78,7 @@
                 android:background="@drawable/selector_chip_category"
                 android:button="@null"
                 android:text="🍔 Еда"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
                 android:paddingHorizontal="16dp"
                 android:layout_marginEnd="8dp"/>
 
@@ -85,7 +89,7 @@
                 android:background="@drawable/selector_chip_category"
                 android:button="@null"
                 android:text="🛒 Купить"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
                 android:paddingHorizontal="16dp"
                 android:layout_marginEnd="8dp"/>
 
@@ -96,7 +100,7 @@
                 android:background="@drawable/selector_chip_category"
                 android:button="@null"
                 android:text="✈️ Поездка"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
                 android:paddingHorizontal="16dp"
                 android:layout_marginEnd="8dp"/>
 
@@ -107,7 +111,7 @@
                 android:background="@drawable/selector_chip_category"
                 android:button="@null"
                 android:text="❤️ Свидание"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
                 android:paddingHorizontal="16dp"
                 android:layout_marginEnd="8dp"/>
 
@@ -121,8 +125,10 @@
         android:minHeight="56dp"
         android:hint="Детали (необязательно)"
         android:inputType="textCapSentences|textMultiLine"
-        android:background="@drawable/bg_input_field"
+        android:background="@drawable/bg_input_soft"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="12dp"/>
+        android:paddingVertical="12dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?android:textColorSecondary"/>
 
 </LinearLayout>

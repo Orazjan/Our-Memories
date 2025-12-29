@@ -3,15 +3,30 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="?attr/colorSurface">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Записка"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/etNote"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Напишите записку..."
+        android:minHeight="120dp"
+        android:hint="Оставьте записку..."
         android:inputType="textMultiLine|textCapSentences"
         android:maxLength="100"
-        android:minLines="3" />
+        android:gravity="top"
+        android:background="@drawable/bg_input_soft"
+        android:padding="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?android:textColorSecondary"/>
 
 </LinearLayout>

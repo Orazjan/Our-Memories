@@ -3,14 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_input_field"
+    android:background="?attr/colorSurface"
     android:padding="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/connecting_accaunt"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/enter_your_partner_s_8_digit_code_it_s_located_in_their_profile"
-        android:textColor="@color/text_secondary"
+        android:textColor="?android:textColorSecondary"
         android:textSize="14sp"
         android:gravity="center"
         android:layout_marginBottom="24dp"/>
@@ -29,7 +29,7 @@
         android:id="@+id/etPartnerCode"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@drawable/bg_input_field"
+        android:background="@drawable/bg_input_soft"
         android:hint="@string/for_example_12345678"
         android:inputType="number"
         android:maxLength="8"
@@ -37,6 +37,8 @@
         android:gravity="center"
         android:letterSpacing="0.2"
         android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?android:textColorSecondary"
         android:layout_marginBottom="24dp"/>
 
     <androidx.appcompat.widget.AppCompatButton

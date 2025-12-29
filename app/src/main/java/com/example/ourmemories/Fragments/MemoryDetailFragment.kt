@@ -13,14 +13,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
+import com.example.ourmemories.ViewModels.MemoryDetailViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -29,13 +28,11 @@ import java.util.Locale
 
 class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
-    private val db = Firebase.firestore
-    private val storage = Firebase.storage
-
-    // Данные альбома
-    private var memoryId: String = ""
+    private lateinit var viewModel: MemoryDetailViewModel
+    
+    // Адаптер и список для него
     private var imagesList = mutableListOf<String>()
-    private var currentTimestamp: Long = 0
+    private lateinit var adapter: AlbumPhotosAdapter
 
     companion object {
         fun newInstance(
@@ -62,67 +59,84 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val args = arguments ?: return
-        memoryId = args.getString("id") ?: return
-        val title = args.getString("title") ?: ""
-        val description = args.getString("description") ?: ""
-        currentTimestamp = args.getLong("timestamp")
-        val coverUrl = args.getString("imageUrl") ?: ""
+        viewModel = ViewModelProvider(this)[MemoryDetailViewModel::class.java]
 
-        // Инициализация Views
+        // Получаем аргументы и инициализируем ViewModel
+        val args = arguments ?: return
+        val memoryId = args.getString("id") ?: return
+        
+        viewModel.init(
+            id = memoryId,
+            initialTitle = args.getString("title") ?: "",
+            initialDesc = args.getString("description") ?: "",
+            initialTimestamp = args.getLong("timestamp"),
+            initialCover = args.getString("imageUrl") ?: ""
+        )
+
+        setupUI(view)
+        observeViewModel(view)
+    }
+
+    private fun setupUI(view: View) {
         val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
-        val ivCover = view.findViewById<ImageView>(R.id.ivCover)
+        val btnEdit = view.findViewById<View>(R.id.btnEdit)
+        val rvPhotos = view.findViewById<RecyclerView>(R.id.rvPhotos)
         val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val tvDescription = view.findViewById<TextView>(R.id.tvDescription)
         val tvDate = view.findViewById<TextView>(R.id.tvDate)
-        val btnEdit = view.findViewById<View>(R.id.btnEdit)
-        val rvPhotos = view.findViewById<RecyclerView>(R.id.rvPhotos)
 
-        // Настройка Toolbar
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
-        // Заполнение данными
-        tvTitle.text = title
-        tvDescription.text = description
-        updateDateText(tvDate, currentTimestamp)
-        GlideHelper.loadGalleryImage(ivCover, coverUrl)
-
-        // Настройка сетки фото (3 колонки)
+        // Настройка списка фото
         rvPhotos.layoutManager = GridLayoutManager(context, 3)
-        val adapter = AlbumPhotosAdapter(images = imagesList, onClick = { position ->
-            // Открываем полноэкранный просмотр
+        adapter = AlbumPhotosAdapter(images = imagesList, onClick = { position ->
             openFullScreenViewer(position)
         }, onLongClick = { url ->
-            // Предлагаем сделать обложкой
-            showSetCoverDialog(url, ivCover)
+            showSetCoverDialog(url)
         })
         rvPhotos.adapter = adapter
 
-        // Загрузка списка фото из базы
-        loadImages(coverUrl, adapter)
-
-        // Редактирование
         btnEdit.setOnClickListener {
-            showEditDialog(tvTitle, tvDescription, tvDate)
+            val currentTitle = viewModel.title.value ?: ""
+            val currentDesc = viewModel.description.value ?: ""
+            val currentDate = viewModel.timestamp.value ?: System.currentTimeMillis()
+            showEditDialog(currentTitle, currentDesc, currentDate)
         }
     }
 
-    private fun loadImages(coverUrl: String, adapter: AlbumPhotosAdapter) {
-        db.collection("memories").document(memoryId).get().addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                // Если поле images есть - берем его, если нет - берем imageUrl как одно фото
-                val list = document.get("images") as? List<String>
-                    ?: listOf(coverUrl).filter { it.isNotEmpty() }
+    private fun observeViewModel(view: View) {
+        val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
+        val tvDescription = view.findViewById<TextView>(R.id.tvDescription)
+        val tvDate = view.findViewById<TextView>(R.id.tvDate)
+        val ivCover = view.findViewById<ImageView>(R.id.ivCover)
 
-                imagesList.clear()
-                imagesList.addAll(list)
-                adapter.notifyDataSetChanged()
+        // Обновление текстов
+        viewModel.title.observe(viewLifecycleOwner) { tvTitle.text = it }
+        viewModel.description.observe(viewLifecycleOwner) { tvDescription.text = it }
+        viewModel.timestamp.observe(viewLifecycleOwner) { updateDateText(tvDate, it) }
+        
+        // Обновление обложки
+        viewModel.coverUrl.observe(viewLifecycleOwner) { url ->
+            GlideHelper.loadGalleryImage(ivCover, url)
+        }
+
+        // Обновление списка фото
+        viewModel.images.observe(viewLifecycleOwner) { list ->
+            imagesList.clear()
+            imagesList.addAll(list)
+            adapter.notifyDataSetChanged()
+        }
+
+        // Сообщения
+        viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
+            if (msg != null) {
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                viewModel.onToastShown()
             }
         }
     }
 
     private fun openFullScreenViewer(position: Int) {
-        // Передаем список URL и позицию в новый фрагмент просмотра
         val viewerFragment = PhotoViewerFragment.newInstance(ArrayList(imagesList), position)
 
         parentFragmentManager.beginTransaction().setCustomAnimations(
@@ -130,25 +144,34 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             android.R.anim.fade_out,
             android.R.anim.fade_in,
             android.R.anim.fade_out
-        ).add(R.id.fragment_container, viewerFragment) // Add поверх текущего
+        ).add(R.id.fragment_container, viewerFragment)
             .addToBackStack(null).commit()
     }
 
-    private fun showEditDialog(tvTitle: TextView, tvDesc: TextView, tvDate: TextView) {
+    private fun showSetCoverDialog(url: String) {
+        AlertDialog.Builder(requireContext()).setTitle("Сделать обложкой?")
+            .setMessage("Это фото будет отображаться в ленте.")
+            .setPositiveButton("Да") { _, _ ->
+                viewModel.setCoverImage(url)
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun showEditDialog(currentTitle: String, currentDesc: String, currentTimestamp: Long) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_memory, null)
         val etTitle = dialogView.findViewById<EditText>(R.id.etEditTitle)
         val etDesc = dialogView.findViewById<EditText>(R.id.etEditDesc)
         val etDateView = dialogView.findViewById<TextView>(R.id.tvEditDate)
 
-        etTitle.setText(tvTitle.text)
-        etDesc.setText(tvDesc.text)
+        etTitle.setText(currentTitle)
+        etDesc.setText(currentDesc)
 
-        // Временная метка для диалога
+        // Локальная переменная для диалога
         var newTimestamp = currentTimestamp
         val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         etDateView.text = sdf.format(Date(newTimestamp))
 
-        // Используем кастомный пикер даты
         etDateView.setOnClickListener {
             showWheelDatePicker(newTimestamp) { selectedTime ->
                 newTimestamp = selectedTime
@@ -163,20 +186,13 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
                 val newDesc = etDesc.text.toString().trim()
 
                 if (newTitle.isNotEmpty()) {
-                    saveChanges(newTitle, newDesc, newTimestamp)
-                    tvTitle.text = newTitle
-                    tvDesc.text = newDesc
-                    currentTimestamp = newTimestamp
-                    updateDateText(tvDate, currentTimestamp)
+                    viewModel.saveChanges(newTitle, newDesc, newTimestamp)
                 }
             }
             .setNegativeButton("Отмена", null)
             .show()
     }
 
-    /**
-     * Показывает диалоговое окно для выбора даты.
-     */
     private fun showWheelDatePicker(initialTimestamp: Long, onDateSelected: (Long) -> Unit) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -231,38 +247,6 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         dialog.show()
     }
 
-    /**
-     * Сохранение изменений в базе данных.
-     */
-    private fun saveChanges(title: String, desc: String, timestamp: Long) {
-        db.collection("memories").document(memoryId).update(
-            mapOf(
-                "title" to title, "description" to desc, "timestamp" to timestamp
-            )
-        ).addOnSuccessListener {
-            Toast.makeText(context, "Сохранено", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * Предлагаем сделать выбранное фото обложкой.
-     */
-    private fun showSetCoverDialog(url: String, ivCover: ImageView) {
-        AlertDialog.Builder(requireContext()).setTitle("Сделать обложкой?")
-            .setMessage("Это фото будет отображаться в ленте.").setPositiveButton("Да") { _, _ ->
-                db.collection("memories").document(memoryId).update("imageUrl", url)
-                    .addOnSuccessListener {
-                        GlideHelper.loadGalleryImage(ivCover, url)
-                        Toast.makeText(context, "Обложка обновлена", Toast.LENGTH_SHORT).show()
-                    }
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
-    /**
-     * Обновление текста даты на экране.
-     */
     private fun updateDateText(textView: TextView, timestamp: Long) {
         if (timestamp > 0) {
             val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
@@ -271,7 +255,7 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     }
 
     /**
-     * Адаптер для сетки фото в фрагменте просмотра альбома.
+     * Адаптер для сетки фото
      */
     class AlbumPhotosAdapter(
         private val images: List<String>,
@@ -280,13 +264,11 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     ) : RecyclerView.Adapter<AlbumPhotosAdapter.ViewHolder>() {
 
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            // Используем стандартный item_memory, так как он квадратный и подходит для сетки
             val imageView: ImageView = view.findViewById(R.id.ivMemory)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view =
-                LayoutInflater.from(parent.context).inflate(R.layout.item_memory, parent, false)
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_memory, parent, false)
             return ViewHolder(view)
         }
 

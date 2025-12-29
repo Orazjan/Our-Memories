@@ -39,6 +39,25 @@ class MemoryAdapter(
         val tvMonth: TextView? = itemView.findViewById(R.id.tvMonth)
         val tvTitle: TextView? = itemView.findViewById(R.id.tvTimelineTitle)
         val tvDesc: TextView? = itemView.findViewById(R.id.tvTimelineDesc)
+
+        init {
+            itemView.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onClick(getItem(position))
+                }
+            }
+
+            itemView.setOnLongClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onLongClick?.invoke(getItem(position))
+                    true
+                } else {
+                    false
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MemoryViewHolder {
@@ -62,15 +81,6 @@ class MemoryAdapter(
                 holder.tvDay?.text = dayFormat.format(date)
                 holder.tvMonth?.text = monthFormat.format(date).uppercase()
             }
-        }
-
-        holder.itemView.setOnClickListener {
-            onClick(memory)
-        }
-
-        holder.itemView.setOnLongClickListener {
-            onLongClick?.invoke(memory)
-            true // true = событие обработано
         }
     }
 

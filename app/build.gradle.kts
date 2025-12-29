@@ -56,9 +56,8 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.firebase.storage)
-    implementation(libs.material.calendarview)
     implementation(libs.androidx.core.splashscreen)
-
+    implementation(libs.androidx.fragment.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

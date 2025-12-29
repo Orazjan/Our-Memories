@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary_lavender">#E0C3F7</color>
-    <color name="background_light">#F8F7FA</color>
+    <!-- Основные -->
+    <color name="primary_lavender">#9C27B0</color> <!-- Чуть темнее для читаемости белого текста на кнопках -->
+    <color name="background_light">#F5F5F7</color> <!-- Светло-серый, чтобы белые карточки выделялись -->
 
-    <color name="text_primary">#1C1C1E</color>
-    <color name="text_secondary">#6B7280</color>
+    <!-- Текст -->
+    <color name="text_primary">#000000</color> <!-- Чисто черный -->
+    <color name="text_secondary">#575757</color> <!-- Темно-серый -->
 
-    <color name="baby_pink">#FBE0E7</color>
-    <color name="light_blue">#D1E5F5</color>
-
-    <color name="heart_red">#EF4444</color>
+    <!-- Карточки -->
     <color name="white">#FFFFFF</color>
-    <color name="nav_icon_active">#FAD1E6</color>
-    <color name="nav_icon_inactive">#B0B0B0</color>
+
+    <!-- Акценты -->
+    <color name="baby_pink">#FCE4EC</color> <!-- Нежно-розовый -->
+    <color name="light_blue">#E3F2FD</color> <!-- Нежно-голубой -->
+    <color name="heart_red">#FF5252</color>
+
+    <!-- Навигация -->
+    <color name="nav_icon_active">#9C27B0</color>
+    <color name="nav_icon_inactive">#BDBDBD</color>
 </resources>
