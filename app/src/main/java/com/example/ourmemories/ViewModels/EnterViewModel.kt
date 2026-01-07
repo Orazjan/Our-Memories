@@ -40,6 +40,9 @@ class EnterViewModel : ViewModel() {
     private val _isChecking = MutableLiveData(true)
     val isChecking: LiveData<Boolean> = _isChecking
 
+    /**
+     * Проверка авторизации.
+     */
     fun checkUser(isFirstRun: Boolean) {
         viewModelScope.launch {
             delay(1000) // Имитация загрузки для сплэша
@@ -76,6 +79,9 @@ class EnterViewModel : ViewModel() {
         }
     }
 
+    /**
+     * При успешной авторизации.
+     */
     fun onAuthSuccess() {
         viewModelScope.launch {
             val user = auth.currentUser

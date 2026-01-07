@@ -28,212 +28,248 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- === 2. Основной контент === -->
-    <FrameLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="60dp"
-        android:clipToPadding="false"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintTop_toBottomOf="@id/topBar">
 
-        <ScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="40dp">
 
+            <!-- Карточка Профиля -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:contentPadding="24dp">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:orientation="vertical"
+                        app:layout_constraintEnd_toStartOf="@id/imgProfile"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <TextView
+                            android:id="@+id/userName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="Загрузка..."
+                            android:textColor="@color/text_primary"
+                            android:textSize="22sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/your_partner_password"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/passwordForPartner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:letterSpacing="0.1"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            tools:text="12345678" />
+                    </LinearLayout>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/imgProfile"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        app:cardCornerRadius="40dp"
+                        app:cardElevation="0dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <ImageView
+                            android:id="@+id/userPhoto"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            tools:src="@tools:sample/avatars" />
+                    </androidx.cardview.widget.CardView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- СТАТИСТИКА -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingBottom="40dp">
-
-                <!-- Карточка Профиля -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="4dp"
-                    app:contentPadding="24dp">
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="16dp"
-                            android:orientation="vertical"
-                            app:layout_constraintEnd_toStartOf="@id/imgProfile"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent">
-
-                            <TextView
-                                android:id="@+id/userName"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-bold"
-                                android:text="Загрузка..."
-                                android:textColor="@color/text_primary"
-                                android:textSize="22sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="@string/your_partner_password"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/passwordForPartner"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:letterSpacing="0.1"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                tools:text="12345678" />
-                        </LinearLayout>
-
-                        <!-- Аватарка (Кликабельная зона) -->
-                        <androidx.cardview.widget.CardView
-                            android:id="@+id/imgProfile"
-                            android:layout_width="80dp"
-                            android:layout_height="80dp"
-                            app:cardCornerRadius="40dp"
-                            app:cardElevation="0dp"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent">
-
-                            <ImageView
-                                android:id="@+id/userPhoto"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                tools:src="@tools:sample/avatars" />
-
-                            <!-- НОВЫЙ ПРОГРЕСС БАР (Крутится прямо на фото) -->
-                            <ProgressBar
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:layout_gravity="center"
-                                android:indeterminateTint="@color/baby_pink"
-                                android:visibility="gone" />
-
-                        </androidx.cardview.widget.CardView>
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </androidx.cardview.widget.CardView>
-
-                <!-- МЕНЮ УПРАВЛЕНИЯ -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="Аккаунт"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                android:layout_marginTop="24dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
                     android:orientation="vertical">
-
-                    <!-- 1. Редактировать профиль -->
-                    <include
-                        android:id="@+id/cardEditProfile"
-                        layout="@layout/item_settings_card" />
-
-                    <!-- 2. Поделиться кодом -->
-                    <include
-                        android:id="@+id/cardShareCode"
-                        layout="@layout/item_settings_card"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/tvStatMemories"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp" />
-
-                    <!-- 3. Тема оформления -->
-                    <include
-                        android:id="@+id/cardTheme"
-                        layout="@layout/item_settings_card"
-                        android:layout_width="match_parent"
+                        android:fontFamily="sans-serif-black"
+                        android:text="0"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp" />
-
+                        android:text="Моментов"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
                 </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="Информация"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
                     android:orientation="vertical">
-
-                    <!-- 4. Написать разработчикам -->
-                    <include
-                        android:id="@+id/cardContact"
-                        layout="@layout/item_settings_card" />
-
-                    <!-- 5. Политика конфиденциальности -->
-                    <include
-                        android:id="@+id/cardPrivacy"
-                        layout="@layout/item_settings_card"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/tvStatWishes"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp" />
-
+                        android:fontFamily="sans-serif-black"
+                        android:text="0"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Желаний"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="Действия"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <!-- 6. Выход -->
-                <include
-                    android:id="@+id/cardLogout"
-                    layout="@layout/item_settings_card" />
-
-                <!-- 7. Удалить аккаунт -->
-                <include
-                    android:id="@+id/cardDeleteAccount"
-                    layout="@layout/item_settings_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp" />
-
-                <!-- Версия приложения -->
-                <TextView
-                    android:id="@+id/textVersion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="32dp"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"
-                    tools:text="Ver 1.0.0" />
-
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tvStatDays"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="0"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Дней вместе"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
             </LinearLayout>
-        </ScrollView>
-    </FrameLayout>
+
+            <!-- МЕНЮ УПРАВЛЕНИЯ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="8dp"
+                android:text="Аккаунт"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <include
+                android:id="@+id/cardEditProfile"
+                layout="@layout/item_settings_card" />
+
+            <include
+                android:id="@+id/cardShareCode"
+                layout="@layout/item_settings_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+            <include
+                android:id="@+id/cardTheme"
+                layout="@layout/item_settings_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="Информация"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <include
+                android:id="@+id/cardContact"
+                layout="@layout/item_settings_card" />
+
+            <include
+                android:id="@+id/cardPrivacy"
+                layout="@layout/item_settings_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="Действия"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <include
+                android:id="@+id/cardLogout"
+                layout="@layout/item_settings_card" />
+
+            <include
+                android:id="@+id/cardDeleteAccount"
+                layout="@layout/item_settings_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:id="@+id/textVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="32dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                tools:text="Ver 1.0.0" />
+
+        </LinearLayout>
+    </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

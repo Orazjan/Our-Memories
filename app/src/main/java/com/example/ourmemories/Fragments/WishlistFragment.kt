@@ -63,6 +63,9 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
         observeViewModel(view)
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(view: View) {
         val layoutEmpty = view.findViewById<View>(R.id.layoutEmpty)
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshWishlist)
@@ -87,7 +90,9 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
         }
     }
 
-    // === SWIPE TO COMPLETE ===
+    /**
+     * Настройка SwipeToComplete для удаления элемента.
+     */
     private fun setupSwipeToComplete(recyclerView: RecyclerView, swipeRefresh: SwipeRefreshLayout) {
         val itemTouchHelperCallback =
             object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -101,12 +106,8 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
                     if (position != RecyclerView.NO_POSITION && position < adapter.currentList.size) {
                         val item = adapter.currentList[position]
 
-                        // Меняем статус через ViewModel
                         viewModel.toggleWishStatus(item, !item.isCompleted)
 
-                        // Важно: немедленно уведомляем адаптер об изменении, 
-                        // так как обновление из Firestore придет с задержкой, 
-                        // а ItemTouchHelper уже убрал элемент визуально.
                         adapter.notifyItemChanged(position)
                     }
                 }
@@ -182,6 +183,9 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
         ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView)
     }
 
+    /**
+     * Открытие диалога для добавления желания.
+     */
     private fun showAddWishDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_wish, null)
         val etTitle = dialogView.findViewById<EditText>(R.id.etTitle)
@@ -210,6 +214,9 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
             }.setNegativeButton("Отмена", null).show()
     }
 
+    /**
+     * Открытие диалога для удаления желания.
+     */
     private fun showDeleteDialog(item: WishItem) {
         AlertDialog.Builder(requireContext()).setTitle("Удалить желание?")
             .setMessage("Вы уверены, что хотите удалить '${item.title}'?")

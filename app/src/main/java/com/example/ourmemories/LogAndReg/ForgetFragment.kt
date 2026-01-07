@@ -43,6 +43,9 @@ class ForgotPasswordFragment : Fragment(R.layout.forget_fragment) {
         observeViewModel()
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel() {
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {

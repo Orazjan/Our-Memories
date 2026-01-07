@@ -1,6 +1,7 @@
 package com.example.ourmemories
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -46,7 +48,9 @@ class MainActivity : AppCompatActivity() {
 
     private var backPressedTime: Long = 0
 
-    // Лаунчер для запроса разрешений (Android 13+)
+    /**
+     * Лаунчер для запроса разрешений.
+     */
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -58,6 +62,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val prefs = getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+        val savedThemeMode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+
+        if (AppCompatDelegate.getDefaultNightMode() != savedThemeMode) {
+            AppCompatDelegate.setDefaultNightMode(savedThemeMode)
+        }
 
         hideSystemUI()
         checkNotificationPermission()
@@ -104,17 +115,17 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // 1. Если есть фрагменты в стеке (детали) -> назад
+                // Если есть фрагменты в стеке (детали) -> назад
                 if (supportFragmentManager.backStackEntryCount > 0) {
                     supportFragmentManager.popBackStack()
                     return
                 }
-                // 2. Если не на главной вкладке -> переход на главную
+                // Если не на главной вкладке -> переход на главную
                 if (bottomNav.selectedItemId != R.id.nav_home) {
                     bottomNav.selectedItemId = R.id.nav_home
                     return
                 }
-                // 3. Если на главной -> выход по двойному нажатию
+                // Если на главной -> выход по двойному нажатию
                 if (System.currentTimeMillis() - backPressedTime < BACK_PRESS_INTERVAL) {
                     finish()
                 } else {

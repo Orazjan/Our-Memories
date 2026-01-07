@@ -53,6 +53,9 @@ class MemoryDetailViewModel : ViewModel() {
         loadDataFromFirestore()
     }
 
+    /**
+     * Загружает данные альбома из Firestore.
+     */
     private fun loadDataFromFirestore() {
         if (memoryId.isEmpty()) return
 

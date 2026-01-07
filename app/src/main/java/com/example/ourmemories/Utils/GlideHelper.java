@@ -34,7 +34,7 @@ public class GlideHelper {
                     .error(android.R.drawable.stat_notify_error)
                     .circleCrop()
                     .priority(Priority.HIGH) // Высокий приоритет для аватарок
-                    .override(300, 300); // <--- ОПТИМИЗАЦИЯ: Ограничиваем размер декодирования
+                    .override(300, 300);
 
             Glide.with(imageView.getContext())
                     .load(url)
@@ -60,6 +60,11 @@ public class GlideHelper {
         }
     }
 
+    /**
+     * Загрузка галереи.
+     * @param imageView
+     * @param url
+     */
     public static void loadGalleryImage(ImageView imageView, String url) {
         // Спиннер загрузки
         CircularProgressDrawable circularProgress = new CircularProgressDrawable(imageView.getContext());
@@ -73,12 +78,11 @@ public class GlideHelper {
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(circularProgress)
                     .error(android.R.drawable.stat_notify_error);
-            // .override() здесь не ставим жестко, пусть Glide сам решает на основе ImageView
 
             Glide.with(imageView.getContext())
                     .load(url)
                     .apply(requestOptions)
-                    .thumbnail(0.05f) // <--- ОПТИМИЗАЦИЯ: Грузим 5% версию мгновенно (для медленного интернета)
+                    .thumbnail(0.05f)
                     .transition(DrawableTransitionOptions.withCrossFade()) // Плавное появление
                     .listener(new RequestListener<Drawable>() {
                         @Override

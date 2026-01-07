@@ -57,6 +57,9 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
         })
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(view: View) {
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
         val tvCounter = view.findViewById<TextView>(R.id.tvCounter)
@@ -79,7 +82,9 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
         }
     }
 
-    // Адаптер для полноэкранного просмотра
+    /**
+     * Адаптер для полноэкранного просмотра
+     */
     class FullScreenAdapter(private val images: List<String>) :
         RecyclerView.Adapter<FullScreenAdapter.ViewHolder>() {
 

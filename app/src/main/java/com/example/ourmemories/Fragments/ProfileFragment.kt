@@ -1,5 +1,6 @@
 package com.example.ourmemories.Fragments
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -12,187 +13,229 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
-import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
 import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.MainActivity
-import com.example.ourmemories.Models.User
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.ProfileViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 
+/**
+ * Фрагмент профиля пользователя.
+ * Отображает личную информацию, статистику пары и меню настроек.
+ */
 class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
     private lateinit var viewModel: ProfileViewModel
     private lateinit var prefs: SharedPreferences
 
-    private var clickCount = 0
-    private val RESET_CLICK_COUNT_DELAY = 500L
+    private val auth = FirebaseAuth.getInstance()
+    private val db = Firebase.firestore
+    private val storage = Firebase.storage
 
+    // Для пасхалки
+    private var clickCount = 0
+    private val resetClickRunnable = Runnable { clickCount = 0 }
+    private val RESET_CLICK_COUNT_DELAY = 500L
+    private val handler = Handler(Looper.getMainLooper())
+
+    // Код партнера (кэшируем для копирования)
+    private var myPartnerCode: String? = null
+
+    // Лаунчер для выбора нового фото из галереи
+    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            updateProfilePhoto(uri)
+        }
+    }
+
+    /**
+     * Инициализация фрагмента при создании View.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
-        // Инициализация ViewModel
+
         viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
-        
         prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+
+        // Применяем тему при создании
         applySavedTheme()
 
         setupUI(view)
-        observeViewModel(view)
+        loadUserData()
     }
 
+    /**
+     * Настройка пользовательского интерфейса.
+     */
     private fun setupUI(view: View) {
-        // Инициализация Views
-        val username = view.findViewById<TextView>(R.id.userName)
-        val userPhoto = view.findViewById<ImageView>(R.id.userPhoto)
-        val tvPartnerCode = view.findViewById<TextView>(R.id.passwordForPartner)
-        val textVersion = view.findViewById<TextView>(R.id.textVersion)
+        val tvStatMemories = view.findViewById<TextView>(R.id.tvStatMemories)
+        val tvStatWishes = view.findViewById<TextView>(R.id.tvStatWishes)
+        val tvStatDays = view.findViewById<TextView>(R.id.tvStatDays)
 
-        // Кнопки меню
-        val cardEdit = view.findViewById<View>(R.id.cardEditProfile)
-        val cardShare = view.findViewById<View>(R.id.cardShareCode)
-        val cardTheme = view.findViewById<View>(R.id.cardTheme)
-        val cardContact = view.findViewById<View>(R.id.cardContact)
-        val cardPrivacy = view.findViewById<View>(R.id.cardPrivacy)
-        val cardLogout = view.findViewById<View>(R.id.cardLogout)
-        val cardDelete = view.findViewById<View>(R.id.cardDeleteAccount)
+        // === НАСТРОЙКА КАРТОЧЕК МЕНЮ ===
+        setupMenuCard(
+            view.findViewById(R.id.cardEditProfile),
+            "Редактировать профиль",
+            android.R.drawable.ic_menu_edit,
+            "#BDE0FE"
+        )
+        setupMenuCard(
+            view.findViewById(R.id.cardShareCode),
+            "Поделиться кодом",
+            android.R.drawable.ic_menu_share,
+            "#FAD1E6"
+        )
 
-        val isSystemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        // Тема
         val currentNightMode = AppCompatDelegate.getDefaultNightMode()
-        val isDarkNow = currentNightMode == AppCompatDelegate.MODE_NIGHT_YES || (currentNightMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM && isSystemDark)
+        val isSystemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val isDarkNow =
+            currentNightMode == AppCompatDelegate.MODE_NIGHT_YES || (currentNightMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM && isSystemDark)
         val themeTitle = if (isDarkNow) "Светлая тема" else "Тёмная тема"
 
-        setupMenuCard(cardEdit, "Редактировать профиль", android.R.drawable.ic_menu_edit, "#BDE0FE")
-        setupMenuCard(cardShare, "Поделиться кодом", android.R.drawable.ic_menu_share, "#FAD1E6")
-        setupMenuCard(cardTheme, themeTitle, android.R.drawable.ic_menu_view, "#EEEEEE")
-        setupMenuCard(cardContact, "Написать разработчику", android.R.drawable.ic_dialog_email, "#C8E6C9")
-        setupMenuCard(cardPrivacy, "Политика конфиденциальности", android.R.drawable.ic_menu_info_details, "#EEEEEE")
-        setupMenuCard(cardLogout, "Выйти из аккаунта", android.R.drawable.ic_lock_power_off, "#F3F4F6")
+        setupMenuCard(
+            view.findViewById(R.id.cardTheme),
+            themeTitle,
+            android.R.drawable.ic_menu_view,
+            "#EEEEEE"
+        )
+
+        setupMenuCard(
+            view.findViewById(R.id.cardContact),
+            "Написать разработчику",
+            android.R.drawable.ic_dialog_email,
+            "#C8E6C9"
+        )
+        setupMenuCard(
+            view.findViewById(R.id.cardPrivacy),
+            "Политика конфиденциальности",
+            android.R.drawable.ic_menu_info_details,
+            "#EEEEEE"
+        )
+        setupMenuCard(
+            view.findViewById(R.id.cardLogout),
+            "Выйти из аккаунта",
+            android.R.drawable.ic_lock_power_off,
+            "#F3F4F6"
+        )
+
+        val cardDelete = view.findViewById<View>(R.id.cardDeleteAccount)
         setupMenuCard(cardDelete, "Удалить аккаунт", android.R.drawable.ic_delete, "#FFCDD2")
-        cardDelete.findViewById<TextView>(R.id.tvTitle).setTextColor(Color.RED)
+        cardDelete?.findViewById<TextView>(R.id.tvTitle)?.setTextColor(Color.RED)
 
-        // Обработчики кликов
-        cardEdit.setOnClickListener { openEditProfile() }
-        userPhoto.setOnClickListener { openEditProfile() }
-        username.setOnClickListener { openEditProfile() }
-        
-        tvPartnerCode.setOnClickListener {
-            val code = tvPartnerCode.text.toString()
-            if (code.isNotEmpty() && code != "Код не создан") copyToClipboard(code)
+        // === КЛИКИ ===
+        view.findViewById<View>(R.id.cardEditProfile)?.setOnClickListener { openEditProfile() }
+        view.findViewById<View>(R.id.userPhoto)?.setOnClickListener { pickImage.launch("image/*") }
+        view.findViewById<View>(R.id.cardTheme)?.setOnClickListener { toggleTheme() }
+        view.findViewById<View>(R.id.cardLogout)
+            ?.setOnClickListener { viewModel.logout(); restartApp() }
+        view.findViewById<View>(R.id.cardDeleteAccount)
+            ?.setOnClickListener { showDeleteAccountDialog() }
+
+        // Копирование кода
+        view.findViewById<View>(R.id.passwordForPartner)?.setOnClickListener {
+            myPartnerCode?.let { code -> copyToClipboard(code) }
         }
 
-        cardShare.setOnClickListener {
-            val code = viewModel.user.value?.partnerCode
-            if (!code.isNullOrEmpty()) shareCode(code) else Toast.makeText(context, "Код загружается...", Toast.LENGTH_SHORT).show()
-        }
-
-        cardTheme.setOnClickListener { toggleTheme() }
-
-        cardContact.setOnClickListener {
-            val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:")
-                putExtra(Intent.EXTRA_EMAIL, arrayOf("support@ourmemories.com"))
-                putExtra(Intent.EXTRA_SUBJECT, "Отзыв о приложении")
+        // Поделиться кодом
+        view.findViewById<View>(R.id.cardShareCode)?.setOnClickListener {
+            if (myPartnerCode != null && myPartnerCode != "Код не создан") {
+                shareCode(myPartnerCode!!)
+            } else {
+                Toast.makeText(context, "Код загружается...", Toast.LENGTH_SHORT).show()
             }
-            try { startActivity(intent) } catch (e: Exception) { Toast.makeText(context, "Нет почтового приложения", Toast.LENGTH_SHORT).show() }
         }
 
-        cardPrivacy.setOnClickListener {
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://sites.google.com/view/ourmemories-privacy")))
-            } catch (e: Exception) { Toast.makeText(context, "Не удалось открыть ссылку", Toast.LENGTH_SHORT).show() }
-        }
-
-        cardLogout.setOnClickListener { viewModel.logout() }
-        
-        cardDelete.setOnClickListener { showDeleteAccountDialog() }
-
-        // Версия и пасхалка
-        setupVersionInfo(textVersion)
-    }
-
-    private fun observeViewModel(view: View) {
-        val username = view.findViewById<TextView>(R.id.userName)
+        val userName = view.findViewById<TextView>(R.id.userName)
         val userPhoto = view.findViewById<ImageView>(R.id.userPhoto)
         val tvPartnerCode = view.findViewById<TextView>(R.id.passwordForPartner)
-
         viewModel.user.observe(viewLifecycleOwner) { user ->
             if (user != null) {
-                username.text = user.name
-                GlideHelper.loadAvatar(userPhoto, user.photoUrl, "ProfileAvatar")
-                tvPartnerCode.text = user.partnerCode ?: "Код не создан"
-            }
-        }
-
-        viewModel.actionState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is ProfileViewModel.ActionState.NavigateToLogin -> restartApp()
-                is ProfileViewModel.ActionState.ReAuthNeeded -> showReauthDialog(state.email)
-                is ProfileViewModel.ActionState.Loading -> {
-                    // Можно показать прогресс, если нужно
+                userName?.text = user.name
+                if (userPhoto != null) {
+                    GlideHelper.loadAvatar(userPhoto, user.photoUrl, "Profile")
                 }
-                else -> {}
+
+                myPartnerCode = user.partnerCode
+                tvPartnerCode?.text = user.partnerCode ?: "---"
+
+                if (tvStatDays != null) {
+                    if (user.relationshipDate > 0) {
+                        val diff = System.currentTimeMillis() - user.relationshipDate
+                        val days = TimeUnit.MILLISECONDS.toDays(diff)
+                        tvStatDays.text = days.toString()
+                    } else {
+                        tvStatDays.text = "0"
+                    }
+                }
             }
         }
 
-        viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
-            if (msg != null) {
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                viewModel.onToastShown()
-            }
+        viewModel.memoriesCount.observe(viewLifecycleOwner) {
+            tvStatMemories?.text = it.toString()
+        }
+        viewModel.wishesCount.observe(viewLifecycleOwner) {
+            tvStatWishes?.text = it.toString()
+        }
+
+        view.findViewById<View>(R.id.cardContact)?.setOnClickListener { sendEmail() }
+        view.findViewById<View>(R.id.cardPrivacy)?.setOnClickListener { openPrivacyPolicy() }
+
+        setupVersionInfo(view.findViewById(R.id.textVersion))
+    }
+
+    /**
+     * Загрузка данных пользователя из Firestore.
+     */
+    private fun loadUserData() {
+        val user = auth.currentUser ?: return
+        val username = view?.findViewById<TextView>(R.id.userName)
+        val userPhoto = view?.findViewById<ImageView>(R.id.userPhoto)
+        val tvPartnerCode = view?.findViewById<TextView>(R.id.passwordForPartner)
+
+        username?.text = user.displayName ?: "Пользователь"
+        if (userPhoto != null) {
+            GlideHelper.loadAvatar(userPhoto, user.photoUrl?.toString(), "ProfileAvatar")
+        }
+
+        if (tvPartnerCode != null) {
+            loadPartnerCode(user.uid, tvPartnerCode)
         }
     }
 
-    // === Вспомогательные методы ===
-
+    /**
+     * Открытие экрана редактирования профиля.
+     */
     private fun openEditProfile() {
-        parentFragmentManager.beginTransaction()
-            .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-            .replace(R.id.fragment_container, EditProfileFragment())
-            .addToBackStack(null)
-            .commit()
+        (activity as? MainActivity)?.replaceFragment(EditProfileFragment())
     }
 
-    private fun copyToClipboard(text: String) {
-        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Partner Code", text))
-        Toast.makeText(context, "Код скопирован: $text", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun shareCode(code: String) {
-        val sendIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "Мой код в OurMemories: $code")
-            type = "text/plain"
-        }
-        startActivity(Intent.createChooser(sendIntent, "Отправить код"))
-    }
-
-    private fun setupMenuCard(card: View, title: String, iconRes: Int, colorHex: String) {
-        val tvTitle = card.findViewById<TextView>(R.id.tvTitle)
-        val ivIcon = card.findViewById<ImageView>(R.id.ivIcon)
-        try {
-            val rootLayout = (card as CardView).getChildAt(0) as android.widget.LinearLayout
-            val iconCard = rootLayout.getChildAt(0) as CardView
-            iconCard.setCardBackgroundColor(colorHex.toColorInt())
-        } catch (e: Exception) { e.printStackTrace() }
-        tvTitle.text = title
-        ivIcon.setImageResource(iconRes)
-    }
-
-    // === Управление темой ===
-
+    /**
+     * Применяет сохраненную тему из SharedPreferences.
+     */
     private fun applySavedTheme() {
         val savedMode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         if (AppCompatDelegate.getDefaultNightMode() != savedMode) {
@@ -200,6 +243,9 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         }
     }
 
+    /**
+     * Переключение темы приложения.
+     */
     private fun toggleTheme() {
         val currentMode = AppCompatDelegate.getDefaultNightMode()
         val newMode = when (currentMode) {
@@ -210,65 +256,218 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
                 if (uiMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES
             }
         }
+
         prefs.edit().putInt("theme_mode", newMode).apply()
         AppCompatDelegate.setDefaultNightMode(newMode)
     }
 
-    // === Диалоги и Удаление ===
+    /**
+     * Установка карточки меню.
+     */
+    private fun setupMenuCard(card: View?, title: String, iconRes: Int, colorHex: String) {
+        if (card == null) return
+        card.findViewById<TextView>(R.id.tvTitle)?.text = title
+        card.findViewById<ImageView>(R.id.ivIcon)?.setImageResource(iconRes)
+        try {
+            val rootLayout = (card as CardView).getChildAt(0) as? android.view.ViewGroup
+            val iconCard =
+                rootLayout?.findViewById(R.id.iconCard) ?: rootLayout?.getChildAt(0) as? CardView
 
+            iconCard?.setCardBackgroundColor(colorHex.toColorInt())
+        } catch (e: Exception) {
+            // Игнорируем ошибки верстки, чтобы не крашилось
+        }
+    }
+
+    /**
+     * Загрузка кода партнера из Firestore.
+     */
+    private fun loadPartnerCode(uid: String, textView: TextView) {
+        db.collection("users").document(uid).get().addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                val code = document.getString("partnerCode")
+                myPartnerCode = code
+                textView.text = code ?: "Код не создан"
+            }
+        }
+    }
+
+    /**
+     * Поделиться кодом партнера.
+     */
+    private fun shareCode(code: String) {
+        val sendIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, "Мой код в OurMemories: $code")
+            type = "text/plain"
+        }
+        startActivity(Intent.createChooser(sendIntent, "Отправить код"))
+    }
+
+    /**
+     * Копирование кода в буфер обмена.
+     */
+    private fun copyToClipboard(text: String) {
+        val clipboard =
+            requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Partner Code", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(context, "Код скопирован", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Обновление фото профиля пользователя.
+     */
+    private fun updateProfilePhoto(uri: Uri) {
+        val user = auth.currentUser ?: return
+        Toast.makeText(context, "Загрузка...", Toast.LENGTH_SHORT).show()
+
+        lifecycleScope.launch {
+            try {
+                val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
+                storageRef.putFile(uri).await()
+                val downloadUrl = storageRef.downloadUrl.await()
+
+                val updates = UserProfileChangeRequest.Builder().setPhotoUri(downloadUrl).build()
+                user.updateProfile(updates).await()
+                db.collection("users").document(user.uid).update("photoUrl", downloadUrl.toString())
+                    .await()
+
+                loadUserData() // Обновляем UI
+                Toast.makeText(context, "Фото обновлено", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * Открытие диалога удаления аккаунта.
+     */
     private fun showDeleteAccountDialog() {
         AlertDialog.Builder(requireContext())
             .setTitle("Удалить аккаунт?")
-            .setMessage("Это действие необратимо. Все ваши данные будут удалены.")
-            .setPositiveButton("Удалить") { _, _ -> viewModel.deleteAccount() }
+            .setMessage("Это действие нельзя отменить. Все ваши данные будут удалены.")
+            .setPositiveButton("Удалить") { _, _ -> deleteAccount() }
             .setNegativeButton("Отмена", null).show()
     }
 
-    private fun showReauthDialog(email: String) {
-        val passwordInput = EditText(context).apply {
-            hint = "Ваш текущий пароль"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+    /**
+     * Удаление аккаунта пользователя.
+     */
+    private fun deleteAccount() {
+        val user = auth.currentUser ?: return
+
+        // 1. Сначала пробуем удалить
+        user.delete().addOnSuccessListener {
+            db.collection("users").document(user.uid).delete()
+            Toast.makeText(context, "Аккаунт удален", Toast.LENGTH_SHORT).show()
+            restartApp()
+        }.addOnFailureListener { e ->
+            if (e is FirebaseAuthRecentLoginRequiredException) {
+                showReauthDialog(user)
+            } else {
+                Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
-        AlertDialog.Builder(requireContext())
-            .setTitle("Подтвердите удаление")
-            .setMessage("Для безопасности введите ваш пароль еще раз.")
-            .setView(passwordInput)
+    }
+
+    /**
+     * Открытие диалога для повторной авторизации.
+     */
+    private fun showReauthDialog(user: com.google.firebase.auth.FirebaseUser) {
+        val input = EditText(context).apply {
+            hint = "Введите текущий пароль"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setPadding(50, 30, 50, 30)
+        }
+
+        AlertDialog.Builder(requireContext()).setTitle("Подтвердите удаление")
+            .setMessage("В целях безопасности подтвердите пароль.").setView(input)
             .setPositiveButton("Подтвердить") { _, _ ->
-                val password = passwordInput.text.toString()
-                if (password.isNotEmpty()) {
-                    viewModel.reauthenticateAndDelete(password)
+                val pass = input.text.toString()
+                if (pass.isNotEmpty() && user.email != null) {
+                    val credential = EmailAuthProvider.getCredential(user.email!!, pass)
+                    // 3. Переавторизация
+                    user.reauthenticate(credential).addOnSuccessListener {
+                        // 4. Повторная попытка удаления после успешного входа
+                        deleteAccount()
+                    }.addOnFailureListener {
+                        Toast.makeText(context, "Неверный пароль", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
             .setNegativeButton("Отмена", null)
             .show()
     }
 
+    /**
+     * Отправка письма на почту разработчика.
+     */
+    private fun sendEmail() {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:")
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("support@ourmemories.com"))
+            putExtra(Intent.EXTRA_SUBJECT, "Отзыв о приложении")
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Нет приложения почты", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Открытие политики конфиденциальности.
+     */
+    private fun openPrivacyPolicy() {
+        val browserIntent = Intent(
+            Intent.ACTION_VIEW, Uri.parse("https://sites.google.com/view/ourmemories-privacy")
+        )
+        try {
+            startActivity(browserIntent)
+        } catch (e: Exception) {
+        }
+    }
+
+    /**
+     * Перезапуск приложения после изменения темы.
+     */
     private fun restartApp() {
         val intent = Intent(requireActivity(), EnterActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
     }
 
-    private fun setupVersionInfo(textVersion: TextView) {
-        val packageManager = requireContext().packageManager
-        val packageName = requireContext().packageName
-        val versionName = try {
-            if (android.os.Build.VERSION.SDK_INT >= 33) {
-                packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0)).versionName
-            } else {
-                packageManager.getPackageInfo(packageName, 0).versionName
-            }
-        } catch (e: Exception) { "1.0" }
+    /**
+     * Пасхалка.
+     */
+    @SuppressLint("SetTextI18n")
+    private fun setupVersionInfo(tv: TextView?) {
+        if (tv == null) return
 
-        textVersion.text = "V $versionName"
-        textVersion.setOnClickListener {
+        var versionName: String? = "1.0.0"
+        try {
+            val pInfo =
+                requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+            versionName = pInfo.versionName
+        } catch (e: Exception) {
+        }
+
+        tv.text = "V $versionName"
+
+        tv.setOnClickListener {
             clickCount++
+
+            // Сбрасываем предыдущий таймер сброса
+            handler.removeCallbacks(resetClickRunnable)
+
             if (clickCount == 3) {
-                val versionFragment = VersionInfoFragment()
-                (activity as? MainActivity)?.replaceFragment(versionFragment)
+                (activity as? MainActivity)?.replaceFragment(VersionInfoFragment())
                 clickCount = 0
             } else {
-                Handler(Looper.getMainLooper()).postDelayed({ if (clickCount < 3) clickCount = 0 }, RESET_CLICK_COUNT_DELAY)
+                // Запускаем таймер сброса заново
+                handler.postDelayed(resetClickRunnable, RESET_CLICK_COUNT_DELAY)
             }
         }
     }

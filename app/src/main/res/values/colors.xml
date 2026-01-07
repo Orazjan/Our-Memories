@@ -19,4 +19,7 @@
     <!-- Навигация -->
     <color name="nav_icon_active">#9C27B0</color>
     <color name="nav_icon_inactive">#BDBDBD</color>
+    <!-- ... ваши существующие цвета ... -->
+    <color name="button_text">#5D3A40</color>
+    <color name="input_stroke">#E0E0E0</color>
 </resources>

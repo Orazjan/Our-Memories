@@ -14,6 +14,9 @@ class ForgotPasswordViewModel : ViewModel() {
     private val _resetSuccess = MutableLiveData<Boolean>()
     val resetSuccess: LiveData<Boolean> = _resetSuccess
 
+    /**
+     * Запрос на сброс пароля.
+     */
     fun resetPassword(email: String) {
         if (email.isEmpty()) {
             _toastMessage.value = "Введите email"

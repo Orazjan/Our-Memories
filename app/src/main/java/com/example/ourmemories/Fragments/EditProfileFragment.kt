@@ -43,6 +43,9 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         observeViewModel(view)
     }
 
+    /**
+     * Настройка пользовательского интерфейса.
+     */
     private fun setupUI(view: View) {
         ivAvatar = view.findViewById(R.id.ivAvatar)
         etName = view.findViewById(R.id.etName)
@@ -66,8 +69,10 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         }
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(view: View) {
-        // 1. Загрузка данных (заполняем поля только один раз или если они пустые, чтобы не перетирать ввод пользователя)
         viewModel.currentName.observe(viewLifecycleOwner) { name ->
             if (etName.text.isEmpty() && name.isNotEmpty()) {
                 etName.setText(name)
@@ -80,7 +85,6 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
             }
         }
 
-        // 2. Аватарка (текущая с сервера)
         viewModel.currentPhotoUrl.observe(viewLifecycleOwner) { url ->
             // Загружаем только если пользователь еще не выбрал новую локальную
             if (viewModel.selectedImageUri.value == null) {
@@ -88,26 +92,26 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
             }
         }
 
-        // 3. Выбранное новое фото (локальное)
+        // Выбранное новое фото (локальное)
         viewModel.selectedImageUri.observe(viewLifecycleOwner) { uri ->
             if (uri != null) {
                 ivAvatar.setImageURI(uri)
             }
         }
 
-        // 4. Состояние загрузки
+        // Состояние загрузки
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        // 5. Успешное сохранение
+        // Успешное сохранение
         viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
                 parentFragmentManager.popBackStack()
             }
         }
 
-        // 6. Сообщения
+        // Сообщения
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -116,6 +120,9 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         }
     }
 
+    /**
+     * Отображение диалога выбора даты.
+     */
     private fun showWheelDatePicker(editText: EditText) {
         val dialog = BottomSheetDialog(
             requireContext(),

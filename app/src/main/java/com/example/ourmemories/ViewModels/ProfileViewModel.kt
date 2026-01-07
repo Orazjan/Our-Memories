@@ -14,9 +14,8 @@ import com.google.firebase.firestore.ListenerRegistration
  * ViewModel для экрана профиля [ProfileFragment].
  *
  * Отвечает за:
- * - Отображение данных профиля (имя, фото, код партнера).
- * - Выход из аккаунта (Logout).
- * - Удаление аккаунта (включая обработку повторной авторизации при необходимости).
+ * - Загрузку данных пользователя и статистики (количество фото, желаний).
+ * - Выход и удаление аккаунта.
  */
 class ProfileViewModel : ViewModel() {
 
@@ -26,6 +25,12 @@ class ProfileViewModel : ViewModel() {
     private val _user = MutableLiveData<User?>()
     val user: LiveData<User?> = _user
 
+    private val _memoriesCount = MutableLiveData(0)
+    val memoriesCount: LiveData<Int> = _memoriesCount
+
+    private val _wishesCount = MutableLiveData(0)
+    val wishesCount: LiveData<Int> = _wishesCount
+
     private val _actionState = MutableLiveData<ActionState>()
     val actionState: LiveData<ActionState> = _actionState
 
@@ -34,9 +39,6 @@ class ProfileViewModel : ViewModel() {
 
     private var userListener: ListenerRegistration? = null
 
-    /**
-     * Состояния для событий профиля.
-     */
     sealed class ActionState {
         object Idle : ActionState()
         object Loading : ActionState()
@@ -48,35 +50,50 @@ class ProfileViewModel : ViewModel() {
         loadUserProfile()
     }
 
+    /**
+     * Загружает профиль пользователя.
+     */
     private fun loadUserProfile() {
-        val uid = auth.currentUser?.uid
-        if (uid == null) {
-            _user.value = null
-            return
-        }
+        val uid = auth.currentUser?.uid ?: return
 
         userListener = db.collection("users").document(uid).addSnapshotListener { doc, e ->
             if (e != null) return@addSnapshotListener
             if (doc != null && doc.exists()) {
                 val userObj = doc.toObject(User::class.java)?.copy(uid = uid)
-                val authUser = auth.currentUser
-                val finalUser = userObj?.copy(
-                    name = if (userObj.name.isEmpty()) authUser?.displayName ?: "Пользователь" else userObj.name,
-                    photoUrl = if (userObj.photoUrl == null) authUser?.photoUrl?.toString() else userObj.photoUrl
-                )
-                _user.value = finalUser
+                _user.value = userObj
+                
+                // После загрузки юзера, грузим статистику
+                loadStatistics(uid, userObj?.partnerUid)
             }
         }
     }
 
+    /**
+     * Загружает количество воспоминаний и желаний для пары.
+     */
+    private fun loadStatistics(myUid: String, partnerUid: String?) {
+        val uids = mutableListOf(myUid)
+        if (partnerUid != null) uids.add(partnerUid)
+
+        // Считаем воспоминания
+        db.collection("memories").whereIn("uploaderUid", uids).get()
+            .addOnSuccessListener { _memoriesCount.value = it.size() }
+
+        // Считаем желания
+        db.collection("wishes").whereIn("createdBy", uids).get()
+            .addOnSuccessListener { _wishesCount.value = it.size() }
+    }
+
+    /**
+     * Выход из аккаунта.
+     */
     fun logout() {
         auth.signOut()
         _actionState.value = ActionState.NavigateToLogin
     }
 
     /**
-     * Попытка удалить аккаунт пользователя.
-     * Сначала удаляет данные из Firestore, затем сам аккаунт Auth.
+     * Удаление аккаунта.
      */
     fun deleteAccount() {
         val user = auth.currentUser ?: return
@@ -85,56 +102,35 @@ class ProfileViewModel : ViewModel() {
         db.collection("users").document(user.uid).delete()
             .addOnSuccessListener {
                 user.delete()
-                    .addOnSuccessListener {
-                        _actionState.value = ActionState.NavigateToLogin
-                        _toastMessage.value = "Аккаунт удален"
-                    }
+                    .addOnSuccessListener { _actionState.value = ActionState.NavigateToLogin }
                     .addOnFailureListener { e ->
                         if (e is FirebaseAuthRecentLoginRequiredException) {
                             _actionState.value = ActionState.ReAuthNeeded(user.email ?: "")
                         } else {
                             _actionState.value = ActionState.Idle
-                            _toastMessage.value = "Ошибка: ${e.message}"
+                            _toastMessage.value = e.message
                         }
                     }
-            }
-            .addOnFailureListener { e ->
-                _actionState.value = ActionState.Idle
-                _toastMessage.value = "Ошибка удаления данных: ${e.message}"
             }
     }
 
     /**
-     * Повторная авторизация (если токен устарел) и последующее удаление аккаунта.
+     * Переавторизация и удаление аккаунта.
      */
     fun reauthenticateAndDelete(password: String) {
         val user = auth.currentUser ?: return
-        val email = user.email ?: return
-
+        val credential = EmailAuthProvider.getCredential(user.email!!, password)
         _actionState.value = ActionState.Loading
-        val credential = EmailAuthProvider.getCredential(email, password)
 
-        user.reauthenticate(credential)
-            .addOnSuccessListener {
-                user.delete()
-                    .addOnSuccessListener {
-                        _actionState.value = ActionState.NavigateToLogin
-                        _toastMessage.value = "Аккаунт удален"
-                    }
-                    .addOnFailureListener { e ->
-                        _actionState.value = ActionState.Idle
-                        _toastMessage.value = "Ошибка удаления: ${e.message}"
-                    }
-            }
-            .addOnFailureListener { e ->
-                _actionState.value = ActionState.Idle
-                _toastMessage.value = "Неверный пароль"
-            }
+        user.reauthenticate(credential).addOnSuccessListener {
+            deleteAccount()
+        }.addOnFailureListener {
+            _actionState.value = ActionState.Idle
+            _toastMessage.value = "Неверный пароль"
+        }
     }
 
-    fun onToastShown() {
-        _toastMessage.value = null
-    }
+    fun onToastShown() { _toastMessage.value = null }
 
     override fun onCleared() {
         super.onCleared()

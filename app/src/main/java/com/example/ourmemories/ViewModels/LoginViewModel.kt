@@ -21,6 +21,9 @@ class LoginViewModel : ViewModel() {
     private val _toastMessage = MutableLiveData<String?>()
     val toastMessage: LiveData<String?> = _toastMessage
 
+    /**
+     * Логин пользователя.
+     */
     fun login(email: String, pass: String) {
         _isLoading.value = true
 

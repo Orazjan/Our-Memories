@@ -8,7 +8,6 @@ import androidx.lifecycle.MutableLiveData
 
 class VersionInfoViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Списки версий и описаний
     private val descriptions = LinkedHashMap<String, String>()
     
     // LiveData для UI
@@ -26,10 +25,14 @@ class VersionInfoViewModel(application: Application) : AndroidViewModel(applicat
         fetchCurrentAppVersion()
     }
 
+    /**
+     * Настройка данных версий.
+     */
     private fun setupVersionData() {
         // Данные обновлений
         descriptions["V 0.1.x (Текущая)"] =
             "V 0.1.6\n" +
+                    "• Добавлена статистика\n" +
                     "• Добавлены уведомления\n" +
                     "• Удалён календарь\n" +
                     "• Добавлен список желаний\n" +
@@ -72,11 +75,17 @@ class VersionInfoViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    /**
+     * Выбор версии.
+     */
     fun selectVersion(versionName: String) {
         val desc = descriptions[versionName]
         _selectedDescription.value = desc ?: "Информация отсутствует."
     }
 
+    /**
+     * Получение текущей версии приложения.
+     */
     private fun fetchCurrentAppVersion() {
         try {
             val context = getApplication<Application>()

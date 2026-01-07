@@ -161,6 +161,9 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    /**
+     * Удаляет память из Firestore и Storage.
+     */
     fun deleteMemory(memory: Memory) {
         viewModelScope.launch {
             try {

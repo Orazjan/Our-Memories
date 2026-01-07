@@ -66,6 +66,9 @@ class LoginFragment : Fragment(R.layout.login_fragment) {
         observeViewModel(progressBar, btnLogin, etEmail, etPassword)
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(progressBar: ProgressBar, btn: Button, et1: EditText, et2: EditText) {
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
@@ -88,6 +91,9 @@ class LoginFragment : Fragment(R.layout.login_fragment) {
         }
     }
 
+    /**
+     * Прячем клавиатуру
+     */
     private fun hideKeyboard(view: View) {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)

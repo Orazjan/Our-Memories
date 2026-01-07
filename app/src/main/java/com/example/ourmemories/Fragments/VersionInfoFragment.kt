@@ -33,14 +33,20 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
         setupSpinnerListener()
     }
 
+    /**
+     * Инициализация пользовательского интерфейса.
+     */
     private fun initUI(view: View) {
         infoText = view.findViewById(R.id.InfoText)
         versionSpinner = view.findViewById(R.id.mySpinner)
         tvAppVersion = view.findViewById(R.id.tvAppVersion)
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel() {
-        // 1. Список версий для выпадающего списка
+        // Список версий для выпадающего списка
         viewModel.versionNames.observe(viewLifecycleOwner) { names ->
             val adapter = ArrayAdapter(
                 requireContext(), android.R.layout.simple_dropdown_item_1line, names
@@ -53,17 +59,20 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
             }
         }
 
-        // 2. Описание выбранной версии
+        // Описание выбранной версии
         viewModel.selectedDescription.observe(viewLifecycleOwner) { text ->
             infoText.text = text
         }
 
-        // 3. Текущая версия приложения (внизу экрана)
+        // Текущая версия приложения (внизу экрана)
         viewModel.currentAppVersion.observe(viewLifecycleOwner) { versionString ->
             tvAppVersion.text = versionString
         }
     }
 
+    /**
+     * Слушатель выбора версии из спиннера.
+     */
     private fun setupSpinnerListener() {
         versionSpinner.setOnItemClickListener { parent, _, position, _ ->
             val selectedVersion = parent.getItemAtPosition(position) as String

@@ -12,7 +12,9 @@ class PhotoViewerViewModel : ViewModel() {
     private val _currentPosition = MutableLiveData<Int>()
     val currentPosition: LiveData<Int> = _currentPosition
 
-    // Инициализация данных (вызывается из Fragment один раз)
+    /**
+     * Инициализация данных.
+     */
     fun initData(imageList: ArrayList<String>?, startPos: Int) {
         if (imageList.isNullOrEmpty()) return
         

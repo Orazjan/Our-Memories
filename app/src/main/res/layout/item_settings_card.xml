@@ -17,7 +17,9 @@
         android:orientation="horizontal"
         android:padding="12dp">
 
+        <!-- Добавили ID: iconCard -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/iconCard"
             android:layout_width="40dp"
             android:layout_height="40dp"
             app:cardBackgroundColor="#F5F5F5"

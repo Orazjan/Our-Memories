@@ -65,6 +65,9 @@ class EnterActivity : AppCompatActivity() {
         observeViewModel()
     }
 
+    /**
+     * Настройка Firebase Firestore.
+     */
     private fun setupFirebaseSettings() {
         try {
             val settings = FirebaseFirestoreSettings.Builder()
@@ -75,6 +78,9 @@ class EnterActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Наблюдение за состоянием навигации.
+     */
     private fun observeViewModel() {
         viewModel.navigationState.observe(this) { state ->
             when (state) {
@@ -87,6 +93,9 @@ class EnterActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Скрытие системного UI (status bar и navigation bar).
+     */
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).let { controller ->
@@ -96,18 +105,25 @@ class EnterActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Переход в основное приложение.
+     */
     private fun navigateToMainApp() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
     }
 
-    // === Публичные методы для навигации из фрагментов ===
-
+    /**
+     * Отображение экрана онбординга.
+     */
     fun showOnboarding() {
         loadFragment(OnboardingFragment())
     }
 
+    /**
+     * Отображение второго экрана онбординга.
+     */
     fun showOnboardingStep2() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
@@ -115,10 +131,16 @@ class EnterActivity : AppCompatActivity() {
             .commitAllowingStateLoss()
     }
 
+    /**
+     * Закрытие онбординга и перехода к регистрации
+     */
     fun finishOnboarding() {
         showRegistration()
     }
 
+    /**
+     * Отображение экрана регистрации.
+     */
     fun showRegistration() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
@@ -126,6 +148,9 @@ class EnterActivity : AppCompatActivity() {
             .commitAllowingStateLoss()
     }
 
+    /**
+     * Отображение экрана входа.
+     */
     fun showLogin() {
         if (!supportFragmentManager.isStateSaved) {
             supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
@@ -136,6 +161,9 @@ class EnterActivity : AppCompatActivity() {
             .commitAllowingStateLoss()
     }
 
+    /**
+     * Отображение экрана профиля.
+     */
     fun showProfileSetup() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
@@ -143,6 +171,9 @@ class EnterActivity : AppCompatActivity() {
             .commitAllowingStateLoss() 
     }
 
+    /**
+     * Отображение экрана профиля.
+     */
     fun showForgotPassword() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
@@ -150,12 +181,17 @@ class EnterActivity : AppCompatActivity() {
             .commitAllowingStateLoss()
     }
 
-    // Вызывается из LoginFragment/RegFragment при успехе
+    /**
+     * Переход в основное приложение после успешной авторизации.
+     */
     fun onAuthSuccess() {
         prefs.edit().putBoolean("isFirstRun", false).apply()
         viewModel.onAuthSuccess()
     }
 
+    /**
+     * Загрузка фрагмента.
+     */
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)

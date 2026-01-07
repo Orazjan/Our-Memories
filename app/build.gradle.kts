@@ -64,7 +64,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-
+    testImplementation(libs.androidx.core.testing)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 

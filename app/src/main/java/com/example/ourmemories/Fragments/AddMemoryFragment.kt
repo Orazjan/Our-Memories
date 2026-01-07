@@ -45,6 +45,9 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         observeViewModel(view)
     }
 
+    /**
+     * Настройка пользовательского интерфейса.
+     */
     private fun setupUI(view: View) {
         val btnBack = view.findViewById<View>(R.id.btnBack)
         val cardAddPhoto = view.findViewById<View>(R.id.cardAddPhoto)
@@ -107,6 +110,9 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(view: View) {
         val rvSelectedImages = view.findViewById<RecyclerView>(R.id.rvSelectedImages)
         val etDate = view.findViewById<EditText>(R.id.etDate)
@@ -147,6 +153,9 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         }
     }
 
+    /**
+     * Отображение диалога подтверждения выхода.
+     */
     private fun showExitConfirmationDialog() {
         AlertDialog.Builder(requireContext()).setTitle("Отменить создание?")
             .setMessage("Все несохраненные данные будут потеряны.")
@@ -155,6 +164,9 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             }.setNegativeButton("Остаться", null).show()
     }
 
+    /**
+     * Отображение диалога выбора даты.
+     */
     private fun showWheelDatePicker(initialTimestamp: Long) {
         val dialog = BottomSheetDialog(requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
         dialog.setContentView(R.layout.dialog_wheel_date_picker)

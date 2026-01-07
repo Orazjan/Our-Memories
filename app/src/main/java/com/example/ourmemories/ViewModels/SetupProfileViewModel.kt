@@ -44,6 +44,9 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
         _selectedImageUri.value = uri
     }
 
+    /**
+     * Сохранение профиля пользователя.
+     */
     fun saveProfile(name: String, date: String) {
         val user = auth.currentUser
         if (user == null) {
@@ -68,20 +71,20 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
 
         viewModelScope.launch {
             try {
-                // 1. Upload Image
+                // Загрузка изображения
                 val compressedData = compressImage(uri)
                 val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
                 storageRef.putBytes(compressedData).await()
                 val photoUrl = storageRef.downloadUrl.await().toString()
 
-                // 2. Update Auth Profile
+                // Проверка аутентификации
                 val profileUpdates = UserProfileChangeRequest.Builder()
                     .setDisplayName(name)
                     .setPhotoUri(Uri.parse(photoUrl))
                     .build()
                 user.updateProfile(profileUpdates).await()
 
-                // 3. Save to Firestore
+                // Сохранение в Firestore
                 val partnerCode = generatePartnerCode()
                 val userData = hashMapOf(
                     "name" to name,
@@ -105,6 +108,9 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    /**
+     * Сжатие изобрпжения
+     */
     private suspend fun compressImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
         val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val source = ImageDecoder.createSource(context.contentResolver, uri)
@@ -136,6 +142,9 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
         outputStream.toByteArray()
     }
 
+    /**
+     * TODO Нужно сделать проверку чтобы код одного пользователя не совподал с кодом другого
+     */
     private fun generatePartnerCode(): String {
         return Random.nextInt(10000000, 99999999).toString()
     }

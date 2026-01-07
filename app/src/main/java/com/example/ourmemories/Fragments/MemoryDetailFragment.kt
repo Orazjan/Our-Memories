@@ -77,6 +77,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         observeViewModel(view)
     }
 
+    /**
+     * Настройка пользовательского интерфейса
+     */
     private fun setupUI(view: View) {
         val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
         val btnEdit = view.findViewById<View>(R.id.btnEdit)
@@ -104,6 +107,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         }
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel
+     */
     private fun observeViewModel(view: View) {
         val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val tvDescription = view.findViewById<TextView>(R.id.tvDescription)
@@ -136,6 +142,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         }
     }
 
+    /**
+     * Открытие полноэкранного просмотра
+     */
     private fun openFullScreenViewer(position: Int) {
         val viewerFragment = PhotoViewerFragment.newInstance(ArrayList(imagesList), position)
 
@@ -148,6 +157,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             .addToBackStack(null).commit()
     }
 
+    /**
+     * Диалог для выбора обложки
+     */
     private fun showSetCoverDialog(url: String) {
         AlertDialog.Builder(requireContext()).setTitle("Сделать обложкой?")
             .setMessage("Это фото будет отображаться в ленте.")
@@ -158,6 +170,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             .show()
     }
 
+    /**
+     * Диалог для редактирования
+     */
     private fun showEditDialog(currentTitle: String, currentDesc: String, currentTimestamp: Long) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_memory, null)
         val etTitle = dialogView.findViewById<EditText>(R.id.etEditTitle)
@@ -193,6 +208,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             .show()
     }
 
+    /**
+     * Диалог для выбора даты
+     */
     private fun showWheelDatePicker(initialTimestamp: Long, onDateSelected: (Long) -> Unit) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -247,6 +265,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         dialog.show()
     }
 
+    /**
+     * Обновление даты
+     */
     private fun updateDateText(textView: TextView, timestamp: Long) {
         if (timestamp > 0) {
             val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())

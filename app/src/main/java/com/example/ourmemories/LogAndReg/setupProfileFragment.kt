@@ -39,6 +39,9 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         observeViewModel(view)
     }
 
+    /**
+     * Инициализация пользовательского интерфейса.
+     */
     private fun setupUI(view: View) {
         val etName = view.findViewById<EditText>(R.id.etName)
         val etDate = view.findViewById<EditText>(R.id.etDate)
@@ -84,6 +87,9 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         }
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(view: View) {
         val btnSave = view.findViewById<Button>(R.id.btnSaveProfile)
         val avatarView = view.findViewById<ImageView>(R.id.ivAvatar)
@@ -123,6 +129,9 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         }
     }
 
+    /**
+     * Открытие диалога выбора даты.
+     */
     private fun showWheelDatePicker(editText: EditText) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog

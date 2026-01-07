@@ -47,7 +47,7 @@ class CoupleWidget : AppWidgetProvider() {
             try {
                 val views = RemoteViews(context.packageName, R.layout.widget_couple)
 
-                // 1. Клик открывает приложение
+                // Клик открывает приложение
                 val intent = Intent(context, MainActivity::class.java)
                 val pendingIntent = PendingIntent.getActivity(
                     context,
@@ -57,18 +57,18 @@ class CoupleWidget : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.ivWidgetPhoto, pendingIntent)
 
-                // 2. Читаем данные
+                // Читаем данные
                 val prefs = context.getSharedPreferences("AppCache", Context.MODE_PRIVATE)
                 val date = prefs.getLong("relationship_date", 0)
                 // Приоритет фото: партнера -> мое -> дефолт
                 val photoUrl = prefs.getString("partner_photo", null) 
                     ?: prefs.getString("my_photo", null)
 
-                // 3. Считаем дни
+                // Считаем дни
                 val days = if (date > 0) calculateDays(date) else 0
                 views.setTextViewText(R.id.tvWidgetDays, days.toString())
 
-                // 4. Устанавливаем фото
+                // Устанавливаем фото
                 // Сначала ставим заглушку, чтобы не было пустого места пока грузится
                 views.setImageViewResource(R.id.ivWidgetPhoto, R.mipmap.logotype)
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -78,7 +78,6 @@ class CoupleWidget : AppWidgetProvider() {
                     val widgetTarget = object : AppWidgetTarget(context.applicationContext, R.id.ivWidgetPhoto, views, appWidgetId) {
                         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                             super.onResourceReady(resource, transition)
-                            // AppWidgetTarget сам обновит ImageView, но иногда нужно подтолкнуть
                             Log.d(TAG, "Image loaded for widget $appWidgetId")
                         }
                     }
@@ -86,9 +85,9 @@ class CoupleWidget : AppWidgetProvider() {
                     Glide.with(context.applicationContext)
                         .asBitmap()
                         .load(photoUrl)
-                        .override(300, 300) // Оптимизация памяти
+                        .override(300, 300)
                         .centerCrop()
-                        .dontAnimate() // Анимации в виджетах не работают и могут вызывать баги
+                        .dontAnimate()
                         .into(widgetTarget)
                 }
 
@@ -97,6 +96,9 @@ class CoupleWidget : AppWidgetProvider() {
             }
         }
 
+        /**
+         * Подсчёт дней
+         */
         private fun calculateDays(startTimeInMillis: Long): Long {
             if (startTimeInMillis == 0L) return 0
             

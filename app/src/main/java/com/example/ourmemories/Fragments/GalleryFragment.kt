@@ -37,6 +37,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         observeViewModel(view)
     }
 
+    /**
+     * Настройка пользовательского интерфейса.
+     */
     private fun setupUI(view: View) {
         val rvGallery = view.findViewById<RecyclerView>(R.id.rvGallery)
         val fabAdd = view.findViewById<View>(R.id.fabAddMemory)
@@ -125,6 +128,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         }
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(view: View) {
         val tvEmpty = view.findViewById<View>(R.id.tvEmptyGallery)
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshGallery)
@@ -149,8 +155,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         }
     }
 
-    // === Навигация и Диалоги ===
-
+    /**
+     * Открытие экрана детальной информации
+     */
     private fun openMemoryDetail(memory: Memory) {
         val detailFragment = MemoryDetailFragment.newInstance(
             memory.id,
@@ -167,6 +174,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             .commit()
     }
 
+    /**
+     * Показать меню сортировки
+     */
     private fun showSortMenu(anchor: View) {
         val popup = PopupMenu(context, anchor)
         popup.menu.add(0, 1, 0, "Сначала новые")
@@ -181,6 +191,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         popup.show()
     }
 
+    /**
+     * Диалог для выбора опций
+     */
     private fun showMemoryOptions(memory: Memory) {
         val options = arrayOf("Поделиться", "Удалить")
         AlertDialog.Builder(requireContext())
@@ -194,6 +207,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             .show()
     }
 
+    /**
+     * Поделиться фотографией
+     */
     private fun shareMemoryImage(memory: Memory) {
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -203,6 +219,9 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         startActivity(Intent.createChooser(shareIntent, "Поделиться"))
     }
 
+    /**
+     * Диалог для удаления фотографии
+     */
     private fun confirmDelete(memory: Memory) {
         AlertDialog.Builder(requireContext())
             .setTitle("Удалить фото?")

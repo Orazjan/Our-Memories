@@ -1,10 +1,6 @@
 package com.example.ourmemories.Fragments
 
-import android.annotation.SuppressLint
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
@@ -12,9 +8,16 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.GridLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.NumberPicker
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -29,18 +32,24 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+/**
+ * Главный экран приложения.
+ *
+ * Отображает:
+ * - Счётчик дней вместе.
+ * - Статусы пользователей.
+ * - "Дерево любви" (система прогресса).
+ * - Общую заметку ("Холодильник").
+ */
 class MainFragment : Fragment(R.layout.main_fragment) {
 
-    // Инициализация ViewModel через ViewModelProvider (классический способ)
     private lateinit var viewModel: MainViewModel
-    
     private lateinit var prefs: SharedPreferences
     private val updateHandler = Handler(Looper.getMainLooper())
     private var currentRelationshipTimestamp: Long = 0
 
-    private val availableStatuses = listOf(
-        "😴", "💼", "❤️", "🏠", "🎮", "🍔", "☕", "🎉", "💪", "🎧", "🚗", "📚"
-    )
+    private val availableStatuses =
+        listOf("😴", "💼", "❤️", "🏠", "🎮", "🍔", "☕", "🎉", "💪", "🎧", "🚗", "📚")
 
     private val updateRunnable = Runnable {
         updateDaysUI()
@@ -50,8 +59,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
-
-        // Инициализация ViewModel
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         setupUI(view)
@@ -59,6 +66,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         scheduleNextUpdate()
     }
 
+    /**
+     * Настройка пользовательского интерфейса.
+     */
     private fun setupUI(view: View) {
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
         val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
@@ -71,173 +81,125 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         cardFridge?.setOnClickListener { showEditNoteDialog() }
         cardTree?.setOnClickListener { showTreeDialog() }
 
-        if (tvHeart != null) {
-            val pulseAnimation = AnimationUtils.loadAnimation(context, R.anim.heart_beat)
-            tvHeart.startAnimation(pulseAnimation)
-        }
+        tvHeart?.startAnimation(AnimationUtils.loadAnimation(context, R.anim.heart_beat))
 
         tvDaysCount.setOnClickListener {
-            viewModel.currentUser.value?.let { user ->
-                showRelationshipDatePicker(user.uid)
-            }
+            viewModel.currentUser.value?.let { showRelationshipDatePicker() }
         }
 
-        val statusClickListener = View.OnClickListener {
-            viewModel.currentUser.value?.let { user -> showStatusPickerDialog(user.uid) }
-        }
+        val statusClickListener = View.OnClickListener { showStatusPickerDialog() }
         ivMyAvatar.setOnClickListener(statusClickListener)
         cardMyStatus.setOnClickListener(statusClickListener)
 
-        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light)
         swipeRefreshLayout.setOnRefreshListener {
-            viewModel.startListening() // Перезапуск слушателей
+            viewModel.startListening()
             swipeRefreshLayout.isRefreshing = false
         }
     }
 
+    /**
+     * Наблюдение за изменениями в ViewModel.
+     */
     private fun observeViewModel(view: View) {
-        // 1. Мои данные
         viewModel.currentUser.observe(viewLifecycleOwner) { user ->
-            if (user != null) {
-                updateMyUI(view, user)
-                updateWidgetData(user, true)
+            user?.let {
+                updateMyUI(view, it)
+                updateWidgetData(it, true)
             }
         }
 
-        // 2. Данные партнера
         viewModel.partnerUser.observe(viewLifecycleOwner) { partner ->
             updatePartnerUI(view, partner)
-            if (partner != null) updateWidgetData(partner, false)
+            partner?.let { updateWidgetData(it, false) }
         }
 
-        // 3. Сообщения (Toast)
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
-            if (msg != null) {
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            msg?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 viewModel.onToastShown()
             }
         }
     }
 
+    /**
+     * Обновление интерфейса пользователя
+     */
     private fun updateMyUI(view: View, user: User) {
         view.findViewById<TextView>(R.id.tvMyName).text = user.name
         GlideHelper.loadAvatar(view.findViewById(R.id.ivMyAvatar), user.photoUrl, "MY_AVATAR")
-        
+
         updateStatusUI(
-            view.findViewById(R.id.cardMyStatus), 
-            view.findViewById(R.id.tvMyStatus), 
+            view.findViewById(R.id.cardMyStatus), view.findViewById(R.id.tvMyStatus),
             user.status
         )
-
         updateTreeUI(user.treePoints)
 
-        // Записка
-        val tvFridgeNote = view.findViewById<TextView>(R.id.tvFridgeNote)
-        if (tvFridgeNote != null) {
-            tvFridgeNote.text = if (user.sharedNote.isNullOrEmpty()) 
-                "Оставьте записку для любимого человека..." 
-            else 
-                user.sharedNote
-        }
+        view.findViewById<TextView>(R.id.tvFridgeNote)?.text =
+            user.sharedNote?.takeIf { it.isNotEmpty() }
+                ?: "Оставьте записку для любимого человека..."
 
-        // Дата отношений
         currentRelationshipTimestamp = user.relationshipDate
         updateDaysCounter(view, user.relationshipDate)
 
-        // Доступность счетчика
         val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
-        if (user.partnerUid != null) {
-            tvDaysCount.isEnabled = true
-            tvDaysCount.alpha = 1.0f
-        } else {
-            tvDaysCount.isEnabled = false
-            tvDaysCount.alpha = 0.5f
-        }
+        tvDaysCount.isEnabled = user.partnerUid != null
+        tvDaysCount.alpha = if (user.partnerUid != null) 1.0f else 0.5f
     }
 
+    /**
+     * Обновление интерфейса партнёра
+     */
     private fun updatePartnerUI(view: View, partner: User?) {
         val layoutPartner = view.findViewById<LinearLayout>(R.id.layoutPartner)
         val tvPartnerName = view.findViewById<TextView>(R.id.tvPartnerName)
         val ivPartnerAvatar = view.findViewById<ImageView>(R.id.ivPartnerAvatar)
         val cardPartnerStatus = view.findViewById<View>(R.id.cardPartnerStatus)
-        val tvPartnerStatus = view.findViewById<TextView>(R.id.tvPartnerStatus)
 
         if (partner != null) {
             tvPartnerName.text = partner.name
             GlideHelper.loadAvatar(ivPartnerAvatar, partner.photoUrl, "PARTNER_AVATAR")
-            updateStatusUI(cardPartnerStatus, tvPartnerStatus, partner.status)
-
-            layoutPartner.setOnClickListener {
-                showPartnerOptions(partner.uid, partner.name)
-            }
+            updateStatusUI(
+                cardPartnerStatus, view.findViewById(R.id.tvPartnerStatus), partner.status
+            )
+            layoutPartner.setOnClickListener { showPartnerOptions(partner.uid, partner.name) }
         } else {
-            // Нет партнера
             tvPartnerName.text = getString(R.string.invite)
             ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
-            ivPartnerAvatar.setColorFilter(android.graphics.Color.GRAY)
             ivPartnerAvatar.setPadding(20, 20, 20, 20)
-            
             cardPartnerStatus.visibility = View.GONE
-            
-            layoutPartner.setOnClickListener { 
-                viewModel.currentUser.value?.let { me -> showInvitePartnerDialog(me.uid) }
-            }
+            layoutPartner.setOnClickListener { showInvitePartnerDialog() }
         }
     }
 
-    // === Вспомогательные методы UI ===
-
+    /**
+     * Обновление статуса
+     */
     private fun updateStatusUI(card: View?, text: TextView?, status: String?) {
-        if (!status.isNullOrEmpty()) {
-            card?.visibility = View.VISIBLE
-            text?.text = status
-        } else {
-            card?.visibility = View.GONE
-        }
+        val hasStatus = !status.isNullOrEmpty()
+        card?.visibility = if (hasStatus) View.VISIBLE else View.GONE
+        text?.text = status
     }
 
-    private fun showStatusPickerDialog(uid: String) {
-        val dialog = BottomSheetDialog(requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
+    /**
+     * Показ диалога для выбора статуса
+     */
+    private fun showStatusPickerDialog() {
+        val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(R.layout.dialog_status_picker)
-
         val grid = dialog.findViewById<GridLayout>(R.id.gridStatuses)
-        val etCustomStatus = dialog.findViewById<EditText>(R.id.etCustomStatus)
-        val btnSaveStatus = dialog.findViewById<Button>(R.id.btnSaveStatus)
-
-        btnSaveStatus?.setOnClickListener {
-            val text = etCustomStatus?.text.toString().trim()
-            if (text.isNotEmpty()) {
-                if (text.length <= 20) {
-                    viewModel.updateStatus(text)
-                    dialog.dismiss()
-                } else {
-                    Toast.makeText(context, "Максимум 20 символов", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
 
         availableStatuses.forEach { emoji ->
             val button = TextView(requireContext()).apply {
                 text = emoji
                 textSize = 32f
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
                 gravity = Gravity.CENTER
                 setPadding(16, 16, 16, 16)
-                val outValue = android.util.TypedValue()
-                requireContext().theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
-                setBackgroundResource(outValue.resourceId)
                 setOnClickListener { 
                     viewModel.updateStatus(emoji)
                     dialog.dismiss() 
                 }
             }
-            val params = GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED)).apply {
-                width = GridLayout.LayoutParams.WRAP_CONTENT
-                height = GridLayout.LayoutParams.WRAP_CONTENT
-                setMargins(8, 8, 8, 8)
-                setGravity(Gravity.CENTER)
-            }
-            grid?.addView(button, params)
+            grid?.addView(button)
         }
 
         dialog.findViewById<View>(R.id.btnClearStatus)?.setOnClickListener {
@@ -247,99 +209,87 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.show()
     }
 
+    /**
+     * Показ диалога для редактирования записки
+     */
     private fun showEditNoteDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_edit_note, null)
         val etNote = dialogView.findViewById<EditText>(R.id.etNote)
-        val tvCurrent = view?.findViewById<TextView>(R.id.tvFridgeNote)
-
-        val currentText = tvCurrent?.text.toString()
-        if (currentText != "Оставьте записку..." && currentText != "Оставьте записку для любимого человека...") {
-            etNote.setText(currentText)
-        }
+        val currentNote = viewModel.currentUser.value?.sharedNote
+        etNote.setText(currentNote)
 
         AlertDialog.Builder(requireContext())
             .setTitle("Записка на холодильнике")
             .setView(dialogView)
             .setPositiveButton("Сохранить") { _, _ ->
-                val newNote = etNote.text.toString().trim()
-                viewModel.updateSharedNote(newNote)
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
+                viewModel.updateSharedNote(
+                    etNote.text.toString().trim()
+                )
+            }.setNegativeButton("Отмена", null).show()
     }
 
-    private fun showInvitePartnerDialog(myUid: String) {
+    /**
+     * Показ диалога для приглашения партнёра
+     */
+    private fun showInvitePartnerDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_invite_partner, null)
         val etCode = dialogView.findViewById<EditText>(R.id.etPartnerCode)
         val btnConnect = dialogView.findViewById<Button>(R.id.btnConnect)
         val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         
         btnConnect.setOnClickListener {
             val code = etCode.text.toString().trim()
             if (code.length == 8) {
                 btnConnect.isEnabled = false
-                btnConnect.text = getString(R.string.Searching)
-                
-                viewModel.connectPartner(code, 
-                    onSuccess = {
-                        dialog.dismiss()
-                        Toast.makeText(context, getString(R.string.connected), Toast.LENGTH_LONG).show()
-                    },
-                    onFailure = { error ->
-                        btnConnect.isEnabled = true
-                        btnConnect.text = getString(R.string.connect)
-                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                    }
-                )
-            } else {
-                Toast.makeText(context, "Введите 8 цифр", Toast.LENGTH_SHORT).show()
+                viewModel.connectPartner(
+                    code,
+                    { dialog.dismiss() },
+                    { btnConnect.isEnabled = true })
             }
         }
         dialog.show()
     }
 
-    @SuppressLint("StringFormatInvalid")
+    /**
+     * Показ меню опций партнёра
+     */
     private fun showPartnerOptions(partnerUid: String, partnerName: String) {
-        val dialog = BottomSheetDialog(requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
+        val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(R.layout.bottom_sheet_partner_options)
         dialog.findViewById<View>(R.id.btnDisconnect)?.setOnClickListener {
             dialog.dismiss()
             AlertDialog.Builder(requireContext())
                 .setTitle(getString(R.string.disconnect_partner_title))
-                // Используем правильный строковый ресурс с параметром %s
                 .setMessage(getString(R.string.disconnect_partner_message, partnerName))
-                .setPositiveButton(getString(R.string.yes)) { _, _ -> 
-                    viewModel.disconnectPartner(partnerUid)
-                }
-                .setNegativeButton("Нет", null)
-                .show()
+                .setPositiveButton(getString(R.string.yes)) { _, _ ->
+                    viewModel.disconnectPartner(
+                        partnerUid
+                    )
+                }.setNegativeButton("Нет", null).show()
         }
         dialog.show()
     }
 
-    // === Дерево и Счетчик (почти без изменений, но используют данные из Model) ===
-    
+    /**
+     * Обновление дерева любви
+     */
     private fun updateTreeUI(points: Long) {
-        val ivTree = view?.findViewById<ImageView>(R.id.ivTreeIcon)
+        val ivTree = view?.findViewById<ImageView>(R.id.ivTreeIcon) ?: return
         val tvLevel = view?.findViewById<TextView>(R.id.tvTreeLevel)
         val progress = view?.findViewById<ProgressBar>(R.id.progressTree)
 
-        if (ivTree == null) return
-
-        var maxPoints = 50
-        var levelName = "Росток"
-        var iconRes = R.drawable.ic_tree_stage_1
-
-        if (points >= 1000) { maxPoints = 2000; levelName = "Древо Вечной Любви"; iconRes = R.drawable.ic_tree_stage_10 }
-        else if (points >= 800) { maxPoints = 1000; levelName = "Волшебное Дерево"; iconRes = R.drawable.ic_tree_stage_9 }
-        else if (points >= 650) { maxPoints = 800; levelName = "Изобильное Дерево"; iconRes = R.drawable.ic_tree_stage_8 }
-        else if (points >= 500) { maxPoints = 650; levelName = "Дерево Любви"; iconRes = R.drawable.ic_tree_stage_7 }
-        else if (points >= 350) { maxPoints = 500; levelName = "Цветущее Дерево"; iconRes = R.drawable.ic_tree_stage_6 }
-        else if (points >= 200) { maxPoints = 350; levelName = "Взрослое Дерево"; iconRes = R.drawable.ic_tree_stage_5 }
-        else if (points >= 100) { maxPoints = 200; levelName = "Крепкое Дерево"; iconRes = R.drawable.ic_tree_stage_4 }
-        else if (points >= 50) { maxPoints = 100; levelName = "Молодое Дерево"; iconRes = R.drawable.ic_tree_stage_3 }
-        else if (points >= 20) { maxPoints = 50; levelName = "Саженец"; iconRes = R.drawable.ic_tree_stage_2 }
+        val (levelName, iconRes, maxPoints) = when {
+            points >= 1000 -> Triple("Древо Вечной Любви", R.drawable.ic_tree_stage_10, 2000)
+            points >= 800 -> Triple("Волшебное Дерево", R.drawable.ic_tree_stage_9, 1000)
+            points >= 650 -> Triple("Изобильное Дерево", R.drawable.ic_tree_stage_8, 800)
+            points >= 500 -> Triple("Древо Любви", R.drawable.ic_tree_stage_7, 650)
+            points >= 350 -> Triple("Цветущее Дерево", R.drawable.ic_tree_stage_6, 500)
+            points >= 200 -> Triple("Взрослое Дерево", R.drawable.ic_tree_stage_5, 350)
+            points >= 100 -> Triple("Крепкое Дерево", R.drawable.ic_tree_stage_4, 200)
+            points >= 50 -> Triple("Молодое Дерево", R.drawable.ic_tree_stage_3, 100)
+            points >= 20 -> Triple("Саженец", R.drawable.ic_tree_stage_2, 50)
+            else -> Triple("Росток", R.drawable.ic_tree_stage_1, 20)
+        }
 
         ivTree.setImageResource(iconRes)
         tvLevel?.text = "$levelName ($points очков)"
@@ -347,126 +297,104 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         progress?.progress = points.toInt()
     }
 
+    /**
+     * Показ дерева любви
+     */
     private fun showTreeDialog() {
         val points = viewModel.currentUser.value?.treePoints ?: 0
         AlertDialog.Builder(requireContext())
             .setTitle("🌳 Дерево Любви")
             .setMessage("Растите ваше дерево, заходя в приложение и добавляя воспоминания!\n\nТекущие очки: $points")
-            .setPositiveButton("Понятно", null)
-            .show()
-    }
-
-    private fun calculateDays(startTimeInMillis: Long): Long {
-        if (startTimeInMillis == 0L) return 0
-        val today = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        val start = Calendar.getInstance().apply {
-            timeInMillis = startTimeInMillis; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        val diff = today.timeInMillis - start.timeInMillis
-        return if (diff < 0) 0 else TimeUnit.MILLISECONDS.toDays(diff)
+            .setPositiveButton("Понятно", null).show()
     }
 
     private fun updateDaysCounter(view: View, date: Long) {
-        val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
-        val days = calculateDays(date)
-        tvDaysCount.text = days.toString()
+        view.findViewById<TextView>(R.id.tvDaysCount).text = calculateDays(date).toString()
     }
 
+    /**
+     * Обновление счетчика дней
+     */
     private fun updateDaysUI() {
-        if (currentRelationshipTimestamp > 0) {
-            val days = calculateDays(currentRelationshipTimestamp)
-            view?.findViewById<TextView>(R.id.tvDaysCount)?.text = days.toString()
-        }
+        view?.findViewById<TextView>(R.id.tvDaysCount)?.text =
+            calculateDays(currentRelationshipTimestamp).toString()
     }
 
-    private fun showRelationshipDatePicker(uid: String) {
-        val dialog = BottomSheetDialog(requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
+    /**
+     * Подсчет дней
+     */
+    private fun calculateDays(timestamp: Long): Long {
+        if (timestamp == 0L) return 0
+        val diff = System.currentTimeMillis() - timestamp
+        return TimeUnit.MILLISECONDS.toDays(diff).coerceAtLeast(0)
+    }
+
+    /**
+     * Диалог для выбора даты
+     */
+    private fun showRelationshipDatePicker() {
+        val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
         val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
         val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth)!!
         val npYear = dialog.findViewById<NumberPicker>(R.id.npYear)!!
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate)!!
 
         val calendar = Calendar.getInstance()
         if (currentRelationshipTimestamp > 0) calendar.timeInMillis = currentRelationshipTimestamp
-        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
-        npYear.minValue = 1950; npYear.maxValue = currentYear
-        npYear.value = calendar.get(Calendar.YEAR); npYear.wrapSelectorWheel = false
+        npYear.minValue = 1950
+        npYear.maxValue = Calendar.getInstance().get(Calendar.YEAR)
+        npYear.value = calendar.get(Calendar.YEAR)
+        
         val months = DateFormatSymbols(Locale.getDefault()).shortMonths
-        npMonth.minValue = 0; npMonth.maxValue = months.size - 1
-        npMonth.displayedValues = months; npMonth.value = calendar.get(Calendar.MONTH)
-        npDay.minValue = 1; npDay.maxValue = 31; npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
+        npMonth.minValue = 0
+        npMonth.maxValue = 11
+        npMonth.displayedValues = months
+        npMonth.value = calendar.get(Calendar.MONTH)
 
-        fun updateDaysInMonth() {
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.YEAR, npYear.value); cal.set(Calendar.MONTH, npMonth.value); cal.set(Calendar.DAY_OF_MONTH, 1)
-            npDay.maxValue = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        }
-        npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        updateDaysInMonth()
+        npDay.minValue = 1
+        npDay.maxValue = 31
+        npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
 
-        btnConfirm.setOnClickListener {
-            val selectedCalendar = Calendar.getInstance()
-            selectedCalendar.set(Calendar.YEAR, npYear.value); selectedCalendar.set(Calendar.MONTH, npMonth.value); selectedCalendar.set(Calendar.DAY_OF_MONTH, npDay.value)
-            viewModel.saveRelationshipDate(selectedCalendar.timeInMillis)
+        dialog.findViewById<Button>(R.id.btnConfirmDate)?.setOnClickListener {
+            val selected = Calendar.getInstance()
+            selected.set(npYear.value, npMonth.value, npDay.value)
+            viewModel.saveRelationshipDate(selected.timeInMillis)
             dialog.dismiss()
         }
         dialog.show()
     }
 
+    /**
+     * Запланировать обновление через сутки
+     */
     private fun scheduleNextUpdate() {
-        val now = Calendar.getInstance()
         val tomorrow = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, 1); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
         }
-        val delay = tomorrow.timeInMillis - now.timeInMillis + 1000
-        updateHandler.removeCallbacks(updateRunnable)
-        updateHandler.postDelayed(updateRunnable, delay)
+        updateHandler.postDelayed(
+            updateRunnable, tomorrow.timeInMillis - System.currentTimeMillis() + 1000
+        )
     }
 
-    // Сохранение для виджета (можно перенести в ViewModel, но оставил здесь как "UI side effect")
+    /**
+     * Обновление данных в виджете
+     */
     private fun updateWidgetData(user: User, isMe: Boolean) {
-        try {
-            if (isMe) {
-                prefs.edit()
-                    .putString("my_name", user.name)
-                    .putString("my_photo", user.photoUrl)
-                    .putString("my_status", user.status)
-                    .putString("shared_note", user.sharedNote)
-                    .putString("partner_uid", user.partnerUid)
-                    .putLong("relationship_date", user.relationshipDate)
-                    .apply()
-            } else {
-                prefs.edit()
-                    .putString("partner_name", user.name)
-                    .putString("partner_photo", user.photoUrl)
-                    .putString("partner_status", user.status)
-                    .apply()
-            }
-            updateWidget()
-        } catch (e: Exception) { e.printStackTrace() }
-    }
-
-    private fun updateWidget() {
-        try {
-            val context = requireContext()
-            val intent = Intent(context, CoupleWidget::class.java)
-            intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            val ids = AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, CoupleWidget::class.java))
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-            context.sendBroadcast(intent)
-        } catch (e: Exception) {
-            // Log.e("Widget", "Error", e)
+        val editor = prefs.edit()
+        if (isMe) {
+            editor.putString("my_name", user.name).putString("my_photo", user.photoUrl)
+                .putLong("relationship_date", user.relationshipDate).apply()
+        } else {
+            editor.putString("partner_name", user.name).putString("partner_photo", user.photoUrl)
+                .apply()
         }
+        context?.let { CoupleWidget.sendRefreshBroadcast(it) }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         updateHandler.removeCallbacks(updateRunnable)
-        // ViewModel сам очистит свои слушатели в onCleared()
     }
 }

@@ -82,6 +82,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /**
+     * Удаляет фото из списка.
+     */
     fun removeImage(position: Int) {
         val currentList = _selectedUris.value ?: return
         if (position in currentList.indices) {
@@ -95,6 +98,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /**
+     * Устанавливает обложку.
+     */
     fun setCover(position: Int) {
         val list = _selectedUris.value ?: return
         if (position in list.indices) {
@@ -102,6 +108,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /**
+     * Устанавливает дату события.
+     */
     fun setEventDate(timestamp: Long) {
         _eventDate.value = timestamp
     }
@@ -175,6 +184,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /**
+     * Загружает одно фото в Firebase Storage.
+     */
     private suspend fun uploadSingleImage(uri: Uri, uid: String): String {
         return withContext(Dispatchers.IO) {
             val compressedData = compressImage(uri)
@@ -185,6 +197,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /**
+     * Сжатие изображения до 1280x1280.
+     */
     private fun compressImage(uri: Uri): ByteArray {
         try {
             val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -205,6 +220,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /**
+     * Сжатие изображения до заданного размера
+     */
     private fun scaleBitmap(bitmap: Bitmap, maxDimension: Int): Bitmap {
         val originalWidth = bitmap.width
         val originalHeight = bitmap.height
@@ -223,6 +241,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
     }
 
+    /**
+     *
+     */
     private fun extractDateFromImage(uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             try {

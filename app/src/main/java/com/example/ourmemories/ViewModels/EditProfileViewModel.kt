@@ -60,6 +60,9 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
         loadCurrentData()
     }
 
+    /**
+     * Загрузка текущих данных профиля.
+     */
     private fun loadCurrentData() {
         val user = auth.currentUser ?: return
 
@@ -83,10 +86,16 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
             }
     }
 
+    /**
+     * Установка выбранного изображения.
+     */
     fun selectImage(uri: Uri) {
         _selectedImageUri.value = uri
     }
 
+    /**
+     * Основной метод сохранения.
+     */
     fun saveChanges(name: String, date: String) {
         val user = auth.currentUser ?: return
         

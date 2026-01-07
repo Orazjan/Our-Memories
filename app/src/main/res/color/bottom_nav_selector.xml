@@ -6,4 +6,12 @@
 
     <!-- Цвет для неактивной вкладки -->
     <item android:color="@color/nav_icon_inactive" />
+    <!-- ... ваши существующие цвета ... -->
+    
+    <!-- Изменим baby_pink чуть-чуть, чтобы он был приятнее в темной теме -->
+    <color android:name="baby_pink">#7D3B58</color>
+    
+    <!-- Текст на кнопках в темной теме лучше сделать белым или очень светлым -->
+    <color android:name="button_text">#FFFFFF</color>
+    <color android:name="input_stroke">#404040</color>
 </selector>

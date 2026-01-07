@@ -21,6 +21,9 @@ class RegisterViewModel : ViewModel() {
     private val _toastMessage = MutableLiveData<String?>()
     val toastMessage: LiveData<String?> = _toastMessage
 
+    /**
+     * Регистрация пользователя.
+     */
     fun register(email: String, pass: String) {
         _isLoading.value = true
 

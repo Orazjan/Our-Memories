@@ -80,6 +80,9 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    /**
+     * Запускает слушатель желаний.
+     */
     private fun setupWishesListener(uids: List<String>) {
         wishesListener?.remove()
 
@@ -108,6 +111,9 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
             }
     }
 
+    /**
+     * Добавление нового желания.
+     */
     fun addWish(title: String, desc: String, category: String) {
         val user = auth.currentUser ?: return
 
@@ -126,6 +132,9 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    /**
+     * Обновление статуса выполнения желания.
+     */
     fun toggleWishStatus(item: WishItem, isCompleted: Boolean) {
         if (item.id.isNotEmpty()) {
             db.collection("wishes").document(item.id).update("isCompleted", isCompleted)
@@ -136,6 +145,9 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    /**
+     * Удаление желания.
+     */
     fun deleteWish(item: WishItem) {
         if (item.id.isNotEmpty()) {
             db.collection("wishes").document(item.id).delete()
