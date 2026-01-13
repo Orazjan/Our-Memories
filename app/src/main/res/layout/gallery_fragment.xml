@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:background="@color/background_light"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="16dp"
+        android:paddingVertical="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- ОБЫЧНЫЙ РЕЖИМ: Заголовок -->
@@ -24,7 +24,7 @@
             android:fontFamily="sans-serif-bold"
             android:text="@string/gallery"
             android:textColor="@color/text_primary"
-            android:textSize="24sp"
+            android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

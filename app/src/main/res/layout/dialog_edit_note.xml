@@ -4,14 +4,14 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="?attr/colorSurface">
+    android:background="@color/background_light">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Записка"
-        android:textColor="?attr/colorOnSurface"
-        android:textSize="20sp"
+        android:textColor="@color/text_primary"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
 
@@ -26,7 +26,7 @@
         android:gravity="top"
         android:background="@drawable/bg_input_soft"
         android:padding="16dp"
-        android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?android:textColorSecondary"/>
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary" />
 
 </LinearLayout>

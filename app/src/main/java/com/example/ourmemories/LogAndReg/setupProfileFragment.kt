@@ -3,6 +3,7 @@ package com.example.ourmemories.LogAndReg
 import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -49,10 +50,10 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         val cardAvatar = view.findViewById<View>(R.id.cardAvatar)
 
         // Анимация появления
-        cardAvatar.alpha = 0f
-        cardAvatar.translationY = 50f
-        cardAvatar.animate().alpha(1f).translationY(0f).setDuration(600).setStartDelay(200).start()
-
+        cardAvatar.scaleX = 0f
+        cardAvatar.scaleY = 0f
+        cardAvatar.animate().scaleX(1f).scaleY(1f).setDuration(500)
+            .setInterpolator(OvershootInterpolator()).start()
         cardAvatar.setOnClickListener {
             pickImage.launch("image/*")
         }
@@ -93,10 +94,18 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
     private fun observeViewModel(view: View) {
         val btnSave = view.findViewById<Button>(R.id.btnSaveProfile)
         val avatarView = view.findViewById<ImageView>(R.id.ivAvatar)
+        val loadingOverlay = view.findViewById<View>(R.id.loadingOverlay)
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            btnSave.isEnabled = !isLoading
-            btnSave.text = if (isLoading) "Сохранение..." else "Готово"
+            if (isLoading) {
+                loadingOverlay.visibility = View.VISIBLE
+                btnSave.isEnabled = false
+                btnSave.text = "Сохранение..."
+            } else {
+                loadingOverlay.visibility = View.GONE
+                btnSave.isEnabled = true
+                btnSave.text = "Готово"
+            }
         }
 
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
@@ -120,6 +129,9 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         }
     }
 
+    /**
+     * Тряска для поля ввода.
+     */
     private fun shakeView(view: View) {
         ObjectAnimator.ofFloat(
             view, "translationX", 0f, 25f, -25f, 25f, -25f, 15f, -15f, 6f, -6f, 0f

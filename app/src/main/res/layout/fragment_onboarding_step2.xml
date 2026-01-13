@@ -9,8 +9,8 @@
     <!-- Иллюстрация 2 (Другой цвет) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardIllustration"
-        android:layout_width="wrap_content"
-        android:layout_height="320dp"
+        android:layout_width="570px"
+        android:layout_height="967px"
         android:layout_marginTop="40dp"
         app:cardCornerRadius="32dp"
         app:cardElevation="0dp"

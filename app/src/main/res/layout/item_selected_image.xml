@@ -36,7 +36,7 @@
                 android:gravity="center"
                 android:paddingVertical="4dp"
                 android:text="Обложка"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="10sp"
                 android:textStyle="bold"
                 android:visibility="gone"
@@ -48,7 +48,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_border_selected"
-                android:visibility="gone"/>
+                android:visibility="visible"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

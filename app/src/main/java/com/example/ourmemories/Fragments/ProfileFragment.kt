@@ -147,8 +147,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         cardDelete?.findViewById<TextView>(R.id.tvTitle)?.setTextColor(Color.RED)
 
         // === КЛИКИ ===
-        view.findViewById<View>(R.id.cardEditProfile)?.setOnClickListener { openEditProfile() }
-        view.findViewById<View>(R.id.userPhoto)?.setOnClickListener { pickImage.launch("image/*") }
+        view.findViewById<View>(R.id.userPhoto)?.setOnClickListener { openEditProfile() }
         view.findViewById<View>(R.id.cardTheme)?.setOnClickListener { toggleTheme() }
         view.findViewById<View>(R.id.cardLogout)
             ?.setOnClickListener { viewModel.logout(); restartApp() }

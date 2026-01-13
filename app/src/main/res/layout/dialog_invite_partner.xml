@@ -3,14 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="?attr/colorSurface"
+    android:background="@color/background_light"
     android:padding="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/connecting_accaunt"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="@color/text_primary"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/enter_your_partner_s_8_digit_code_it_s_located_in_their_profile"
-        android:textColor="?android:textColorSecondary"
+        android:textColor="@color/text_secondary"
         android:textSize="14sp"
         android:gravity="center"
         android:layout_marginBottom="24dp"/>
@@ -37,8 +37,8 @@
         android:gravity="center"
         android:letterSpacing="0.2"
         android:textStyle="bold"
-        android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?android:textColorSecondary"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary"
         android:layout_marginBottom="24dp"/>
 
     <androidx.appcompat.widget.AppCompatButton
@@ -49,7 +49,7 @@
         android:backgroundTint="@color/baby_pink"
         android:text="@string/connect"
         android:textAllCaps="false"
-        android:textColor="#5D3A40"
+        android:textColor="@color/text_primary"
         android:textStyle="bold"
         android:textSize="18sp"/>
 

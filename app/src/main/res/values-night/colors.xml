@@ -8,10 +8,8 @@
     <!-- Фон экрана: Глубокий черный для AMOLED экранов или темно-серый -->
     <color name="background_light">#121212</color>
 
-    <!-- === Текст === -->
     <!-- Первичный текст: Чисто белый для максимального контраста -->
     <color name="text_primary">#FFFFFF</color> 
-    <!-- Вторичный текст: Светло-серый, но читаемый -->
     <color name="text_secondary">#E0E0E0</color>
 
     <!-- === Карточки и поверхности === -->
@@ -24,10 +22,14 @@
     <color name="baby_pink">#682842</color> 
     
     <!-- Голубой: Темный индиго -->
-    <color name="light_blue">#273445</color>
+    <color name="light_blue">#0d91d9</color>
     
     <!-- Красный (Сердце): Мягкий красный -->
     <color name="heart_red">#E57373</color>
+
+    <color name="prosto_white">#FFFFFF</color>
+    <color name="prosto_black">#000000</color>
+
 
     <!-- === Навигация === -->
     <!-- Активная иконка: Цвет основного бренда (Лаванда) -->

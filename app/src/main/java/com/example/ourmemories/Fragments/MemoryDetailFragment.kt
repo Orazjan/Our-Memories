@@ -19,12 +19,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MemoryDetailViewModel
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 
 class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
@@ -83,19 +85,30 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     private fun setupUI(view: View) {
         val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
         val btnEdit = view.findViewById<View>(R.id.btnEdit)
+        val btnDelete = view.findViewById<View>(R.id.btnDelete)
         val rvPhotos = view.findViewById<RecyclerView>(R.id.rvPhotos)
-        val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
-        val tvDescription = view.findViewById<TextView>(R.id.tvDescription)
-        val tvDate = view.findViewById<TextView>(R.id.tvDate)
+        val tvToolbarTitle = view.findViewById<TextView>(R.id.tvToolbarTitle)
+        val appBar = view.findViewById<AppBarLayout>(R.id.appBar)
 
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
+        appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
+            val totalScrollRange = appBarLayout.totalScrollRange
+            val percentage = abs(verticalOffset).toFloat() / totalScrollRange.toFloat()
+
+            if (percentage > 0.7f) {
+                val alpha = (percentage - 0.7f) / 0.3f
+                tvToolbarTitle.alpha = alpha
+            } else {
+                tvToolbarTitle.alpha = 0f
+            }
+        })
         // Настройка списка фото
         rvPhotos.layoutManager = GridLayoutManager(context, 3)
         adapter = AlbumPhotosAdapter(images = imagesList, onClick = { position ->
             openFullScreenViewer(position)
         }, onLongClick = { url ->
-            showSetCoverDialog(url)
+            showPhotoOptionsDialog(url)
         })
         rvPhotos.adapter = adapter
 
@@ -104,6 +117,14 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             val currentDesc = viewModel.description.value ?: ""
             val currentDate = viewModel.timestamp.value ?: System.currentTimeMillis()
             showEditDialog(currentTitle, currentDesc, currentDate)
+        }
+
+        btnDelete.setOnClickListener {
+            AlertDialog.Builder(requireContext()).setTitle("Удалить альбом?")
+                .setMessage("Это действие необратимо. Все фотографии из этого альбома будут удалены.")
+                .setPositiveButton("Удалить") { _, _ ->
+                    viewModel.deleteAlbum()
+                }.setNegativeButton("Отмена", null).show()
         }
     }
 
@@ -115,15 +136,34 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         val tvDescription = view.findViewById<TextView>(R.id.tvDescription)
         val tvDate = view.findViewById<TextView>(R.id.tvDate)
         val ivCover = view.findViewById<ImageView>(R.id.ivCover)
+        val tvTitleToolbar = view.findViewById<TextView>(R.id.tvToolbarTitle)
 
         // Обновление текстов
-        viewModel.title.observe(viewLifecycleOwner) { tvTitle.text = it }
-        viewModel.description.observe(viewLifecycleOwner) { tvDescription.text = it }
+        viewModel.title.observe(viewLifecycleOwner) {
+            tvTitle.text = it
+            tvTitleToolbar.text = it
+        }
+        viewModel.description.observe(viewLifecycleOwner) {
+            tvDescription.text = it
+            if (tvDescription.text.isEmpty()) {
+                tvDescription.visibility = View.GONE
+            } else {
+                tvDescription.visibility = View.VISIBLE
+            }
+        }
+        tvTitleToolbar.text = viewModel.title.value
+        tvTitleToolbar.alpha = 1.0f
         viewModel.timestamp.observe(viewLifecycleOwner) { updateDateText(tvDate, it) }
-        
+
         // Обновление обложки
         viewModel.coverUrl.observe(viewLifecycleOwner) { url ->
             GlideHelper.loadGalleryImage(ivCover, url)
+        }
+
+        viewModel.isDeleted.observe(viewLifecycleOwner) { deleted ->
+            if (deleted) {
+                parentFragmentManager.popBackStack()
+            }
         }
 
         // Обновление списка фото
@@ -141,6 +181,19 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             }
         }
     }
+
+    private fun showPhotoOptionsDialog(url: String) {
+        val options = arrayOf("Сделать обложкой", "Удалить фото")
+
+        AlertDialog.Builder(requireContext()).setTitle("Выберите действие")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showSetCoverDialog(url)
+                    1 -> showDeletePhotoConfirmDialog(url)
+                }
+            }.show()
+    }
+
 
     /**
      * Открытие полноэкранного просмотра
@@ -168,6 +221,14 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             }
             .setNegativeButton("Отмена", null)
             .show()
+    }
+
+    private fun showDeletePhotoConfirmDialog(url: String) {
+        AlertDialog.Builder(requireContext()).setTitle("Удалить это фото?")
+            .setMessage("Фото будет удалено из альбома навсегда.")
+            .setPositiveButton("Удалить") { _, _ ->
+                viewModel.deletePhoto(url)
+            }.setNegativeButton("Отмена", null).show()
     }
 
     /**

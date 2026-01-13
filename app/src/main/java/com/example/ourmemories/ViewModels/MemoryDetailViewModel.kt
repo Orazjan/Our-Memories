@@ -1,9 +1,12 @@
 package com.example.ourmemories.ViewModels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 /**
  * ViewModel для экрана деталей альбома [MemoryDetailFragment].
@@ -16,12 +19,16 @@ import com.google.firebase.firestore.FirebaseFirestore
 class MemoryDetailViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
     private val _images = MutableLiveData<List<String>>()
     val images: LiveData<List<String>> = _images
 
     private val _title = MutableLiveData<String>()
     val title: LiveData<String> = _title
+
+    private val _isDeleted = MutableLiveData<Boolean>()
+    val isDeleted: LiveData<Boolean> = _isDeleted
 
     private val _description = MutableLiveData<String>()
     val description: LiveData<String> = _description
@@ -49,7 +56,11 @@ class MemoryDetailViewModel : ViewModel() {
         _description.value = initialDesc
         _timestamp.value = initialTimestamp
         _coverUrl.value = initialCover
-        
+
+        if (initialCover.isNotEmpty()) {
+            _images.value = listOf(initialCover)
+        }
+
         loadDataFromFirestore()
     }
 
@@ -62,26 +73,96 @@ class MemoryDetailViewModel : ViewModel() {
         db.collection("memories").document(memoryId).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    val list = document.get("images") as? List<String>
-                    
-                    if (list != null) {
-                        _images.value = list
-                    } else {
-                        val cover = _coverUrl.value ?: ""
-                        if (cover.isNotEmpty()) {
-                            _images.value = listOf(cover)
-                        }
-                    }
-                    
+                    // Обновляем текстовые поля
                     document.getString("title")?.let { _title.value = it }
                     document.getString("description")?.let { _description.value = it }
                     document.getLong("timestamp")?.let { _timestamp.value = it }
-                    document.getString("imageUrl")?.let { _coverUrl.value = it }
+
+                    // Получаем обложку из БД
+                    val fetchedCover = document.getString("imageUrl")
+                    fetchedCover?.let { _coverUrl.value = it }
+
+                    // Получаем список картинок
+                    val list = document.get("images") as? List<String>
+
+                    if (list != null && list.isNotEmpty()) {
+                        _images.value = list
+                    } else {
+                        // Если списка нет (старая запись), используем обложку из документа
+                        if (!fetchedCover.isNullOrEmpty()) {
+                            _images.value = listOf(fetchedCover)
+                        }
+                    }
                 }
             }
             .addOnFailureListener {
                 _toastMessage.value = "Ошибка загрузки: ${it.message}"
             }
+    }
+
+    /**
+     * Удаляет фото из списка и БД.
+     */
+    fun deletePhoto(url: String) {
+        if (memoryId.isEmpty()) return
+
+        // Удаляем URL из массива в Firestore
+        db.collection("memories").document(memoryId)
+            .update("images", FieldValue.arrayRemove(url))
+            .addOnSuccessListener {
+                // Удаляем файл из Storage (фоново)
+                try {
+                    storage.getReferenceFromUrl(url).delete()
+                } catch (e: Exception) { }
+
+                // Обновляем локальный список для UI
+                val currentList = _images.value?.toMutableList() ?: mutableListOf()
+                currentList.remove(url)
+                _images.value = currentList
+
+                // Если удалили обложку - ставим новую (первую из оставшихся)
+                if (_coverUrl.value == url) {
+                    val newCover = currentList.firstOrNull() ?: ""
+                    // Обновляем поле imageUrl в БД
+                    db.collection("memories").document(memoryId).update("imageUrl", newCover)
+                    _coverUrl.value = newCover
+                }
+
+                _toastMessage.value = "Фото удалено"
+            }
+            .addOnFailureListener {
+                _toastMessage.value = "Ошибка удаления фото"
+            }
+    }
+
+    /**
+     * Удаляет альбом из Firestore и хранилища.
+     */
+    fun deleteAlbum() {
+        // Собираем все известные URL для удаления (список + обложка)
+        val imagesToDelete = mutableSetOf<String>()
+        _images.value?.let { imagesToDelete.addAll(it) }
+        _coverUrl.value?.let { if (it.isNotEmpty()) imagesToDelete.add(it) }
+
+        db.collection("memories").document(memoryId).delete().addOnSuccessListener {
+                _toastMessage.value = "Альбом удален"
+                _isDeleted.value = true // Сигнал для закрытия фрагмента
+
+                // Фоновое удаление файлов (не блокируем UI)
+                cleanupStorage(imagesToDelete.toList())
+            }.addOnFailureListener {
+                _toastMessage.value = "Ошибка удаления: ${it.message}"
+            }
+    }
+
+    private fun cleanupStorage(urls: List<String>) {
+        urls.forEach { url ->
+            try {
+                storage.getReferenceFromUrl(url).delete()
+            } catch (e: Exception) {
+                Log.e("MemoryDetailViewModel", "Не удалось удалить фото: $url", e)
+            }
+        }
     }
 
     /**

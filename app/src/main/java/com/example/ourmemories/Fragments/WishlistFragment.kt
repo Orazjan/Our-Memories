@@ -1,8 +1,5 @@
 package com.example.ourmemories.Fragments
 
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,10 +7,8 @@ import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -45,10 +40,7 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
 
         rvWishlist.layoutManager = LinearLayoutManager(context)
         rvWishlist.adapter = adapter
-        rvWishlist.itemAnimator = null // Отключаем анимацию для избежания "мигания" при обновлении
-
-        // Настраиваем свайп
-        setupSwipeToComplete(rvWishlist, swipeRefresh)
+        rvWishlist.itemAnimator = null
 
         fabAdd.setOnClickListener {
             showAddWishDialog()
@@ -91,127 +83,54 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
     }
 
     /**
-     * Настройка SwipeToComplete для удаления элемента.
-     */
-    private fun setupSwipeToComplete(recyclerView: RecyclerView, swipeRefresh: SwipeRefreshLayout) {
-        val itemTouchHelperCallback =
-            object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-
-                override fun onMove(
-                    r: RecyclerView, v: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder
-                ) = false
-
-                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    val position = viewHolder.bindingAdapterPosition
-                    if (position != RecyclerView.NO_POSITION && position < adapter.currentList.size) {
-                        val item = adapter.currentList[position]
-
-                        viewModel.toggleWishStatus(item, !item.isCompleted)
-
-                        adapter.notifyItemChanged(position)
-                    }
-                }
-
-                override fun onChildDraw(
-                    c: Canvas,
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
-                    dX: Float,
-                    dY: Float,
-                    actionState: Int,
-                    isCurrentlyActive: Boolean
-                ) {
-                    // Блокируем SwipeRefresh во время горизонтального свайпа
-                    if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                        if (dX != 0f) {
-                            swipeRefresh.isEnabled = false
-                        }
-                    }
-
-                    val itemView = viewHolder.itemView
-
-                    // Рисуем фон только при свайпе влево и если есть смещение
-                    if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX < 0) {
-                        // Зеленый фон
-                        val background = ColorDrawable(Color.parseColor("#4CAF50"))
-                        background.setBounds(
-                            itemView.right + dX.toInt(),
-                            itemView.top,
-                            itemView.right,
-                            itemView.bottom
-                        )
-                        background.draw(c)
-
-                        // Иконка галочки
-                        val icon = ContextCompat.getDrawable(
-                            requireContext(), android.R.drawable.checkbox_on_background
-                        )
-                        if (icon != null) {
-                            icon.setTint(Color.WHITE)
-                            val margin = (itemView.height - icon.intrinsicHeight) / 2
-                            val iconTop =
-                                itemView.top + (itemView.height - icon.intrinsicHeight) / 2
-                            val iconBottom = iconTop + icon.intrinsicHeight
-                            val iconLeft = itemView.right - margin - icon.intrinsicWidth
-                            val iconRight = itemView.right - margin
-
-                            // Рисуем иконку только если она влезает
-                            if (dX < -(margin + icon.intrinsicWidth)) {
-                                icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-                                icon.draw(c)
-                            }
-                        }
-                    }
-
-                    super.onChildDraw(
-                        c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive
-                    )
-                }
-
-                override fun clearView(
-                    recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
-                ) {
-                    super.clearView(recyclerView, viewHolder)
-                    // Разблокируем SwipeRefresh
-                    swipeRefresh.isEnabled = true
-
-                    // Сбрасываем состояние View, если свайп был отменен
-                    viewHolder.itemView.translationX = 0f
-                    viewHolder.itemView.alpha = 1f
-                }
-            }
-        ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView)
-    }
-
-    /**
      * Открытие диалога для добавления желания.
      */
     private fun showAddWishDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_wish, null)
+
+        // Создаем диалог
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+
+        // Делаем фон прозрачным, чтобы было видно закругления bg_dialog_rounded
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        // Находим элементы
         val etTitle = dialogView.findViewById<EditText>(R.id.etTitle)
         val etDesc = dialogView.findViewById<EditText>(R.id.etDesc)
         val rgCategories = dialogView.findViewById<RadioGroup>(R.id.rgCategories)
+        val btnAdd = dialogView.findViewById<View>(R.id.btnAdd)
+        val btnCancel = dialogView.findViewById<View>(R.id.btnCancel)
 
-        AlertDialog.Builder(requireContext()).setView(dialogView)
-            .setPositiveButton("Добавить") { _, _ ->
-                val title = etTitle.text.toString().trim()
-                val desc = etDesc.text.toString().trim()
+        // Обработчик кнопки "Добавить"
+        btnAdd.setOnClickListener {
+            val title = etTitle.text.toString().trim()
+            val desc = etDesc.text.toString().trim()
 
-                val category = if (rgCategories != null) {
-                    when (rgCategories.checkedRadioButtonId) {
-                        R.id.catMovie -> "movie"
-                        R.id.catFood -> "food"
-                        R.id.catShopping -> "shopping"
-                        R.id.catTravel -> "travel"
-                        R.id.catDate -> "date"
-                        else -> "other"
-                    }
-                } else "other"
-
-                if (title.isNotEmpty()) {
-                    viewModel.addWish(title, desc, category)
+            val category = if (rgCategories != null) {
+                when (rgCategories.checkedRadioButtonId) {
+                    R.id.catMovie -> "movie"
+                    R.id.catFood -> "food"
+                    R.id.catShopping -> "shopping"
+                    R.id.catTravel -> "travel"
+                    R.id.catDate -> "date"
+                    else -> "other"
                 }
-            }.setNegativeButton("Отмена", null).show()
+            } else "other"
+
+            if (title.isNotEmpty()) {
+                viewModel.addWish(title, desc, category)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(context, "Введите название", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Обработчик кнопки "Отмена"
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     /**

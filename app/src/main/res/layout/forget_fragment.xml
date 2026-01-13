@@ -47,7 +47,7 @@
                 android:layout_height="64dp"
                 android:layout_gravity="center"
                 android:src="@android:drawable/ic_popup_sync"
-                app:tint="#D94A8C"/>
+                app:tint="@color/background_light"/>
         </FrameLayout>
 
         <TextView
@@ -135,7 +135,7 @@
             android:layout_marginTop="24dp"
             android:text="@string/back_to_log_in"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"/>
+            android:textColor="@color/text_secondary"/>
 
     </LinearLayout>
 

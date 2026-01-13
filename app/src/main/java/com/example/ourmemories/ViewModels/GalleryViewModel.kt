@@ -167,18 +167,27 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
     fun deleteMemory(memory: Memory) {
         viewModelScope.launch {
             try {
+                // Сначала получаем список всех картинок в этом альбоме
+                val snapshot = db.collection("memories").document(memory.id).get().await()
+
+                // Получаем список URL. Если списка нет, берем хотя бы обложку
+                val imagesToDelete = snapshot.get("images") as? List<String>
+                    ?: listOf(memory.imageUrl).filter { it.isNotEmpty() }
+
+                // Удаляем запись из БД
                 db.collection("memories").document(memory.id).delete().await()
-                
-                if (memory.imageUrl.isNotEmpty()) {
+
+                // Удаляем ВСЕ фото из Storage (фоново, чтобы не задерживать UI)
+                imagesToDelete.forEach { url ->
                     try {
-                        storage.getReferenceFromUrl(memory.imageUrl).delete().await()
+                        storage.getReferenceFromUrl(url).delete().await()
                     } catch (e: Exception) {
-                        Log.e(TAG, "Error deleting image", e)
+                        Log.e(TAG, "Не удалось удалить фото: $url", e)
                     }
                 }
-                
+
                 withContext(Dispatchers.Main) {
-                    _toastMessage.value = "Удалено"
+                    _toastMessage.value = "Альбом удален"
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {

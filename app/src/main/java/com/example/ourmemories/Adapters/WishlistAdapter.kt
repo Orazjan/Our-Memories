@@ -42,6 +42,17 @@ class WishlistAdapter(
                 }
             }
 
+            cbComplete.setOnClickListener {
+                performClickAction()
+            }
+
+            itemView.setOnClickListener {
+                // Инвертируем состояние чекбокса
+                cbComplete.isChecked = !cbComplete.isChecked
+                performClickAction()
+            }
+
+
             // Обработка долгого нажатия на элемент
             itemView.setOnLongClickListener {
                 val position = bindingAdapterPosition
@@ -51,6 +62,19 @@ class WishlistAdapter(
                 } else {
                     false
                 }
+            }
+        }
+
+        private fun performClickAction() {
+            val position = bindingAdapterPosition
+            if (position != RecyclerView.NO_POSITION) {
+                val item = getItem(position)
+                val isChecked = cbComplete.isChecked
+
+                // Мгновенно обновляем визуал (зачеркивание)
+                updateStrikeThrough(tvTitle, tvDescription, isChecked)
+
+                onCheckClick(item, isChecked)
             }
         }
     }

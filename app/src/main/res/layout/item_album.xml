@@ -38,7 +38,7 @@
 
         <!-- Вертикальная линия -->
         <View
-            android:layout_width="2dp"
+            android:layout_width="3dp"
             android:layout_height="match_parent"
             android:layout_marginTop="8dp"
             android:background="#E0E0E0" />

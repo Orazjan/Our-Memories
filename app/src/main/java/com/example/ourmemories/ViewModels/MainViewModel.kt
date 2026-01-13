@@ -23,7 +23,7 @@ data class TreeInfo(
 )
 
 /**
- * ViewModel для главного экрана [MainFragment].
+ * ViewModel для главного экрана [com.example.ourmemories.Fragments.MainFragment].
  */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -39,9 +39,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _toastMessage = MutableLiveData<String?>()
     val toastMessage: LiveData<String?> = _toastMessage
-
-    // === Вычисляемые данные (Calculated Data) ===
-
+    
     /**
      * Список доступных эмодзи-статусов.
      */

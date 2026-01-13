@@ -1,6 +1,5 @@
 package com.example.ourmemories.Fragments
 
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -56,12 +55,10 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         // RecyclerView
         val layoutManager = LinearLayoutManager(context)
         rvGallery.layoutManager = layoutManager
-        rvGallery.itemAnimator = null // Чтобы не мигало при обновлении
+        rvGallery.itemAnimator = null
 
         adapter = MemoryAdapter(layoutResId = R.layout.item_album, onClick = { memory ->
             openMemoryDetail(memory)
-        }, onLongClick = { memory ->
-            showMemoryOptions(memory)
         })
         rvGallery.adapter = adapter
 
@@ -191,44 +188,4 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         popup.show()
     }
 
-    /**
-     * Диалог для выбора опций
-     */
-    private fun showMemoryOptions(memory: Memory) {
-        val options = arrayOf("Поделиться", "Удалить")
-        AlertDialog.Builder(requireContext())
-            .setTitle(memory.title.ifEmpty { "Воспоминание" })
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> shareMemoryImage(memory)
-                    1 -> confirmDelete(memory)
-                }
-            }
-            .show()
-    }
-
-    /**
-     * Поделиться фотографией
-     */
-    private fun shareMemoryImage(memory: Memory) {
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "Посмотри наше воспоминание! ${memory.imageUrl}")
-            type = "text/plain"
-        }
-        startActivity(Intent.createChooser(shareIntent, "Поделиться"))
-    }
-
-    /**
-     * Диалог для удаления фотографии
-     */
-    private fun confirmDelete(memory: Memory) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Удалить фото?")
-            .setPositiveButton("Удалить") { _, _ ->
-                viewModel.deleteMemory(memory)
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
 }

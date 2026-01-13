@@ -6,6 +6,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -101,7 +102,8 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
                 _toastMessage.value = "Профиль готов!"
 
             } catch (e: Exception) {
-                _toastMessage.value = "Ошибка: ${e.message}"
+                _toastMessage.value = "Ошибка: Попробуйте позже"
+                Log.e("SetupProfileViewModel", "Error saving profile", e)
             } finally {
                 _isLoading.value = false
             }

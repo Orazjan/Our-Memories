@@ -15,7 +15,7 @@
         android:gravity="center"
         android:text="Установить статус"
         android:textColor="@color/text_primary"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
 
     <!-- Поле ввода текста -->
@@ -49,7 +49,7 @@
             android:backgroundTint="@color/baby_pink"
             android:paddingHorizontal="20dp"
             android:text="OK"
-            android:textColor="#5D3A40"
+            android:textColor="@color/text_primary"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -76,9 +76,9 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="24dp"
-        android:backgroundTint="#F5F5F5"
+        android:backgroundTint="@color/baby_pink"
         android:text="Сбросить статус"
-        android:textColor="@color/text_secondary"
+        android:textColor="@color/text_primary"
         android:textAllCaps="false"/>
 
 </LinearLayout>
