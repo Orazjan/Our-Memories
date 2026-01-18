@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 
 class PhotoViewerViewModel : ViewModel() {
 
-    private val _images = MutableLiveData<List<String>>()
-    val images: LiveData<List<String>> = _images
+    private val _images = MutableLiveData<List<String>?>()
+    val images: LiveData<List<String>> = _images as LiveData<List<String>>
 
     private val _currentPosition = MutableLiveData<Int>()
     val currentPosition: LiveData<Int> = _currentPosition

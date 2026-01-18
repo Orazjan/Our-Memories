@@ -13,7 +13,7 @@
 
     <!-- Акценты -->
     <color name="baby_pink">#FCE4EC</color> <!-- Нежно-розовый -->
-    <color name="light_blue">#E3F2FD</color> <!-- Нежно-голубой -->
+    <color name="light_blue">#34a5f7</color>
     <color name="heart_red">#FF5252</color>
     <color name="for_disconnect_partner">#D32F2F</color>
 

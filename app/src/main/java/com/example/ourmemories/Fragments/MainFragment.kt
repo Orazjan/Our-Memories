@@ -18,6 +18,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -157,11 +158,16 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         if (partner != null) {
             tvPartnerName.text = partner.name
+            val partnerDr = partner.birthday
             GlideHelper.loadAvatar(ivPartnerAvatar, partner.photoUrl, "PARTNER_AVATAR")
             updateStatusUI(
                 cardPartnerStatus, view.findViewById(R.id.tvPartnerStatus), partner.status
             )
-            layoutPartner.setOnClickListener { showPartnerOptions(partner.uid, partner.name) }
+            layoutPartner.setOnClickListener {
+                showPartnerOptions(
+                    partner.uid, partner.name, partner.photoUrl, partnerDr
+                )
+            }
         } else {
             tvPartnerName.text = getString(R.string.invite)
             ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
@@ -184,27 +190,57 @@ class MainFragment : Fragment(R.layout.main_fragment) {
      * Показ диалога для выбора статуса
      */
     private fun showStatusPickerDialog() {
-        val dialog = BottomSheetDialog(requireContext())
+        val dialog = BottomSheetDialog(
+            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
+        )
         dialog.setContentView(R.layout.dialog_status_picker)
-        val grid = dialog.findViewById<GridLayout>(R.id.gridStatuses)
 
+        val grid = dialog.findViewById<GridLayout>(R.id.gridStatuses)
+        val etCustomStatus = dialog.findViewById<EditText>(R.id.etCustomStatus)
+        val btnSaveStatus = dialog.findViewById<Button>(R.id.btnSaveStatus)
+
+        // Обработка кнопки ОК для текстового статуса
+        btnSaveStatus?.setOnClickListener {
+            val text = etCustomStatus?.text.toString().trim()
+            if (text.isNotEmpty()) {
+                if (text.length <= 20) {
+                    viewModel.updateStatus(text)
+                    dialog.dismiss()
+                } else {
+                    Toast.makeText(context, "Максимум 20 символов", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        // Кнопки смайликов
         availableStatuses.forEach { emoji ->
             val button = TextView(requireContext()).apply {
                 text = emoji
                 textSize = 32f
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
                 gravity = Gravity.CENTER
                 setPadding(16, 16, 16, 16)
-                setOnClickListener { 
+                val outValue = android.util.TypedValue()
+                requireContext().theme.resolveAttribute(
+                    android.R.attr.selectableItemBackground, outValue, true
+                )
+                setBackgroundResource(outValue.resourceId)
+
+                setOnClickListener {
                     viewModel.updateStatus(emoji)
-                    dialog.dismiss() 
+                    dialog.dismiss()
                 }
             }
-            grid?.addView(button)
-        }
 
-        dialog.findViewById<View>(R.id.btnClearStatus)?.setOnClickListener {
-            viewModel.updateStatus(null)
-            dialog.dismiss()
+            val params = GridLayout.LayoutParams(
+                GridLayout.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED)
+            ).apply {
+                width = GridLayout.LayoutParams.WRAP_CONTENT
+                height = GridLayout.LayoutParams.WRAP_CONTENT
+                setMargins(8, 8, 8, 8)
+                setGravity(Gravity.CENTER)
+            }
+            grid?.addView(button, params)
         }
         dialog.show()
     }
@@ -253,18 +289,29 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     /**
      * Показ меню опций партнёра
      */
-    private fun showPartnerOptions(partnerUid: String, partnerName: String) {
-        val dialog = BottomSheetDialog(requireContext())
+    private fun showPartnerOptions(
+        partnerUid: String, partnerName: String, partnerPhoto: String?, partnerDr: String?
+    ) {
+        val dialog = BottomSheetDialog(
+            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
+        )
         dialog.setContentView(R.layout.bottom_sheet_partner_options)
+
+        // Заполняем данные
+        dialog.findViewById<TextView>(R.id.userName)?.text = partnerName
+        dialog.findViewById<TextView>(R.id.drPartner)?.text = partnerDr
+        val ivAvatar = dialog.findViewById<ImageView>(R.id.userPhoto)
+        if (ivAvatar != null) {
+            GlideHelper.loadAvatar(ivAvatar, partnerPhoto, "PARTNER_OPTIONS")
+        }
+
         dialog.findViewById<View>(R.id.btnDisconnect)?.setOnClickListener {
             dialog.dismiss()
             AlertDialog.Builder(requireContext())
                 .setTitle(getString(R.string.disconnect_partner_title))
                 .setMessage(getString(R.string.disconnect_partner_message, partnerName))
                 .setPositiveButton(getString(R.string.yes)) { _, _ ->
-                    viewModel.disconnectPartner(
-                        partnerUid
-                    )
+                    viewModel.disconnectPartner(partnerUid)
                 }.setNegativeButton("Нет", null).show()
         }
         dialog.show()

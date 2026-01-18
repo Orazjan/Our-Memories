@@ -21,8 +21,8 @@ class MemoryDetailViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
-    private val _images = MutableLiveData<List<String>>()
-    val images: LiveData<List<String>> = _images
+    private val _images = MutableLiveData<List<String>?>()
+    val images: LiveData<List<String>> = _images as LiveData<List<String>>
 
     private val _title = MutableLiveData<String>()
     val title: LiveData<String> = _title

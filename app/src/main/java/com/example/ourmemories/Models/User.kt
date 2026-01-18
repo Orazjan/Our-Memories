@@ -13,6 +13,7 @@ package com.example.ourmemories.Models
  * @property relationshipDate Дата начала отношений (timestamp).
  * @property lastDailyDate Дата последнего получения ежедневного бонуса.
  * @property partnerCode Код для подключения партнера.
+ * @property birthday День рождения.
  */
 data class User(
     val uid: String = "",
@@ -24,5 +25,6 @@ data class User(
     val partnerUid: String? = null,
     val relationshipDate: Long = 0,
     val lastDailyDate: Long = 0,
-    val partnerCode: String? = null
+    val partnerCode: String? = null,
+    val birthday: String? = null
 )

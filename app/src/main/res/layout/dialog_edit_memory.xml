@@ -52,6 +52,44 @@
         android:background="@drawable/bg_input_soft"
         android:padding="16dp"
         android:textColor="@color/text_primary"
-        android:textColorHint="@color/text_secondary" />
+        android:textColorHint="@color/text_secondary"
+        android:layout_marginBottom="14dp"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Кнопка Отмена (Серый текст/прозрачный фон) -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_border_selected"
+            android:text="Отмена"
+            android:textAllCaps="false"
+            android:textColor="@color/text_secondary"
+            android:textStyle="bold"
+            android:textSize="16sp"/>
+
+        <View android:layout_width="16dp" android:layout_height="0dp"/>
+
+        <!-- Кнопка Добавить (Розовый фон) -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnAdd"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input_field"
+            android:backgroundTint="@color/baby_pink"
+            android:text="Добавить"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:textSize="16sp"/>
+
+    </LinearLayout>
 </LinearLayout>
+
+
