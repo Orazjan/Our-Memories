@@ -26,5 +26,5 @@ data class User(
     val relationshipDate: Long = 0,
     val lastDailyDate: Long = 0,
     val partnerCode: String? = null,
-    val birthday: String? = null
+    val birthDate: String? = null
 )

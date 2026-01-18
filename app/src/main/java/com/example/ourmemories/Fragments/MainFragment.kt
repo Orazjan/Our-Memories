@@ -158,14 +158,15 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         if (partner != null) {
             tvPartnerName.text = partner.name
-            val partnerDr = partner.birthday
+            val partnerDr = partner.birthDate
+            val treepoints = partner.treePoints
             GlideHelper.loadAvatar(ivPartnerAvatar, partner.photoUrl, "PARTNER_AVATAR")
             updateStatusUI(
                 cardPartnerStatus, view.findViewById(R.id.tvPartnerStatus), partner.status
             )
             layoutPartner.setOnClickListener {
                 showPartnerOptions(
-                    partner.uid, partner.name, partner.photoUrl, partnerDr
+                    partner.uid, partner.name, partner.photoUrl, partnerDr, treepoints
                 )
             }
         } else {
@@ -290,7 +291,11 @@ class MainFragment : Fragment(R.layout.main_fragment) {
      * Показ меню опций партнёра
      */
     private fun showPartnerOptions(
-        partnerUid: String, partnerName: String, partnerPhoto: String?, partnerDr: String?
+        partnerUid: String,
+        partnerName: String,
+        partnerPhoto: String?,
+        partnerDr: String?,
+        points: Long
     ) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -300,6 +305,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         // Заполняем данные
         dialog.findViewById<TextView>(R.id.userName)?.text = partnerName
         dialog.findViewById<TextView>(R.id.drPartner)?.text = partnerDr
+        dialog.findViewById<TextView>(R.id.tvtreepoints)?.text = points.toString()
         val ivAvatar = dialog.findViewById<ImageView>(R.id.userPhoto)
         if (ivAvatar != null) {
             GlideHelper.loadAvatar(ivAvatar, partnerPhoto, "PARTNER_OPTIONS")
