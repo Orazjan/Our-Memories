@@ -49,9 +49,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private val updateHandler = Handler(Looper.getMainLooper())
     private var currentRelationshipTimestamp: Long = 0
 
-    private val availableStatuses =
-        listOf("😴", "💼", "❤️", "🏠", "🎮", "🍔", "☕", "🎉", "💪", "🎧", "🚗", "📚")
-
     private val updateRunnable = Runnable {
         updateDaysUI()
         scheduleNextUpdate()
@@ -213,8 +210,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             }
         }
 
+        val statuses = viewModel.getStatuses()
+
         // Кнопки смайликов
-        availableStatuses.forEach { emoji ->
+        statuses.forEach { emoji ->
             val button = TextView(requireContext()).apply {
                 text = emoji
                 textSize = 32f
@@ -302,13 +301,17 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         )
         dialog.setContentView(R.layout.bottom_sheet_partner_options)
 
-        // Заполняем данные
         dialog.findViewById<TextView>(R.id.userName)?.text = partnerName
         dialog.findViewById<TextView>(R.id.drPartner)?.text = partnerDr
         dialog.findViewById<TextView>(R.id.tvtreepoints)?.text = points.toString()
         val ivAvatar = dialog.findViewById<ImageView>(R.id.userPhoto)
         if (ivAvatar != null) {
             GlideHelper.loadAvatar(ivAvatar, partnerPhoto, "PARTNER_OPTIONS")
+        }
+
+        dialog.findViewById<View>(R.id.btnHello)?.setOnClickListener {
+            dialog.dismiss()
+            viewModel.sendHello(partnerUid)
         }
 
         dialog.findViewById<View>(R.id.btnDisconnect)?.setOnClickListener {
@@ -328,8 +331,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
      */
     private fun updateTreeUI(points: Long) {
         val ivTree = view?.findViewById<ImageView>(R.id.ivTreeIcon) ?: return
-        val tvLevel = view?.findViewById<TextView>(R.id.tvTreeLevel)
-        val progress = view?.findViewById<ProgressBar>(R.id.progressTree)
 
         val (levelName, iconRes, maxPoints) = when {
             points >= 1000 -> Triple("Древо Вечной Любви", R.drawable.ic_tree_stage_10, 2000)
@@ -345,20 +346,38 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
 
         ivTree.setImageResource(iconRes)
-        tvLevel?.text = "$levelName ($points очков)"
-        progress?.max = maxPoints
-        progress?.progress = points.toInt()
     }
 
     /**
      * Показ дерева любви
      */
     private fun showTreeDialog() {
-        val points = viewModel.currentUser.value?.treePoints ?: 0
-        AlertDialog.Builder(requireContext())
-            .setTitle("🌳 Дерево Любви")
-            .setMessage("Растите ваше дерево, заходя в приложение и добавляя воспоминания!\n\nТекущие очки: $points")
-            .setPositiveButton("Понятно", null).show()
+        val points = viewModel.currentUser.value?.treePoints ?: 0L
+
+        val treeInfo = viewModel.getTreeInfo(points)
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_tree_info, null)
+
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<ImageView>(R.id.ivTreeLarge).setImageResource(treeInfo.iconRes)
+        dialogView.findViewById<TextView>(R.id.tvLevelName).text = treeInfo.levelName
+
+        val progressBar = dialogView.findViewById<ProgressBar>(R.id.pbLevelProgress)
+
+        progressBar.max = treeInfo.maxPoints.toInt()
+        progressBar.progress = points.toInt()
+
+        dialogView.findViewById<TextView>(R.id.tvPointsInfo).text =
+            "$points / ${treeInfo.maxPoints} очков"
+
+        dialogView.findViewById<View>(R.id.btnClose).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun updateDaysCounter(view: View, date: Long) {

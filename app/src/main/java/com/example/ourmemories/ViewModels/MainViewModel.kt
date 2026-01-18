@@ -49,7 +49,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Реактивный расчет состояния дерева на основе очков текущего пользователя.
      */
     val treeInfo: LiveData<TreeInfo?> = currentUser.map { user ->
-        user?.let { calculateTreeInfo(it.treePoints) }
+        user?.let { getTreeInfo(it.treePoints) }
     }
 
     /**
@@ -65,6 +65,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         startListening()
+    }
+
+    fun getStatuses(): List<String> {
+        return availableStatuses
     }
 
     /**
@@ -129,6 +133,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * Отправка приветствия партнеру.
+     */
+    fun sendHello(uid: String) {
+        val uid = auth.currentUser?.uid ?: return
+    }
+
+    /**
      * Обновление статуса пользователя.
      */
     fun updateStatus(status: String?) {
@@ -179,7 +190,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Логика определения уровня дерева.
      */
-    private fun calculateTreeInfo(points: Long): TreeInfo {
+    fun getTreeInfo(points: Long): TreeInfo {
         val (levelName, iconRes, maxPoints) = when {
             points >= 1000 -> Triple("Древо Вечной Любви", R.drawable.ic_tree_stage_10, 2000)
             points >= 800 -> Triple("Волшебное Дерево", R.drawable.ic_tree_stage_9, 1000)

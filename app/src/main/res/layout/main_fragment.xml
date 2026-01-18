@@ -354,27 +354,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Дерево Любви"
-                                android:textColor="#2E7D32"
+                                android:textColor="@color/text_derevo"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
 
                             <TextView
-                                android:id="@+id/tvTreeLevel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Уровень: Росток"
-                                android:textColor="#4CAF50"
+                                android:text="Нажмите чтобы увидеть детально"
+                                android:textColor="@color/secondary_text_derevo"
                                 android:textSize="14sp" />
 
-                            <ProgressBar
-                                android:id="@+id/progressTree"
-                                style="?android:attr/progressBarStyleHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:max="100"
-                                android:progress="20"
-                                android:progressTint="#2E7D32" />
                         </LinearLayout>
 
                         <ImageView

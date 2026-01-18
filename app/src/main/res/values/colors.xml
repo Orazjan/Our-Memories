@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Основные -->
-    <color name="primary_lavender">#9C27B0</color> <!-- Чуть темнее для читаемости белого текста на кнопках -->
-    <color name="background_light">#F5F5F7</color> <!-- Светло-серый, чтобы белые карточки выделялись -->
+    <color name="primary_lavender">#9C27B0</color>
+    <color name="background_light">#F5F5F7</color>
 
-    <!-- Текст -->
-    <color name="text_primary">#000000</color> <!-- Чисто черный -->
-    <color name="text_secondary">#575757</color> <!-- Темно-серый -->
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#575757</color>
 
-    <!-- Карточки -->
     <color name="white">#FFFFFF</color>
 
-    <!-- Акценты -->
-    <color name="baby_pink">#FCE4EC</color> <!-- Нежно-розовый -->
+    <color name="baby_pink">#FCE4EC</color>
     <color name="light_blue">#34a5f7</color>
     <color name="heart_red">#FF5252</color>
     <color name="for_disconnect_partner">#D32F2F</color>
@@ -20,10 +16,13 @@
     <color name="prosto_white">#FFFFFF</color>
     <color name="prosto_black">#000000</color>
 
-    <!-- Навигация -->
     <color name="nav_icon_active">#9C27B0</color>
     <color name="nav_icon_inactive">#BDBDBD</color>
-    <!-- ... ваши существующие цвета ... -->
+
     <color name="button_text">#5D3A40</color>
     <color name="input_stroke">#E0E0E0</color>
+
+    <color name="text_derevo">#2E7D32</color>
+    <color name="secondary_text_derevo">#4CAF50</color>
+
 </resources>
