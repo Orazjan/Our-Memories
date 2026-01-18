@@ -18,14 +18,12 @@ class PhotoViewerViewModel : ViewModel() {
     fun initData(imageList: ArrayList<String>?, startPos: Int) {
         if (imageList.isNullOrEmpty()) return
         
-        // Загружаем данные только если они еще не загружены (например, при первом запуске)
         if (_images.value == null) {
             _images.value = imageList
             _currentPosition.value = startPos
         }
     }
 
-    // Обновление позиции при свайпе
     fun onPageChanged(position: Int) {
         if (_currentPosition.value != position) {
             _currentPosition.value = position

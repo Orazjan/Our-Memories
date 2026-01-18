@@ -10,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -43,8 +42,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         val rvGallery = view.findViewById<RecyclerView>(R.id.rvGallery)
         val fabAdd = view.findViewById<View>(R.id.fabAddMemory)
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshGallery)
-        
-        // Поиск
+
         val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val layoutSearch = view.findViewById<LinearLayout>(R.id.layoutSearch)
         val etSearch = view.findViewById<EditText>(R.id.etSearch)
@@ -52,7 +50,6 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         val btnSearch = view.findViewById<View>(R.id.btnSearch)
         val btnSort = view.findViewById<View>(R.id.btnSort)
 
-        // RecyclerView
         val layoutManager = LinearLayoutManager(context)
         rvGallery.layoutManager = layoutManager
         rvGallery.itemAnimator = null
@@ -62,7 +59,6 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         })
         rvGallery.adapter = adapter
 
-        // Логика поиска UI
         btnSearch.setOnClickListener {
             tvTitle.visibility = View.GONE
             layoutSearch.visibility = View.VISIBLE
@@ -73,7 +69,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             layoutSearch.visibility = View.GONE
             tvTitle.visibility = View.VISIBLE
             etSearch.text.clear()
-            viewModel.setSearchQuery("") // Сброс поиска
+            viewModel.setSearchQuery("")
         }
 
         etSearch.addTextChangedListener(object : TextWatcher {
@@ -86,12 +82,10 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
 
         btnSort.setOnClickListener { showSortMenu(it) }
 
-        // Скролл и пагинация
         rvGallery.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                // Анимация FAB
                 if (dy > 10 && fabAdd.visibility == View.VISIBLE) {
                     fabAdd.animate().alpha(0f).setDuration(200).withEndAction { fabAdd.visibility = View.GONE }
                 } else if (dy < -10 && fabAdd.visibility != View.VISIBLE) {
@@ -99,12 +93,10 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
                     fabAdd.animate().alpha(1f).setDuration(200)
                 }
 
-                // Пагинация
                 val visibleItemCount = layoutManager.childCount
                 val totalItemCount = layoutManager.itemCount
                 val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
 
-                // Если прокрутили до конца
                 if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
                     viewModel.loadMore()
                 }
@@ -132,18 +124,15 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         val tvEmpty = view.findViewById<View>(R.id.tvEmptyGallery)
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshGallery)
 
-        // Список воспоминаний
         viewModel.memories.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        // Индикатор загрузки (SwipeRefresh)
         viewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing ->
             swipeRefresh.isRefreshing = isRefreshing
         }
 
-        // Тосты и сообщения
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()

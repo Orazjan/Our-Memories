@@ -32,7 +32,6 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
     private lateinit var viewModel: MemoryDetailViewModel
     
-    // Адаптер и список для него
     private var imagesList = mutableListOf<String>()
     private lateinit var adapter: AlbumPhotosAdapter
 
@@ -103,7 +102,7 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
                 tvToolbarTitle.alpha = 0f
             }
         })
-        // Настройка списка фото
+
         rvPhotos.layoutManager = GridLayoutManager(context, 3)
         adapter = AlbumPhotosAdapter(images = imagesList, onClick = { position ->
             openFullScreenViewer(position)
@@ -138,7 +137,6 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         val ivCover = view.findViewById<ImageView>(R.id.ivCover)
         val tvTitleToolbar = view.findViewById<TextView>(R.id.tvToolbarTitle)
 
-        // Обновление текстов
         viewModel.title.observe(viewLifecycleOwner) {
             tvTitle.text = it
             tvTitleToolbar.text = it
@@ -155,7 +153,6 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         tvTitleToolbar.alpha = 1.0f
         viewModel.timestamp.observe(viewLifecycleOwner) { updateDateText(tvDate, it) }
 
-        // Обновление обложки
         viewModel.coverUrl.observe(viewLifecycleOwner) { url ->
             GlideHelper.loadGalleryImage(ivCover, url)
         }
@@ -166,14 +163,12 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             }
         }
 
-        // Обновление списка фото
         viewModel.images.observe(viewLifecycleOwner) { list ->
             imagesList.clear()
             imagesList.addAll(list)
             adapter.notifyDataSetChanged()
         }
 
-        // Сообщения
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -239,11 +234,15 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         val etTitle = dialogView.findViewById<EditText>(R.id.etEditTitle)
         val etDesc = dialogView.findViewById<EditText>(R.id.etEditDesc)
         val etDateView = dialogView.findViewById<TextView>(R.id.tvEditDate)
+        val btnCancel = dialogView.findViewById<View>(R.id.btnCancel)
+        val btnAdd = dialogView.findViewById<View>(R.id.btnAdd)
+
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         etTitle.setText(currentTitle)
         etDesc.setText(currentDesc)
 
-        // Локальная переменная для диалога
         var newTimestamp = currentTimestamp
         val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         etDateView.text = sdf.format(Date(newTimestamp))
@@ -255,18 +254,22 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             }
         }
 
-        AlertDialog.Builder(requireContext()).setTitle("Редактировать альбом")
-            .setView(dialogView)
-            .setPositiveButton("Сохранить") { _, _ ->
-                val newTitle = etTitle.text.toString().trim()
-                val newDesc = etDesc.text.toString().trim()
+        btnAdd?.setOnClickListener {
+            val newTitle = etTitle.text.toString().trim()
+            val newDesc = etDesc.text.toString().trim()
 
-                if (newTitle.isNotEmpty()) {
-                    viewModel.saveChanges(newTitle, newDesc, newTimestamp)
-                }
+            if (newTitle.isNotEmpty()) {
+                viewModel.saveChanges(newTitle, newDesc, newTimestamp)
+            } else {
+                Toast.makeText(context, "Название не может быть пустым", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Отмена", null)
-            .show()
+            dialog.dismiss()
+        }
+        btnCancel?.setOnClickListener {
+            parentFragmentManager.popBackStack()
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     /**

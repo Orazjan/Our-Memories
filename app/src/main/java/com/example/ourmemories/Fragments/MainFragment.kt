@@ -254,14 +254,17 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val currentNote = viewModel.currentUser.value?.sharedNote
         etNote.setText(currentNote)
 
-        AlertDialog.Builder(requireContext())
-            .setTitle("Записка на холодильнике")
-            .setView(dialogView)
-            .setPositiveButton("Сохранить") { _, _ ->
-                viewModel.updateSharedNote(
-                    etNote.text.toString().trim()
-                )
-            }.setNegativeButton("Отмена", null).show()
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<View>(R.id.btnAdd).setOnClickListener {
+            val newNote = etNote.text.toString().trim()
+            viewModel.updateSharedNote(newNote)
+            dialog.dismiss()
+        }
+        dialogView.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
     }
 
     /**
