@@ -62,7 +62,6 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
         viewModel = ViewModelProvider(this)[MemoryDetailViewModel::class.java]
 
-        // Получаем аргументы и инициализируем ViewModel
         val args = arguments ?: return
         val memoryId = args.getString("id") ?: return
         

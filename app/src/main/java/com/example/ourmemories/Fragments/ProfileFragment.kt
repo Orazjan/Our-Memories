@@ -55,16 +55,13 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     private val db = Firebase.firestore
     private val storage = Firebase.storage
 
-    // Для пасхалки
     private var clickCount = 0
     private val resetClickRunnable = Runnable { clickCount = 0 }
     private val RESET_CLICK_COUNT_DELAY = 500L
     private val handler = Handler(Looper.getMainLooper())
 
-    // Код партнера (кэшируем для копирования)
     private var myPartnerCode: String? = null
 
-    // Лаунчер для выбора нового фото из галереи
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             updateProfilePhoto(uri)
@@ -80,7 +77,6 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
         prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
 
-        // Применяем тему при создании
         applySavedTheme()
 
         setupUI(view)
@@ -109,7 +105,6 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
             "#FAD1E6"
         )
 
-        // Тема
         val currentNightMode = AppCompatDelegate.getDefaultNightMode()
         val isSystemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val isDarkNow =
@@ -119,8 +114,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         setupMenuCard(
             view.findViewById(R.id.cardTheme),
             themeTitle,
-            android.R.drawable.ic_menu_view,
-            "#EEEEEE"
+            android.R.drawable.ic_menu_view, colorHex = if (isDarkNow) "#BDE0FE" else "#EEEEEE"
         )
 
         setupMenuCard(
@@ -136,6 +130,12 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
             "#EEEEEE"
         )
         setupMenuCard(
+            view.findViewById(R.id.instructions),
+            "Инструкции",
+            android.R.drawable.ic_menu_help,
+            "#EEEEEE"
+        )
+        setupMenuCard(
             view.findViewById(R.id.cardLogout),
             "Выйти из аккаунта",
             android.R.drawable.ic_lock_power_off,
@@ -146,21 +146,19 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         setupMenuCard(cardDelete, "Удалить аккаунт", android.R.drawable.ic_delete, "#FFCDD2")
         cardDelete?.findViewById<TextView>(R.id.tvTitle)?.setTextColor(Color.RED)
 
-        // КЛИКИ
         view.findViewById<View>(R.id.userPhoto)?.setOnClickListener { pickImage.launch("image/*") }
         view.findViewById<View>(R.id.cardEditProfile)?.setOnClickListener { openEditProfile() }
+        view.findViewById<View>(R.id.instructions)?.setOnClickListener { openInstruction() }
         view.findViewById<View>(R.id.cardTheme)?.setOnClickListener { toggleTheme() }
         view.findViewById<View>(R.id.cardLogout)
             ?.setOnClickListener { viewModel.logout(); restartApp() }
         view.findViewById<View>(R.id.cardDeleteAccount)
             ?.setOnClickListener { showDeleteAccountDialog() }
 
-        // Копирование кода
         view.findViewById<View>(R.id.passwordForPartner)?.setOnClickListener {
             myPartnerCode?.let { code -> copyToClipboard(code) }
         }
 
-        // Поделиться кодом
         view.findViewById<View>(R.id.cardShareCode)?.setOnClickListener {
             if (myPartnerCode != null && myPartnerCode != "Код не создан") {
                 shareCode(myPartnerCode!!)
@@ -275,7 +273,6 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
             iconCard?.setCardBackgroundColor(colorHex.toColorInt())
         } catch (e: Exception) {
-            // Игнорируем ошибки верстки, чтобы не крашилось
         }
     }
 
@@ -316,6 +313,13 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     }
 
     /**
+     * Открытие экрана с инструкцией
+     */
+    private fun openInstruction() {
+        (activity as? MainActivity)?.replaceFragment(InstructionFragment())
+    }
+
+    /**
      * Обновление фото профиля пользователя.
      */
     private fun updateProfilePhoto(uri: Uri) {
@@ -333,7 +337,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
                 db.collection("users").document(user.uid).update("photoUrl", downloadUrl.toString())
                     .await()
 
-                loadUserData() // Обновляем UI
+                loadUserData()
                 Toast.makeText(context, "Фото обновлено", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -358,7 +362,6 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     private fun deleteAccount() {
         val user = auth.currentUser ?: return
 
-        // 1. Сначала пробуем удалить
         user.delete().addOnSuccessListener {
             db.collection("users").document(user.uid).delete()
             Toast.makeText(context, "Аккаунт удален", Toast.LENGTH_SHORT).show()
@@ -388,9 +391,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
                 val pass = input.text.toString()
                 if (pass.isNotEmpty() && user.email != null) {
                     val credential = EmailAuthProvider.getCredential(user.email!!, pass)
-                    // 3. Переавторизация
                     user.reauthenticate(credential).addOnSuccessListener {
-                        // 4. Повторная попытка удаления после успешного входа
                         deleteAccount()
                     }.addOnFailureListener {
                         Toast.makeText(context, "Неверный пароль", Toast.LENGTH_SHORT).show()
@@ -407,7 +408,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     private fun sendEmail() {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:")
-            putExtra(Intent.EXTRA_EMAIL, arrayOf("support@ourmemories.com"))
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("orazjanov11@gmail.com"))
             putExtra(Intent.EXTRA_SUBJECT, "Отзыв о приложении")
         }
         try {
@@ -459,16 +460,15 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         tv.setOnClickListener {
             clickCount++
 
-            // Сбрасываем предыдущий таймер сброса
             handler.removeCallbacks(resetClickRunnable)
 
             if (clickCount == 3) {
                 (activity as? MainActivity)?.replaceFragment(VersionInfoFragment())
                 clickCount = 0
             } else {
-                // Запускаем таймер сброса заново
                 handler.postDelayed(resetClickRunnable, RESET_CLICK_COUNT_DELAY)
             }
         }
     }
 }
+

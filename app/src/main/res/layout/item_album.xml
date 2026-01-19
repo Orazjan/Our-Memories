@@ -6,9 +6,8 @@
     android:orientation="horizontal"
     android:paddingHorizontal="16dp"
     android:paddingVertical="8dp"
-    android:background="?attr/selectableItemBackground"> <!-- Эффект нажатия -->
+    android:background="?attr/selectableItemBackground">
 
-    <!-- Левая часть: Дата и Линия -->
     <LinearLayout
         android:layout_width="56dp"
         android:layout_height="match_parent"
@@ -36,7 +35,6 @@
             android:textAllCaps="true"
             android:fontFamily="sans-serif-medium"/>
 
-        <!-- Вертикальная линия -->
         <View
             android:layout_width="3dp"
             android:layout_height="match_parent"
@@ -44,7 +42,6 @@
             android:background="#E0E0E0" />
     </LinearLayout>
 
-    <!-- Правая часть: Карточка события (Альбом) -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="120dp"
@@ -58,7 +55,6 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <!-- Обложка альбома -->
             <ImageView
                 android:id="@+id/ivTimelineImage"
                 android:layout_width="100dp"

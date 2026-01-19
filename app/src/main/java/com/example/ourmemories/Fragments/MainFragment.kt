@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -17,6 +18,8 @@ import android.widget.NumberPicker
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -26,6 +29,7 @@ import com.example.ourmemories.Models.User
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MainViewModel
+import com.example.ourmemories.ViewModels.TreeInfo
 import com.example.ourmemories.Widget.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
@@ -59,6 +63,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
+
         setupUI(view)
         observeViewModel(view)
         scheduleNextUpdate()
@@ -75,6 +80,20 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val cardFridge = view.findViewById<View>(R.id.cardFridge)
         val cardTree = view.findViewById<View>(R.id.cardTree)
         val tvHeart = view.findViewById<TextView>(R.id.tvHeartIcon)
+        view.findViewById<View>(R.id.btnAction)?.setOnClickListener {
+            Log.d(TAG, "Нажата кнопка отправки на виджет")
+            if (viewModel.currentUser.value?.partnerUid != null) {
+                // Запускаем Photo Picker
+                try {
+                    pickWidgetImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                } catch (e: Exception) {
+                    Log.e(TAG, "Ошибка запуска пикера", e)
+                    Toast.makeText(context, "Не удалось открыть галерею", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Сначала добавьте партнера", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         cardFridge?.setOnClickListener { showEditNoteDialog() }
         cardTree?.setOnClickListener { showTreeDialog() }
@@ -95,6 +114,16 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
+    val TAG = "MainFragment"
+    private val pickWidgetImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            Log.d(TAG, "Фото выбрано: $uri")
+            viewModel.sendWidgetPhoto(uri)
+        } else {
+            Log.d(TAG, "Выбор фото отменен")
+        }
+    }
+
     /**
      * Наблюдение за изменениями в ViewModel.
      */
@@ -103,6 +132,28 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             user?.let {
                 updateMyUI(view, it)
                 updateWidgetData(it, true)
+            }
+        }
+
+        val btnSendWidget =
+            view.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnAction)
+
+        viewModel.isWidgetLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading) {
+                btnSendWidget.text = "Идёт отправка..."
+                btnSendWidget.isEnabled = false
+                btnSendWidget.alpha = 0.7f
+            } else {
+                btnSendWidget.text = "Отправить фото на виджет ❤️"
+                btnSendWidget.isEnabled = true
+                btnSendWidget.alpha = 1.0f
+            }
+        }
+
+        viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
+            if (msg != null) {
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                viewModel.onToastShown()
             }
         }
 
@@ -130,7 +181,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             view.findViewById(R.id.cardMyStatus), view.findViewById(R.id.tvMyStatus),
             user.status
         )
-        updateTreeUI(user.treePoints)
+
+        val treeInfo = viewModel.getTreeInfo(user.treePoints)
+        updateTreeUI(view, treeInfo)
 
         view.findViewById<TextView>(R.id.tvFridgeNote)?.text =
             user.sharedNote?.takeIf { it.isNotEmpty() }
@@ -197,7 +250,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val etCustomStatus = dialog.findViewById<EditText>(R.id.etCustomStatus)
         val btnSaveStatus = dialog.findViewById<Button>(R.id.btnSaveStatus)
 
-        // Обработка кнопки ОК для текстового статуса
         btnSaveStatus?.setOnClickListener {
             val text = etCustomStatus?.text.toString().trim()
             if (text.isNotEmpty()) {
@@ -212,7 +264,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         val statuses = viewModel.getStatuses()
 
-        // Кнопки смайликов
         statuses.forEach { emoji ->
             val button = TextView(requireContext()).apply {
                 text = emoji
@@ -332,23 +383,12 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     /**
      * Обновление дерева любви
      */
-    private fun updateTreeUI(points: Long) {
-        val ivTree = view?.findViewById<ImageView>(R.id.ivTreeIcon) ?: return
+    private fun updateTreeUI(view: View, treeInfo: TreeInfo) {
+        val ivTree = view.findViewById<ImageView>(R.id.ivTreeIcon)
 
-        val (levelName, iconRes, maxPoints) = when {
-            points >= 1000 -> Triple("Древо Вечной Любви", R.drawable.ic_tree_stage_10, 2000)
-            points >= 800 -> Triple("Волшебное Дерево", R.drawable.ic_tree_stage_9, 1000)
-            points >= 650 -> Triple("Изобильное Дерево", R.drawable.ic_tree_stage_8, 800)
-            points >= 500 -> Triple("Древо Любви", R.drawable.ic_tree_stage_7, 650)
-            points >= 350 -> Triple("Цветущее Дерево", R.drawable.ic_tree_stage_6, 500)
-            points >= 200 -> Triple("Взрослое Дерево", R.drawable.ic_tree_stage_5, 350)
-            points >= 100 -> Triple("Крепкое Дерево", R.drawable.ic_tree_stage_4, 200)
-            points >= 50 -> Triple("Молодое Дерево", R.drawable.ic_tree_stage_3, 100)
-            points >= 20 -> Triple("Саженец", R.drawable.ic_tree_stage_2, 50)
-            else -> Triple("Росток", R.drawable.ic_tree_stage_1, 20)
-        }
+        if (ivTree == null) return
 
-        ivTree.setImageResource(iconRes)
+        ivTree.setImageResource(treeInfo.iconRes)
     }
 
     /**
@@ -356,12 +396,12 @@ class MainFragment : Fragment(R.layout.main_fragment) {
      */
     private fun showTreeDialog() {
         val points = viewModel.currentUser.value?.treePoints ?: 0L
-
         val treeInfo = viewModel.getTreeInfo(points)
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_tree_info, null)
-
-        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
@@ -369,12 +409,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialogView.findViewById<TextView>(R.id.tvLevelName).text = treeInfo.levelName
 
         val progressBar = dialogView.findViewById<ProgressBar>(R.id.pbLevelProgress)
+        progressBar.max = treeInfo.maxPoints
+        progressBar.progress = treeInfo.points.toInt()
 
-        progressBar.max = treeInfo.maxPoints.toInt()
-        progressBar.progress = points.toInt()
-
-        dialogView.findViewById<TextView>(R.id.tvPointsInfo).text =
-            "$points / ${treeInfo.maxPoints} очков"
+        dialogView.findViewById<TextView>(R.id.tvPointsInfo).text = "${treeInfo.points} / ${treeInfo.maxPoints} очков"
 
         dialogView.findViewById<View>(R.id.btnClose).setOnClickListener {
             dialog.dismiss()

@@ -18,7 +18,6 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Иконка Категории -->
         <TextView
             android:id="@+id/tvCategoryIcon"
             android:layout_width="40dp"
@@ -59,7 +58,6 @@
                 tools:visibility="visible" />
         </LinearLayout>
 
-        <!-- Аватарка автора -->
         <androidx.cardview.widget.CardView
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -76,7 +74,6 @@
                 tools:src="@tools:sample/avatars" />
         </androidx.cardview.widget.CardView>
 
-        <!-- Чекбокс -->
         <CheckBox
             android:id="@+id/cbComplete"
             android:layout_width="32dp"

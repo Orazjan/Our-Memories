@@ -29,7 +29,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
     private lateinit var viewModel: AddMemoryViewModel
     private lateinit var imagesAdapter: SelectedImagesAdapter
 
-    // Photo Picker
     private val pickImages = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(10)) { uris ->
         if (uris.isNotEmpty()) {
             viewModel.addImages(uris)
@@ -57,7 +56,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         val etDescription = view.findViewById<EditText>(R.id.etDescription)
         val btnSave = view.findViewById<Button>(R.id.btnSaveMemory)
 
-        // Защита от случайного выхода
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val hasImages = (viewModel.selectedUris.value?.size ?: 0) > 0
@@ -68,13 +66,12 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
                 } else {
                     isEnabled = false
                     requireActivity().onBackPressedDispatcher.onBackPressed()
+
                 }
             }
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
 
-        // Настройка адаптера
-        // Мы передаем пустой список при инициализации, он обновится через observe
         imagesAdapter = SelectedImagesAdapter(images = mutableListOf(), onRemoveClick = { position ->
             viewModel.removeImage(position)
         }, onImageClick = { position ->
@@ -85,7 +82,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         rvSelectedImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         rvSelectedImages.adapter = imagesAdapter
 
-        // Кнопки
         btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -118,26 +114,25 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         val etDate = view.findViewById<EditText>(R.id.etDate)
         val loadingOverlay = view.findViewById<View>(R.id.loadingOverlay)
 
-        // Список фото
+
         viewModel.selectedUris.observe(viewLifecycleOwner) { uris ->
-            // Обновляем список в адаптере
-            // В идеале адаптер должен использовать DiffUtil или submitList, но для простоты обновим коллекцию напрямую
-            imagesAdapter.updateList(uris) 
+
+        imagesAdapter.updateList(uris)
             rvSelectedImages.visibility = if (uris.isNotEmpty()) View.VISIBLE else View.GONE
         }
 
-        // Дата события
+
         viewModel.eventDate.observe(viewLifecycleOwner) { timestamp ->
             val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
             etDate.setText(sdf.format(Date(timestamp)))
         }
 
-        // Состояние загрузки
+
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        // Сообщения
+
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -145,7 +140,6 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             }
         }
 
-        // Успешное сохранение -> закрываем фрагмент
         viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
                 parentFragmentManager.popBackStack()

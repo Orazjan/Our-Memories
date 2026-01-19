@@ -72,21 +72,42 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
 
         viewModelScope.launch {
             try {
-                // Загрузка изображения
                 val compressedData = compressImage(uri)
                 val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
                 storageRef.putBytes(compressedData).await()
                 val photoUrl = storageRef.downloadUrl.await().toString()
 
-                // Проверка аутентификации
                 val profileUpdates = UserProfileChangeRequest.Builder()
                     .setDisplayName(name)
                     .setPhotoUri(Uri.parse(photoUrl))
                     .build()
                 user.updateProfile(profileUpdates).await()
 
-                // Сохранение в Firestore
-                val partnerCode = generatePartnerCode()
+                var partnerCode = ""
+                var isCodeReserved = false
+
+                var attempts = 0
+                while (!isCodeReserved && attempts < 5) {
+                    partnerCode = generatePartnerCode()
+
+                    val codeRef = db.collection("partner_codes").document(partnerCode)
+                    val codeSnapshot = codeRef.get().await()
+
+                    if (!codeSnapshot.exists()) {
+                        isCodeReserved = true
+                    }
+                    attempts++
+                }
+
+                if (!isCodeReserved) {
+                    throw Exception("Не удалось сгенерировать уникальный код. Попробуйте снова.")
+                }
+
+                val batch = db.batch()
+
+                val userRef = db.collection("users").document(user.uid)
+                val codeRef = db.collection("partner_codes").document(partnerCode)
+
                 val userData = hashMapOf(
                     "name" to name,
                     "birthDate" to date,
@@ -96,6 +117,16 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
                     "partnerCode" to partnerCode,
                     "partnerUid" to null
                 )
+                val codeData = hashMapOf(
+                    "uid" to user.uid
+                )
+
+                batch.set(userRef, userData)
+                batch.set(codeRef, codeData)
+                batch.commit().await()
+
+                _setupSuccess.value = true
+
                 db.collection("users").document(user.uid).set(userData).await()
 
                 _setupSuccess.value = true
@@ -123,10 +154,8 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
         }
 
         val maxDimension = 800
-        val scale = Math.min(
-            maxDimension.toDouble() / bitmap.width,
-            maxDimension.toDouble() / bitmap.height
-        )
+        val scale =
+            (maxDimension.toDouble() / bitmap.width).coerceAtMost(maxDimension.toDouble() / bitmap.height)
 
         val scaledBitmap = if (scale < 1.0) {
             Bitmap.createScaledBitmap(
@@ -144,9 +173,6 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
         outputStream.toByteArray()
     }
 
-    /**
-     * TODO Нужно сделать проверку чтобы код одного пользователя не совподал с кодом другого
-     */
     private fun generatePartnerCode(): String {
         return Random.nextInt(10000000, 99999999).toString()
     }

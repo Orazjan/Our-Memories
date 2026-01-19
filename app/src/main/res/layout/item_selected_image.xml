@@ -27,7 +27,6 @@
                 android:scaleType="centerCrop"
                 android:src="@android:drawable/ic_menu_gallery" />
 
-            <!-- Метка ОБЛОЖКА (видна только если isCover = true) -->
             <TextView
                 android:id="@+id/tvCoverLabel"
                 android:layout_width="match_parent"
@@ -42,7 +41,6 @@
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent" />
 
-            <!-- Индикатор выделения (рамка) -->
             <View
                 android:id="@+id/viewSelectionBorder"
                 android:layout_width="match_parent"
@@ -53,7 +51,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Кнопка удаления -->
     <androidx.cardview.widget.CardView
         android:id="@+id/btnRemove"
         android:layout_width="28dp"

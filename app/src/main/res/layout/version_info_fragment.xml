@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
-    <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -58,7 +57,6 @@
             android:paddingHorizontal="16dp"
             android:paddingTop="8dp">
 
-            <!-- Выбор версии -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
@@ -81,7 +79,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Карточка с текстом -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -133,7 +130,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Версия -->
     <TextView
         android:id="@+id/tvAppVersion"
         android:layout_width="wrap_content"

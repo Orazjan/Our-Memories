@@ -22,7 +22,6 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
 
     private lateinit var viewModel: EditProfileViewModel
 
-    // UI Elements
     private lateinit var ivAvatar: ImageView
     private lateinit var etName: EditText
     private lateinit var etBirthDate: EditText
@@ -86,32 +85,30 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         }
 
         viewModel.currentPhotoUrl.observe(viewLifecycleOwner) { url ->
-            // Загружаем только если пользователь еще не выбрал новую локальную
             if (viewModel.selectedImageUri.value == null) {
                 GlideHelper.loadAvatar(ivAvatar, url, "EditProfile")
             }
         }
 
-        // Выбранное новое фото (локальное)
         viewModel.selectedImageUri.observe(viewLifecycleOwner) { uri ->
             if (uri != null) {
                 ivAvatar.setImageURI(uri)
             }
         }
 
-        // Состояние загрузки
+
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        // Успешное сохранение
+
         viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
                 parentFragmentManager.popBackStack()
             }
         }
 
-        // Сообщения
+
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()

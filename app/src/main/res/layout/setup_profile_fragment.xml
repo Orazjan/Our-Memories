@@ -29,7 +29,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
-    <!-- Аватарка -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardAvatar"
         android:layout_width="120dp"
@@ -157,7 +156,6 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Оверлей загрузки -->
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"

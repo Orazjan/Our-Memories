@@ -27,17 +27,14 @@ class WishlistAdapter(
         val cbComplete: CheckBox = itemView.findViewById(R.id.cbComplete)
 
         init {
-            // Обработка клика по чекбоксу
             cbComplete.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val item = getItem(position)
                     val isChecked = cbComplete.isChecked
                     
-                    // Мгновенно обновляем визуал
                     updateStrikeThrough(tvTitle, tvDescription, isChecked)
-                    
-                    // Отправляем событие во фрагмент
+
                     onCheckClick(item, isChecked)
                 }
             }
@@ -47,13 +44,11 @@ class WishlistAdapter(
             }
 
             itemView.setOnClickListener {
-                // Инвертируем состояние чекбокса
                 cbComplete.isChecked = !cbComplete.isChecked
                 performClickAction()
             }
 
 
-            // Обработка долгого нажатия на элемент
             itemView.setOnLongClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
@@ -71,7 +66,7 @@ class WishlistAdapter(
                 val item = getItem(position)
                 val isChecked = cbComplete.isChecked
 
-                // Мгновенно обновляем визуал (зачеркивание)
+
                 updateStrikeThrough(tvTitle, tvDescription, isChecked)
 
                 onCheckClick(item, isChecked)
@@ -88,7 +83,7 @@ class WishlistAdapter(
     override fun onBindViewHolder(holder: WishViewHolder, position: Int) {
         val item = getItem(position)
 
-        // Сброс состояния View после свайпа
+
         holder.itemView.translationX = 0f
         holder.itemView.alpha = 1f
 
@@ -104,11 +99,9 @@ class WishlistAdapter(
             holder.tvDescription.visibility = View.GONE
         }
 
-        // Установка состояния чекбокса (важно: мы уже не вешаем слушатель здесь)
-        // Чтобы setChecked не триггерил анимацию или старые листнеры (хотя мы используем setOnClickListener, но всё же)
+
         holder.cbComplete.isChecked = item.isCompleted
 
-        // Применяем визуальное оформление
         updateStrikeThrough(holder.tvTitle, holder.tvDescription, item.isCompleted)
     }
 

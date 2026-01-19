@@ -6,11 +6,10 @@
     android:background="@color/background_light"
     android:padding="24dp">
 
-    <!-- Иллюстрация 2 (Другой цвет) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardIllustration"
         android:layout_width="570px"
-        android:layout_height="967px"
+        android:layout_height="960px"
         android:layout_marginTop="40dp"
         app:cardCornerRadius="32dp"
         app:cardElevation="0dp"
@@ -49,7 +48,6 @@
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
-    <!-- Кнопка НАЧАТЬ -->
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnFinish"
         android:layout_width="match_parent"
@@ -59,7 +57,7 @@
         android:backgroundTint="#BDE0FE"
         android:text="@string/start"
         android:textAllCaps="false"
-        android:textColor="#2C3E50"
+        android:textColor="@color/light_blue"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent" />

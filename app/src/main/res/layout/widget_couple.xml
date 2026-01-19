@@ -3,9 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_rounded"
-    android:padding="0dp"> <!-- Убираем отступы для чистоты -->
+    android:padding="0dp">
 
-    <!-- Фото -->
     <ImageView
         android:id="@+id/ivWidgetPhoto"
         android:layout_width="match_parent"
@@ -13,13 +12,11 @@
         android:scaleType="centerCrop"
         android:src="@drawable/logo" />
 
-    <!-- Затемнение -->
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/bg_gradient_bottom_shadow" />
 
-    <!-- Текст -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

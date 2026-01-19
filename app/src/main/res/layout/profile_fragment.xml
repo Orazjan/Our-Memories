@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
-    <!-- === 1. Top Bar === -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -27,7 +26,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- === 2. Основной контент === -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -41,7 +39,6 @@
             android:paddingHorizontal="16dp"
             android:paddingBottom="40dp">
 
-            <!-- Карточка Профиля -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -113,7 +110,6 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- СТАТИСТИКА -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -188,7 +184,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- МЕНЮ УПРАВЛЕНИЯ -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -228,15 +223,26 @@
                 android:textStyle="bold" />
 
             <include
+                android:id="@+id/instructions"
+                layout="@layout/item_settings_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+            <include
                 android:id="@+id/cardContact"
-                layout="@layout/item_settings_card" />
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                layout="@layout/item_settings_card"
+                android:layout_marginTop="12sp" />
+
 
             <include
                 android:id="@+id/cardPrivacy"
                 layout="@layout/item_settings_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="12sp" />
 
             <TextView
                 android:layout_width="wrap_content"

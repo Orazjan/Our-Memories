@@ -1,6 +1,7 @@
 package com.example.ourmemories.ViewModels
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -12,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.storage.FirebaseStorage
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -29,10 +31,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val storage = FirebaseStorage.getInstance()
+
     private val TAG = "MainViewModel"
 
     private val _currentUser = MutableLiveData<User?>()
     val currentUser: LiveData<User?> = _currentUser
+
+    private val _isWidgetLoading = MutableLiveData(false)
+    val isWidgetLoading: LiveData<Boolean> = _isWidgetLoading
 
     private val _partnerUser = MutableLiveData<User?>()
     val partnerUser: LiveData<User?> = _partnerUser
@@ -148,6 +155,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (status == null) mapOf("status" to FieldValue.delete()) else mapOf("status" to status)
         db.collection("users").document(uid).update(updates)
             .addOnFailureListener { _toastMessage.value = "Ошибка обновления статуса" }
+    }
+
+    /**
+     * Отправка фото партнеру.
+     */
+    fun sendWidgetPhoto(uri: Uri) {
+        val partnerUid = _currentUser.value?.partnerUid
+
+        if (partnerUid == null) {
+            _toastMessage.value = "У вас нет партнера для отправки!"
+            return
+        }
+
+        _isWidgetLoading.value = true
+
+        val storageRef = storage.reference.child("widget_photos/$partnerUid.jpg")
+
+        storageRef.putFile(uri).addOnSuccessListener {
+            storageRef.downloadUrl.addOnSuccessListener { url ->
+                db.collection("users").document(partnerUid)
+                    .update("widgetImageUrl", url.toString()).addOnSuccessListener {
+                        _isWidgetLoading.value = false // Выключаем лоадер
+                        _toastMessage.value = "Фото отправлено на виджет! ❤️"
+                    }.addOnFailureListener {
+                        _isWidgetLoading.value = false
+                        _toastMessage.value = "Ошибка БД: ${it.message}"
+                    }
+            }
+        }.addOnFailureListener {
+            _isWidgetLoading.value = false
+            _toastMessage.value = "Ошибка загрузки: ${it.message}"
+        }
     }
 
     /**

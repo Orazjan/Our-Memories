@@ -1,5 +1,7 @@
 package com.example.ourmemories.Utils;
 
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.widget.ImageView;
@@ -12,14 +14,20 @@ import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 
 public class GlideHelper {
-
-    // Для аватарок (круглые)
+    /**
+     * Загрузка аватара
+     * @param imageView
+     * @param url
+     * @param debugTag
+     */
     public static void loadAvatar(ImageView imageView, String url, String debugTag) {
         imageView.clearColorFilter();
         imageView.setImageTintList(null);
@@ -27,20 +35,13 @@ public class GlideHelper {
         if (url != null && !url.isEmpty()) {
             imageView.setPadding(0, 0, 0, 0);
 
-            RequestOptions requestOptions = new RequestOptions()
-                    .timeout(60000) // 60 секунд
-                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Кэшируем всё
+            RequestOptions requestOptions = new RequestOptions().timeout(60000).diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(android.R.drawable.ic_menu_camera)
-                    .error(android.R.drawable.stat_notify_error)
-                    .circleCrop()
-                    .priority(Priority.HIGH) // Высокий приоритет для аватарок
+                    .error(android.R.drawable.stat_notify_error).circleCrop().priority(Priority.HIGH)
                     .override(300, 300);
 
             Glide.with(imageView.getContext())
-                    .load(url)
-                    .apply(requestOptions)
-                    .thumbnail(0.1f) // Показываем 10% качества пока грузится
-                    .transition(DrawableTransitionOptions.withCrossFade()) // Плавный переход
+                    .load(url).apply(requestOptions).thumbnail(0.1f).transition(DrawableTransitionOptions.withCrossFade())
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -62,11 +63,8 @@ public class GlideHelper {
 
     /**
      * Загрузка галереи.
-     * @param imageView
-     * @param url
      */
     public static void loadGalleryImage(ImageView imageView, String url) {
-        // Спиннер загрузки
         CircularProgressDrawable circularProgress = new CircularProgressDrawable(imageView.getContext());
         circularProgress.setStrokeWidth(5f);
         circularProgress.setCenterRadius(30f);
@@ -81,9 +79,7 @@ public class GlideHelper {
 
             Glide.with(imageView.getContext())
                     .load(url)
-                    .apply(requestOptions)
-                    .thumbnail(0.05f)
-                    .transition(DrawableTransitionOptions.withCrossFade()) // Плавное появление
+                    .apply(requestOptions).thumbnail(0.05f).transition(DrawableTransitionOptions.withCrossFade())
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -100,5 +96,20 @@ public class GlideHelper {
         } else {
             imageView.setImageResource(android.R.drawable.ic_menu_gallery);
         }
+    }
+
+    /**
+     * Загрузка изображения для виджета.
+     * @param context
+     * @param url
+     * @param target
+     */
+    public static void loadWidgetImage(Context context, String url, Target<Bitmap> target) {
+        if (url == null || url.isEmpty()) return;
+
+        RequestOptions requestOptions = new RequestOptions().timeout(60000).diskCacheStrategy(DiskCacheStrategy.ALL).override(300, 300) // Критично для виджетов! Ограничивает память.
+                .transform(new CenterCrop(), new RoundedCorners(40));
+
+        Glide.with(context.getApplicationContext()).asBitmap().load(url).apply(requestOptions).into(target);
     }
 }

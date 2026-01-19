@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:background="@color/background_light"
     android:padding="24dp">
 
-    <!-- Контейнер для центрирования -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,7 +16,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.4">
 
-        <!-- Логотип (Розовый круг со звездой) -->
         <androidx.cardview.widget.CardView
             android:layout_width="80dp"
             android:layout_height="80dp"
@@ -32,7 +31,6 @@
                 app:tint="@color/background_light" />
         </androidx.cardview.widget.CardView>
 
-        <!-- Заголовок -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,14 +40,12 @@
             android:textColor="@color/text_secondary"
             android:textSize="28sp" />
 
-        <!-- Поля ввода -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:orientation="vertical">
 
-            <!-- EMAIL -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -85,7 +81,6 @@
                     android:textSize="16sp" />
             </LinearLayout>
 
-            <!-- PASSWORD -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -142,7 +137,6 @@
 
         </LinearLayout>
 
-        <!-- Кнопка и Прогресс -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -170,7 +164,6 @@
                 android:visibility="gone" />
         </FrameLayout>
 
-        <!-- Переход на Регистрацию -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

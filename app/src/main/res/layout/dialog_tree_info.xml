@@ -16,7 +16,6 @@
         android:textSize="22sp"
         android:textStyle="bold" />
 
-    <!-- Большая иконка дерева -->
     <ImageView
         android:id="@+id/ivTreeLarge"
         android:layout_width="120dp"
@@ -25,7 +24,6 @@
         android:layout_marginBottom="16dp"
         android:src="@drawable/ic_tree_stage_1" />
 
-    <!-- Название уровня -->
     <TextView
         android:id="@+id/tvLevelName"
         android:layout_width="match_parent"
@@ -37,7 +35,6 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- Прогресс -->
     <ProgressBar
         android:id="@+id/pbLevelProgress"
         style="?android:attr/progressBarStyleHorizontal"
@@ -47,7 +44,6 @@
         android:max="100"
         android:progress="50"
         android:progressDrawable="@drawable/progress_tree" />
-    <!-- Если drawable progress_tree нет, можно использовать tint: android:progressTint="#4CAF50" -->
 
     <TextView
         android:id="@+id/tvPointsInfo"
@@ -59,7 +55,6 @@
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 
-    <!-- Подсказки как заработать очки -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

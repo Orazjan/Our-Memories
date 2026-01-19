@@ -1,39 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- === Основные цвета (Night) === -->
-    
-    <!-- Лавандовый: Делаем его ярче, чтобы он светился на черном -->
+
+
     <color name="primary_lavender">#D0BCFF</color>
 
-    <!-- Фон экрана: Глубокий черный для AMOLED экранов или темно-серый -->
     <color name="background_light">#121212</color>
 
-    <!-- Первичный текст: Чисто белый для максимального контраста -->
-    <color name="text_primary">#FFFFFF</color> 
+    <color name="text_primary">#FFFFFF</color>
     <color name="text_secondary">#E0E0E0</color>
 
-    <!-- === Карточки и поверхности === -->
-    <!-- "Белый" (фон карточек): Делаем его #2D2D2D (светлее фона #121212), чтобы карточки выделялись -->
     <color name="white">#2D2D2D</color>
 
-    <!-- === Акцентные цвета (Фоны иконок и плашек) === -->
-    
-    <!-- Розовый (для карточки пары): Более насыщенный малиновый, чтобы не выглядел коричневым -->
     <color name="baby_pink">#682842</color> 
     
-    <!-- Голубой: Темный индиго -->
     <color name="light_blue">#0d91d9</color>
-    
-    <!-- Красный (Сердце): Мягкий красный -->
+
     <color name="heart_red">#E57373</color>
 
     <color name="prosto_white">#FFFFFF</color>
     <color name="prosto_black">#000000</color>
 
-
-    <!-- === Навигация === -->
-    <!-- Активная иконка: Цвет основного бренда (Лаванда) -->
     <color name="nav_icon_active">#D0BCFF</color>
-    <!-- Неактивная иконка: Серый -->
     <color name="nav_icon_inactive">#8E8E93</color>
 </resources>

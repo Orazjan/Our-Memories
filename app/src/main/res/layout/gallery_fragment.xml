@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
-    <!-- === 1. Top Bar === -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -16,7 +15,6 @@
         android:paddingVertical="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- ОБЫЧНЫЙ РЕЖИМ: Заголовок -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
@@ -29,7 +27,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- РЕЖИМ ПОИСКА: Поле ввода (Скрыто по умолчанию) -->
         <LinearLayout
             android:id="@+id/layoutSearch"
             android:layout_width="0dp"
@@ -68,7 +65,6 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <!-- Кнопки действий (Справа) -->
         <LinearLayout
             android:id="@+id/layoutActions"
             android:layout_width="wrap_content"
@@ -78,7 +74,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Поиск -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/btnSearch"
                 android:layout_width="40dp"
@@ -99,7 +94,6 @@
                     app:tint="@color/text_primary" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Сортировка -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/btnSort"
                 android:layout_width="40dp"
@@ -122,7 +116,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- === 2. Сетка фото === -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshGallery"
         android:layout_width="match_parent"
@@ -142,7 +135,6 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- === 3. Кнопка Добавить (FAB) === -->
     <androidx.cardview.widget.CardView
         android:id="@+id/fabAddMemory"
         android:layout_width="56dp"
@@ -166,7 +158,6 @@
             app:tint="@android:color/white" />
     </androidx.cardview.widget.CardView>
 
-    <!-- === 4. Empty State === -->
     <LinearLayout
         android:id="@+id/tvEmptyGallery"
         android:layout_width="wrap_content"

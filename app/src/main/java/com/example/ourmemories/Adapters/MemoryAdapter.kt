@@ -25,8 +25,6 @@ class MemoryAdapter(
     private val onClick: (Memory) -> Unit,
     private val onLongClick: ((Memory) -> Unit)? = null
 ) : ListAdapter<Memory, MemoryAdapter.MemoryViewHolder>(MemoryDiffCallback()) {
-
-    // Форматтеры даты для режима "Альбом"
     private val dayFormat = SimpleDateFormat("dd", Locale.getDefault())
     private val monthFormat = SimpleDateFormat("MMM", Locale.getDefault())
 
@@ -34,7 +32,7 @@ class MemoryAdapter(
         val imageView: ImageView =
             itemView.findViewById(R.id.ivMemory) ?: itemView.findViewById(R.id.ivTimelineImage)
 
-        // Текстовые поля есть только в макете item_album, поэтому они nullable (?)
+
         val tvDay: TextView? = itemView.findViewById(R.id.tvDay)
         val tvMonth: TextView? = itemView.findViewById(R.id.tvMonth)
         val tvTitle: TextView? = itemView.findViewById(R.id.tvTimelineTitle)
@@ -70,12 +68,11 @@ class MemoryAdapter(
 
         GlideHelper.loadGalleryImage(holder.imageView, memory.imageUrl)
 
-        // Заполнение текстов (только если мы используем макет альбома)
+
         if (holder.tvTitle != null) {
             holder.tvTitle.text = if (memory.title.isNotEmpty()) memory.title else "Без названия"
             holder.tvDesc?.text = if (memory.description.isNotEmpty()) memory.description else ""
 
-            // Форматирование даты (например: "26" "ОКТ")
             if (memory.timestamp > 0) {
                 val date = Date(memory.timestamp)
                 holder.tvDay?.text = dayFormat.format(date)

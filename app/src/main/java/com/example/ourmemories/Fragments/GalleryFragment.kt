@@ -28,7 +28,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Инициализация ViewModel
+
         viewModel = ViewModelProvider(this)[GalleryViewModel::class.java]
 
         setupUI(view)

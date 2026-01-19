@@ -23,7 +23,6 @@
             app:statusBarScrim="@android:color/transparent"
             app:titleEnabled="false">
 
-            <!-- Обложка альбома -->
             <ImageView
                 android:id="@+id/ivCover"
                 android:layout_width="match_parent"
@@ -33,14 +32,12 @@
                 app:layout_collapseParallaxMultiplier="0.7"
                 tools:src="@tools:sample/backgrounds/scenic" />
 
-            <!-- Затемнение снизу для читаемости текста -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="160dp"
                 android:layout_gravity="bottom"
                 android:background="@drawable/bg_gradient_bottom_shadow" />
 
-            <!-- Заголовок и Дата на обложке -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -99,7 +96,6 @@
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Скроллящийся контент -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -112,14 +108,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Блок описания и кнопок -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="24dp">
 
-                <!-- Описание -->
                 <TextView
                     android:id="@+id/tvDescription"
                     android:layout_width="wrap_content"
@@ -130,14 +124,12 @@
                     android:textStyle="italic"
                     tools:text="Очень длинное писание того, как мы здорово провели время в этой поездке. Было очень весело и красиво." />
 
-                <!-- Кнопки действий -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:orientation="horizontal">
 
-                    <!-- Кнопка для удаления -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnDelete"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -148,7 +140,6 @@
                         app:icon="@android:drawable/ic_delete"
                         app:iconTint="@color/primary_lavender" />
 
-                    <!-- Кнопка Редактировать -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEdit"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -169,7 +160,6 @@
 
             </LinearLayout>
 
-            <!-- Сетка фотографий -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvPhotos"
                 android:layout_width="match_parent"

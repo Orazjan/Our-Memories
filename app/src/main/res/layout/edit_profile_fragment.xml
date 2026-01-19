@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
-    <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -51,7 +50,6 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Аватарка -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -75,7 +73,6 @@
                         android:scaleType="centerCrop"
                         android:src="@android:drawable/ic_menu_camera" />
 
-                    <!-- Спиннер загрузки -->
                     <ProgressBar
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -145,7 +142,6 @@
                 android:drawableTint="@color/text_secondary"
                 android:layout_marginBottom="40dp"/>
 
-            <!-- Кнопка Сохранить -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
@@ -161,7 +157,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Оверлей загрузки -->
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"

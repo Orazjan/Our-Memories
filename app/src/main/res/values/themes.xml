@@ -23,11 +23,8 @@
     </style>
 
     <style name="Theme.OurMemories.NumberPicker" parent="Theme.AppCompat.Light">
-        <!-- Цвет текста цифр -->
         <item name="android:textColorPrimary">@color/text_primary</item>
-        <!-- Цвет горизонтальных линий-разделителей -->
         <item name="colorControlNormal">@color/baby_pink</item>
-        <!-- Размер текста (опционально) -->
         <item name="android:textSize">18sp</item>
     </style>
 </resources>
