@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Цвет для активной вкладки -->
+<selector xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:color="@color/nav_icon_active" android:state_checked="true" />
     <item android:color="@color/nav_icon_active" android:state_selected="true" />
 
-    <!-- Цвет для неактивной вкладки -->
     <item android:color="@color/nav_icon_inactive" />
-    <!-- ... ваши существующие цвета ... -->
+
+    <color android:name="baby_pink" tools:ignore="ExtraText">#7D3B58</color>
     
-    <!-- Изменим baby_pink чуть-чуть, чтобы он был приятнее в темной теме -->
-    <color android:name="baby_pink">#7D3B58</color>
-    
-    <!-- Текст на кнопках в темной теме лучше сделать белым или очень светлым -->
     <color android:name="button_text">#FFFFFF</color>
     <color android:name="input_stroke">#404040</color>
 </selector>

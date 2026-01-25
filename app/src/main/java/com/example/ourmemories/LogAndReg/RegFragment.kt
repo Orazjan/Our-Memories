@@ -31,7 +31,6 @@ class RegFragment : Fragment(R.layout.register_fragment) {
         val etPassword = view.findViewById<EditText>(R.id.passwordTextView)
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
 
-        // Изначально кнопка неактивна
         btnRegister.isEnabled = false
         btnRegister.alpha = 0.5f
 

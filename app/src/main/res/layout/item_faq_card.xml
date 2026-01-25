@@ -15,7 +15,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Заголовок (Всегда виден) -->
         <LinearLayout
             android:id="@+id/layoutHeader"
             android:layout_width="match_parent"
@@ -45,7 +44,6 @@
                 app:tint="@color/text_secondary" />
         </LinearLayout>
 
-        <!-- Ответ (Скрыт по умолчанию) -->
         <LinearLayout
             android:id="@+id/layoutAnswer"
             android:layout_width="match_parent"

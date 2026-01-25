@@ -73,22 +73,18 @@ class MemoryDetailViewModel : ViewModel() {
         db.collection("memories").document(memoryId).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    // Обновляем текстовые поля
                     document.getString("title")?.let { _title.value = it }
                     document.getString("description")?.let { _description.value = it }
                     document.getLong("timestamp")?.let { _timestamp.value = it }
 
-                    // Получаем обложку из БД
                     val fetchedCover = document.getString("imageUrl")
                     fetchedCover?.let { _coverUrl.value = it }
 
-                    // Получаем список картинок
                     val list = document.get("images") as? List<String>
 
                     if (list != null && list.isNotEmpty()) {
                         _images.value = list
                     } else {
-                        // Если списка нет (старая запись), используем обложку из документа
                         if (!fetchedCover.isNullOrEmpty()) {
                             _images.value = listOf(fetchedCover)
                         }
@@ -106,24 +102,19 @@ class MemoryDetailViewModel : ViewModel() {
     fun deletePhoto(url: String) {
         if (memoryId.isEmpty()) return
 
-        // Удаляем URL из массива в Firestore
         db.collection("memories").document(memoryId)
             .update("images", FieldValue.arrayRemove(url))
             .addOnSuccessListener {
-                // Удаляем файл из Storage (фоново)
                 try {
                     storage.getReferenceFromUrl(url).delete()
                 } catch (e: Exception) { }
 
-                // Обновляем локальный список для UI
                 val currentList = _images.value?.toMutableList() ?: mutableListOf()
                 currentList.remove(url)
                 _images.value = currentList
 
-                // Если удалили обложку - ставим новую (первую из оставшихся)
                 if (_coverUrl.value == url) {
                     val newCover = currentList.firstOrNull() ?: ""
-                    // Обновляем поле imageUrl в БД
                     db.collection("memories").document(memoryId).update("imageUrl", newCover)
                     _coverUrl.value = newCover
                 }
@@ -139,16 +130,14 @@ class MemoryDetailViewModel : ViewModel() {
      * Удаляет альбом из Firestore и хранилища.
      */
     fun deleteAlbum() {
-        // Собираем все известные URL для удаления (список + обложка)
         val imagesToDelete = mutableSetOf<String>()
         _images.value?.let { imagesToDelete.addAll(it) }
         _coverUrl.value?.let { if (it.isNotEmpty()) imagesToDelete.add(it) }
 
         db.collection("memories").document(memoryId).delete().addOnSuccessListener {
                 _toastMessage.value = "Альбом удален"
-                _isDeleted.value = true // Сигнал для закрытия фрагмента
+                _isDeleted.value = true
 
-                // Фоновое удаление файлов (не блокируем UI)
                 cleanupStorage(imagesToDelete.toList())
             }.addOnFailureListener {
                 _toastMessage.value = "Ошибка удаления: ${it.message}"

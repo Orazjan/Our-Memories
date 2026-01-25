@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -14,7 +13,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
-import com.example.ourmemories.Fragments.ProfileFragment
 import com.example.ourmemories.LogAndReg.ForgotPasswordFragment
 import com.example.ourmemories.LogAndReg.LoginFragment
 import com.example.ourmemories.LogAndReg.OnboardingFragment
@@ -36,10 +34,8 @@ class EnterActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // Инициализация ViewModel
         viewModel = ViewModelProvider(this)[EnterViewModel::class.java]
 
-        // Применяем настройки темы
         prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val themePrefs = getSharedPreferences("AppCache", Context.MODE_PRIVATE)
         val savedTheme = themePrefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -47,7 +43,6 @@ class EnterActivity : AppCompatActivity() {
 
         hideSystemUI()
 
-        // Управление видимостью Splash Screen
         splashScreen.setKeepOnScreenCondition {
             viewModel.isChecking.value == true
         }
@@ -56,7 +51,6 @@ class EnterActivity : AppCompatActivity() {
 
         setupFirebaseSettings()
         
-        // Запуск проверки пользователя (только при первом создании Activity)
         if (savedInstanceState == null) {
             val isFirstRun = prefs.getBoolean("isFirstRun", true)
             viewModel.checkUser(isFirstRun)
@@ -74,7 +68,7 @@ class EnterActivity : AppCompatActivity() {
                 .setLocalCacheSettings(PersistentCacheSettings.newBuilder().build()).build()
             Firebase.firestore.firestoreSettings = settings
         } catch (e: Exception) {
-            // Игнорируем, если настройки уже применены
+            e.printStackTrace()
         }
     }
 

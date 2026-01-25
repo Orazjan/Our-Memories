@@ -91,7 +91,6 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val tvStatWishes = view.findViewById<TextView>(R.id.tvStatWishes)
         val tvStatDays = view.findViewById<TextView>(R.id.tvStatDays)
 
-        // === НАСТРОЙКА КАРТОЧЕК МЕНЮ ===
         setupMenuCard(
             view.findViewById(R.id.cardEditProfile),
             "Редактировать профиль",
@@ -408,7 +407,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     private fun sendEmail() {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:")
-            putExtra(Intent.EXTRA_EMAIL, arrayOf("orazjanov11@gmail.com"))
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("atnzvdev@gmail.com"))
             putExtra(Intent.EXTRA_SUBJECT, "Отзыв о приложении")
         }
         try {

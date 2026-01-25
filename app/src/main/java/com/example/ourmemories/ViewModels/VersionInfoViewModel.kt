@@ -9,8 +9,7 @@ import androidx.lifecycle.MutableLiveData
 class VersionInfoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val descriptions = LinkedHashMap<String, String>()
-    
-    // LiveData для UI
+
     private val _versionNames = MutableLiveData<List<String>>()
     val versionNames: LiveData<List<String>> = _versionNames
 
@@ -29,10 +28,13 @@ class VersionInfoViewModel(application: Application) : AndroidViewModel(applicat
      * Настройка данных версий.
      */
     private fun setupVersionData() {
-        // Данные обновлений
         descriptions["V 0.1.x (Текущая)"] =
             "V 0.1.7\n" +
                     "• Добавлена отправка фотография на виджет\n" +
+                    "• Добавлена последняя активность партнёра\n" +
+                    "• Добавлена количество очков 'Любовь дерева' партнёра\n" +
+                    "• Добавлена день рождение и знак зодиака партнёра\n" +
+                    "• Добавлена кнопка отправки уведомления партнёру\n" +
                     "• Сделан редизайн кнопок, некоторых экранов и диалоговых окон\n" +
                     "• Добавлено удаление конкретной фотографии или же всего альбома\n" +
                     "• Удалено долгое нажатие на альбом с последующим отображением функций\n" +
@@ -77,7 +79,6 @@ class VersionInfoViewModel(application: Application) : AndroidViewModel(applicat
         val names = ArrayList(descriptions.keys)
         _versionNames.value = names
 
-        // По умолчанию выбираем первую версию
         if (names.isNotEmpty()) {
             selectVersion(names[0])
         }

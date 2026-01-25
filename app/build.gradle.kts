@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.firebase.crashlytics")
 
 }
 
@@ -47,6 +48,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
 

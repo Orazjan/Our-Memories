@@ -136,7 +136,6 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
 
         viewModelScope.launch {
             try {
-                // Параллельная загрузка
                 val uploadJobs = uris.map { uri ->
                     async {
                         val url = uploadSingleImage(uri, user.uid)
@@ -147,7 +146,6 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
                 val uploadedPairs = uploadJobs.awaitAll()
                 val allUrls = uploadedPairs.map { it.second }
 
-                // Определение URL обложки
                 val coverLocal = _coverUri.value
                 val coverPair = uploadedPairs.find { it.first == coverLocal }
                 val finalCoverUrl = coverPair?.second ?: allUrls.firstOrNull() ?: ""

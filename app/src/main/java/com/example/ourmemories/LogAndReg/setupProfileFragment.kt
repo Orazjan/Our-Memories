@@ -49,7 +49,6 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         val btnSave = view.findViewById<Button>(R.id.btnSaveProfile)
         val cardAvatar = view.findViewById<View>(R.id.cardAvatar)
 
-        // Анимация появления
         cardAvatar.scaleX = 0f
         cardAvatar.scaleY = 0f
         cardAvatar.animate().scaleX(1f).scaleY(1f).setDuration(500)
@@ -66,7 +65,6 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             val name = etName.text.toString().trim()
             val date = etDate.text.toString().trim()
             
-            // Валидация в UI для визуальных эффектов (тряска)
             var hasError = false
             if (viewModel.selectedImageUri.value == null) {
                 shakeView(cardAvatar)

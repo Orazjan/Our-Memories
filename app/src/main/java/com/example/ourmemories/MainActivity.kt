@@ -84,7 +84,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-        // Скрываем меню, если открыт вложенный фрагмент (детализация)
         supportFragmentManager.addOnBackStackChangedListener {
             bottomNav.visibility = if (supportFragmentManager.backStackEntryCount > 0) View.GONE else View.VISIBLE
         }
@@ -101,7 +100,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        // Выбор стартового фрагмента
         if (supportFragmentManager.findFragmentById(R.id.fragment_container) == null) {
             bottomNav.selectedItemId = R.id.nav_home
         }
@@ -115,17 +113,14 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Если есть фрагменты в стеке (детали) -> назад
                 if (supportFragmentManager.backStackEntryCount > 0) {
                     supportFragmentManager.popBackStack()
                     return
                 }
-                // Если не на главной вкладке -> переход на главную
                 if (bottomNav.selectedItemId != R.id.nav_home) {
                     bottomNav.selectedItemId = R.id.nav_home
                     return
                 }
-                // Если на главной -> выход по двойному нажатию
                 if (System.currentTimeMillis() - backPressedTime < BACK_PRESS_INTERVAL) {
                     finish()
                 } else {

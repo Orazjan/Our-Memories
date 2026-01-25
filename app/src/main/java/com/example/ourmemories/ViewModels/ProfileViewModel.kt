@@ -61,8 +61,7 @@ class ProfileViewModel : ViewModel() {
             if (doc != null && doc.exists()) {
                 val userObj = doc.toObject(User::class.java)?.copy(uid = uid)
                 _user.value = userObj
-                
-                // После загрузки юзера, грузим статистику
+
                 loadStatistics(uid, userObj?.partnerUid)
             }
         }
@@ -75,11 +74,9 @@ class ProfileViewModel : ViewModel() {
         val uids = mutableListOf(myUid)
         if (partnerUid != null) uids.add(partnerUid)
 
-        // Считаем воспоминания
         db.collection("memories").whereIn("uploaderUid", uids).get()
             .addOnSuccessListener { _memoriesCount.value = it.size() }
 
-        // Считаем желания
         db.collection("wishes").whereIn("createdBy", uids).get()
             .addOnSuccessListener { _wishesCount.value = it.size() }
     }
@@ -115,6 +112,7 @@ class ProfileViewModel : ViewModel() {
     }
 
     /**
+     * TODO добавить
      * Переавторизация и удаление аккаунта.
      */
     fun reauthenticateAndDelete(password: String) {

@@ -72,7 +72,6 @@ class CoupleWidget : AppWidgetProvider() {
                         }
 
                         override fun onLoadCleared(placeholder: Drawable?) {
-                            // Очистка не требуется для виджета
                         }
 
                         override fun onLoadFailed(errorDrawable: Drawable?) {
@@ -87,25 +86,6 @@ class CoupleWidget : AppWidgetProvider() {
                 Log.e(TAG, "Update failed", e)
             }
         }
-
-//        private fun getRoundedCornerBitmap(bitmap: Bitmap, pixels: Float): Bitmap {
-//            val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-//            val canvas = Canvas(output)
-//            val color = -0xbdbdbe
-//            val paint = Paint()
-//            val rect = Rect(0, 0, bitmap.width, bitmap.height)
-//            val rectF = RectF(rect)
-//
-//            paint.isAntiAlias = true
-//            canvas.drawARGB(0, 0, 0, 0)
-//            paint.color = color
-//            canvas.drawRoundRect(rectF, pixels, pixels, paint)
-//
-//            paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-//            canvas.drawBitmap(bitmap, rect, rect, paint)
-//
-//            return output
-//        }
 
         /**
          * Подсчёт дней

@@ -142,8 +142,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Отправка приветствия партнеру.
      */
-    fun sendHello(uid: String) {
-        val uid = auth.currentUser?.uid ?: return
+    fun sendHello(partnerUid: String) {
+        val myUid = auth.currentUser?.uid ?: return
+        val myName = _currentUser.value?.name ?: "Ваша половинка"
+
+        val actionData = hashMapOf(
+            "type" to "hello",
+            "fromUid" to myUid,
+            "fromName" to myName,
+            "toUid" to partnerUid,
+            "timestamp" to System.currentTimeMillis()
+        )
+
+        db.collection("actions").add(actionData).addOnSuccessListener {
+                _toastMessage.value = "Привет отправлен! ❤️"
+            }.addOnFailureListener {
+                _toastMessage.value = "Ошибка отправки"
+            }
     }
 
     /**
@@ -168,6 +183,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
+        val partner = _partnerUser.value
+
+        if (partner == null) {
+            _toastMessage.value = "Данные партнера еще не загружены. Попробуйте через секунду."
+            return
+        }
+
+        if (!partner.hasWidget) {
+            _toastMessage.value = "Если у партнёра нет виджета, попросите его добавить"
+
+        }
+
         _isWidgetLoading.value = true
 
         val storageRef = storage.reference.child("widget_photos/$partnerUid.jpg")
@@ -176,7 +203,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             storageRef.downloadUrl.addOnSuccessListener { url ->
                 db.collection("users").document(partnerUid)
                     .update("widgetImageUrl", url.toString()).addOnSuccessListener {
-                        _isWidgetLoading.value = false // Выключаем лоадер
+                        _isWidgetLoading.value = false
                         _toastMessage.value = "Фото отправлено на виджет! ❤️"
                     }.addOnFailureListener {
                         _isWidgetLoading.value = false
@@ -243,6 +270,45 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             else -> Triple("Росток", R.drawable.ic_tree_stage_1, 20)
         }
         return TreeInfo(levelName, iconRes, points, maxPoints)
+    }
+
+    /**
+     * Получение знака зодиака по дате рождения.
+     */
+    fun getZodiacSign(dateString: String?): String {
+        if (dateString.isNullOrEmpty()) return ""
+        try {
+            val parts = dateString.split(".")
+            val day = parts[0].toInt()
+            val month = parts[1].toInt()
+
+            return when (month) {
+                1 -> if (day < 20) "♑" else "♒"
+                2 -> if (day < 19) "♒" else "♓"
+                3 -> if (day < 21) "♓" else "♈"
+                4 -> if (day < 20) "♈" else "♉"
+                5 -> if (day < 21) "♉" else "♊"
+                6 -> if (day < 21) "♊" else "♋"
+                7 -> if (day < 23) "♋" else "♌"
+                8 -> if (day < 23) "♌" else "♍"
+                9 -> if (day < 23) "♍" else "♎"
+                10 -> if (day < 23) "♎" else "♏"
+                11 -> if (day < 22) "♏" else "♐"
+                12 -> if (day < 22) "♐" else "♑"
+                else -> ""
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ""
+        }
+    }
+
+    /**
+     * Обновление последнего времени активности пользователя.
+     */
+    fun updateLastActive() {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("users").document(uid).update("lastActive", System.currentTimeMillis())
     }
 
     /**

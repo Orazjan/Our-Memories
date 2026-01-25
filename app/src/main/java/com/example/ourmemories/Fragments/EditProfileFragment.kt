@@ -137,7 +137,7 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
 
         npYear.minValue = 1900
         npYear.maxValue = currentYear
-        npYear.value = 2000 // Дефолт
+        npYear.value = 2000
         npYear.wrapSelectorWheel = false
 
         val months = DateFormatSymbols(Locale.getDefault()).shortMonths

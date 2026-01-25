@@ -21,7 +21,7 @@ import java.util.Locale
  * Поддерживает разные макеты (плитка, горизонтальная лента, список альбомов).
  */
 class MemoryAdapter(
-    @LayoutRes private val layoutResId: Int = R.layout.item_memory, // По умолчанию - плитка
+    @LayoutRes private val layoutResId: Int = R.layout.item_memory,
     private val onClick: (Memory) -> Unit,
     private val onLongClick: ((Memory) -> Unit)? = null
 ) : ListAdapter<Memory, MemoryAdapter.MemoryViewHolder>(MemoryDiffCallback()) {

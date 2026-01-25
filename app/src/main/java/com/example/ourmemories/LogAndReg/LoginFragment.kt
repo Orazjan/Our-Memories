@@ -32,7 +32,6 @@ class LoginFragment : Fragment(R.layout.login_fragment) {
         val etPassword = view.findViewById<EditText>(R.id.passwordTextView)
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
 
-        // Изначально кнопка неактивна
         btnLogin.isEnabled = false
         btnLogin.alpha = 0.5f
 

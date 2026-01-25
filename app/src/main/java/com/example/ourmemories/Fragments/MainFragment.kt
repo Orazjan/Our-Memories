@@ -33,7 +33,9 @@ import com.example.ourmemories.ViewModels.TreeInfo
 import com.example.ourmemories.Widget.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -63,6 +65,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
+        viewModel.updateLastActive()
 
         setupUI(view)
         observeViewModel(view)
@@ -83,7 +86,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         view.findViewById<View>(R.id.btnAction)?.setOnClickListener {
             Log.d(TAG, "Нажата кнопка отправки на виджет")
             if (viewModel.currentUser.value?.partnerUid != null) {
-                // Запускаем Photo Picker
                 try {
                     pickWidgetImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 } catch (e: Exception) {
@@ -208,6 +210,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         if (partner != null) {
             tvPartnerName.text = partner.name
+
+            val lastActiveDate = partner.lastActive
+            val date = if (lastActiveDate > 0) Date(lastActiveDate) else null
+
             val partnerDr = partner.birthDate
             val treepoints = partner.treePoints
             GlideHelper.loadAvatar(ivPartnerAvatar, partner.photoUrl, "PARTNER_AVATAR")
@@ -216,7 +222,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             )
             layoutPartner.setOnClickListener {
                 showPartnerOptions(
-                    partner.uid, partner.name, partner.photoUrl, partnerDr, treepoints
+                    partner.uid, partner.name, partner.photoUrl, partnerDr, treepoints, date
                 )
             }
         } else {
@@ -347,8 +353,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         partnerUid: String,
         partnerName: String,
         partnerPhoto: String?,
-        partnerDr: String?,
-        points: Long
+        partnerDr: String?, points: Long, date: Date?
     ) {
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
@@ -358,6 +363,13 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.findViewById<TextView>(R.id.userName)?.text = partnerName
         dialog.findViewById<TextView>(R.id.drPartner)?.text = partnerDr
         dialog.findViewById<TextView>(R.id.tvtreepoints)?.text = points.toString()
+        dialog.findViewById<TextView>(R.id.zodiac)?.text = viewModel.getZodiacSign(partnerDr)
+        dialog.findViewById<TextView>(R.id.lastActive)?.text = if (date != null) {
+            SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(date)
+        } else {
+            "Неизвестно"
+        }
+
         val ivAvatar = dialog.findViewById<ImageView>(R.id.userPhoto)
         if (ivAvatar != null) {
             GlideHelper.loadAvatar(ivAvatar, partnerPhoto, "PARTNER_OPTIONS")
@@ -366,6 +378,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.findViewById<View>(R.id.btnHello)?.setOnClickListener {
             dialog.dismiss()
             viewModel.sendHello(partnerUid)
+            throw RuntimeException("Test Crash")
         }
 
         dialog.findViewById<View>(R.id.btnDisconnect)?.setOnClickListener {

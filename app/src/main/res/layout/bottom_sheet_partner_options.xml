@@ -39,6 +39,7 @@
                     android:textColor="@color/text_primary"
                     android:textSize="22sp" />
 
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -50,7 +51,7 @@
                         android:layout_height="wrap_content"
                         android:text="День рождение:"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/drPartner"
@@ -58,8 +59,16 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5sp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         tools:text="01.01.2005" />
+
+                    <TextView
+                        android:id="@+id/zodiac"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:textColor="@color/text_secondary"
+                        tools:text="♉" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -73,7 +82,7 @@
                         android:layout_height="wrap_content"
                         android:text="Очки в 'Дерево любви':"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/tvtreepoints"
@@ -81,8 +90,31 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5sp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         tools:text="150" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7sp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Активность:"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/lastActive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5sp"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        tools:text="01.01.2005" />
                 </LinearLayout>
 
             </LinearLayout>

@@ -8,7 +8,8 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
+        tools:ignore="PhotoAndVideoPolicy,SelectedPhotoAccess" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -50,6 +51,7 @@
         <activity
             android:name=".EnterActivity"
             android:exported="true"
+            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.App.Starting">
 
@@ -63,6 +65,7 @@
             android:name=".MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />

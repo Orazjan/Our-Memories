@@ -46,7 +46,6 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
     private val _isRefreshing = MutableLiveData<Boolean>()
     val isRefreshing: LiveData<Boolean> = _isRefreshing
 
-    // Внутреннее состояние
     private var allLoadedMemories = listOf<Memory>()
     private var currentUidsToLoad: List<String>? = null
     private var queryLimit: Long = 20
@@ -162,22 +161,19 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /**
+     * TODO добавить
      * Удаляет память из Firestore и Storage.
      */
     fun deleteMemory(memory: Memory) {
         viewModelScope.launch {
             try {
-                // Сначала получаем список всех картинок в этом альбоме
                 val snapshot = db.collection("memories").document(memory.id).get().await()
 
-                // Получаем список URL. Если списка нет, берем хотя бы обложку
                 val imagesToDelete = snapshot.get("images") as? List<String>
                     ?: listOf(memory.imageUrl).filter { it.isNotEmpty() }
 
-                // Удаляем запись из БД
                 db.collection("memories").document(memory.id).delete().await()
 
-                // Удаляем ВСЕ фото из Storage (фоново, чтобы не задерживать UI)
                 imagesToDelete.forEach { url ->
                     try {
                         storage.getReferenceFromUrl(url).delete().await()

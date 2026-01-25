@@ -104,7 +104,6 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
                     val loadedWishes = snapshots.map { doc ->
                         doc.toObject(WishItem::class.java).copy(id = doc.id)
                     }
-                    // Сортировка: невыполненные сверху
                     val sortedWishes = loadedWishes.sortedBy { it.isCompleted }
                     _wishes.value = sortedWishes
                 }

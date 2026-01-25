@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:shareInterpolator="false">
-
-    <!-- Увеличение -->
     <scale
         android:duration="800"
         android:fromXScale="1.0"
@@ -14,7 +12,6 @@
         android:toXScale="1.2"
         android:toYScale="1.2" />
 
-    <!-- Небольшое изменение прозрачности -->
     <alpha
         android:duration="800"
         android:fromAlpha="1.0"

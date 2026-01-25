@@ -45,7 +45,7 @@ class EnterViewModel : ViewModel() {
      */
     fun checkUser(isFirstRun: Boolean) {
         viewModelScope.launch {
-            delay(1000) // Имитация загрузки для сплэша
+            delay(1000)
 
             val user = auth.currentUser
 
@@ -73,7 +73,6 @@ class EnterViewModel : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
-                // Если таймаут или ошибка - пускаем в главное меню (оффлайн режим или повторная попытка там)
                 _navigationState.value = NavigationState.NavigateToMain
             }
         }

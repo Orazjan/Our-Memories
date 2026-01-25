@@ -34,7 +34,6 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
 
         viewModel = ViewModelProvider(this)[PhotoViewerViewModel::class.java]
 
-        // Передаем аргументы во ViewModel
         val argsImages = arguments?.getStringArrayList("images")
         val argsStartPos = arguments?.getInt("pos") ?: 0
         viewModel.initData(argsImages, argsStartPos)
@@ -49,7 +48,6 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
 
         btnClose.setOnClickListener { parentFragmentManager.popBackStack() }
 
-        // Слушатель смены страниц
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 viewModel.onPageChanged(position)
@@ -64,18 +62,15 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
         val tvCounter = view.findViewById<TextView>(R.id.tvCounter)
 
-        // Список изображений
         viewModel.images.observe(viewLifecycleOwner) { images ->
             if (images.isNotEmpty()) {
                 viewPager.adapter = FullScreenAdapter(images)
 
-                // Устанавливаем начальную позицию (без анимации)
                 val startPos = viewModel.currentPosition.value ?: 0
                 viewPager.setCurrentItem(startPos, false)
             }
         }
 
-        // Текущая позиция (обновляет счетчик)
         viewModel.currentPosition.observe(viewLifecycleOwner) { pos ->
             val total = viewModel.images.value?.size ?: 0
             tvCounter.text = "${pos + 1} / $total"

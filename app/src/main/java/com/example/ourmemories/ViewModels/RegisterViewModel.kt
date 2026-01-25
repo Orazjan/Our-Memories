@@ -32,8 +32,7 @@ class RegisterViewModel : ViewModel() {
                 _isLoading.value = false
                 if (task.isSuccessful) {
                     val user = auth.currentUser
-                    // Отправляем письмо с подтверждением
-                    user?.sendEmailVerification()?.addOnCompleteListener { 
+                    user?.sendEmailVerification()?.addOnCompleteListener {
                         _toastMessage.value = "Аккаунт создан! Проверьте почту."
                         _authSuccess.value = true
                     }

@@ -25,7 +25,6 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
         initUI(view)
         observeViewModel()
         
-        // Кнопка Назад
         view.findViewById<View>(R.id.btnBack).setOnClickListener {
             parentFragmentManager.popBackStack()
         }
@@ -46,25 +45,21 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
      * Наблюдение за изменениями в ViewModel.
      */
     private fun observeViewModel() {
-        // Список версий для выпадающего списка
         viewModel.versionNames.observe(viewLifecycleOwner) { names ->
             val adapter = ArrayAdapter(
                 requireContext(), android.R.layout.simple_dropdown_item_1line, names
             )
             versionSpinner.setAdapter(adapter)
-            
-            // Если список не пуст и текст в спиннере еще не установлен (например, первый запуск)
+
             if (names.isNotEmpty() && versionSpinner.text.isEmpty()) {
                 versionSpinner.setText(names[0], false)
             }
         }
 
-        // Описание выбранной версии
         viewModel.selectedDescription.observe(viewLifecycleOwner) { text ->
             infoText.text = text
         }
 
-        // Текущая версия приложения (внизу экрана)
         viewModel.currentAppVersion.observe(viewLifecycleOwner) { versionString ->
             tvAppVersion.text = versionString
         }

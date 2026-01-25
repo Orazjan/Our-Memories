@@ -107,7 +107,7 @@ public class GlideHelper {
     public static void loadWidgetImage(Context context, String url, Target<Bitmap> target) {
         if (url == null || url.isEmpty()) return;
 
-        RequestOptions requestOptions = new RequestOptions().timeout(60000).diskCacheStrategy(DiskCacheStrategy.ALL).override(300, 300) // Критично для виджетов! Ограничивает память.
+        RequestOptions requestOptions = new RequestOptions().timeout(60000).diskCacheStrategy(DiskCacheStrategy.ALL).override(300, 300)
                 .transform(new CenterCrop(), new RoundedCorners(40));
 
         Glide.with(context.getApplicationContext()).asBitmap().load(url).apply(requestOptions).into(target);
