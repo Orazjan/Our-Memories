@@ -378,7 +378,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.findViewById<View>(R.id.btnHello)?.setOnClickListener {
             dialog.dismiss()
             viewModel.sendHello(partnerUid)
-            throw RuntimeException("Test Crash")
         }
 
         dialog.findViewById<View>(R.id.btnDisconnect)?.setOnClickListener {
