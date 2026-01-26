@@ -55,14 +55,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:background="@null"
-                android:hint="Поиск..."
+                android:hint="@string/searching"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:maxLines="1"
-                android:paddingStart="8dp"
+                android:paddingStart="8sp"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                tools:ignore="RtlSymmetry" />
         </LinearLayout>
 
         <LinearLayout
@@ -182,7 +183,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:gravity="center"
-            android:text="Здесь пока пусто.\nДобавьте первое фото!"
+            android:text="@string/empty_add_first_photo"
             android:textColor="@color/text_secondary"
             android:textSize="16sp" />
 

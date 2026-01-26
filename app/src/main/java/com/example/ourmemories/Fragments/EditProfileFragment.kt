@@ -1,5 +1,6 @@
 package com.example.ourmemories.Fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -120,6 +121,7 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
     /**
      * Отображение диалога выбора даты.
      */
+    @SuppressLint("DefaultLocale")
     private fun showWheelDatePicker(editText: EditText) {
         val dialog = BottomSheetDialog(
             requireContext(),
@@ -127,10 +129,10 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         )
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
 
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth)!!
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear)!!
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate)!!
+        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
+        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
+        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
+        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate) ?: return
 
         val calendar = Calendar.getInstance()
         val currentYear = calendar.get(Calendar.YEAR)

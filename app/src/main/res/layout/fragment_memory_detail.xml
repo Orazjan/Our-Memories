@@ -27,6 +27,7 @@
                 android:id="@+id/ivCover"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:contentDescription="@string/ic_photo"
                 android:scaleType="centerCrop"
                 app:layout_collapseMode="parallax"
                 app:layout_collapseParallaxMultiplier="0.7"
@@ -135,7 +136,7 @@
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Удалить"
+                        android:text="@string/delete"
                         android:textColor="@color/primary_lavender"
                         app:icon="@android:drawable/ic_delete"
                         app:iconTint="@color/primary_lavender" />
@@ -145,7 +146,7 @@
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Изменить"
+                        android:text="@string/edit"
                         android:textColor="@color/primary_lavender"
                         app:icon="@android:drawable/ic_menu_edit"
                         app:iconTint="@color/primary_lavender" />

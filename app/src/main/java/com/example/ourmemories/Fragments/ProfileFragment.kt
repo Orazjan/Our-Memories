@@ -92,14 +92,12 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val tvStatDays = view.findViewById<TextView>(R.id.tvStatDays)
 
         setupMenuCard(
-            view.findViewById(R.id.cardEditProfile),
-            "Редактировать профиль",
+            view.findViewById(R.id.cardEditProfile), getString(R.string.menu_edit_profile),
             android.R.drawable.ic_menu_edit,
             "#BDE0FE"
         )
         setupMenuCard(
-            view.findViewById(R.id.cardShareCode),
-            "Поделиться кодом",
+            view.findViewById(R.id.cardShareCode), getString(R.string.menu_share_code),
             android.R.drawable.ic_menu_share,
             "#FAD1E6"
         )
@@ -108,41 +106,44 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val isSystemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val isDarkNow =
             currentNightMode == AppCompatDelegate.MODE_NIGHT_YES || (currentNightMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM && isSystemDark)
-        val themeTitle = if (isDarkNow) "Светлая тема" else "Тёмная тема"
+        val themeTitle =
+            if (isDarkNow) getString(R.string.theme_light) else getString(R.string.theme_dark)
 
         setupMenuCard(
             view.findViewById(R.id.cardTheme),
             themeTitle,
-            android.R.drawable.ic_menu_view, colorHex = if (isDarkNow) "#BDE0FE" else "#EEEEEE"
+            android.R.drawable.ic_menu_view,
+            colorHex = if (isDarkNow) "#BDE0FE" else "#EEEEEE"
         )
 
         setupMenuCard(
-            view.findViewById(R.id.cardContact),
-            "Написать разработчику",
+            view.findViewById(R.id.cardContact), getString(R.string.menu_contact_dev),
             android.R.drawable.ic_dialog_email,
             "#C8E6C9"
         )
         setupMenuCard(
-            view.findViewById(R.id.cardPrivacy),
-            "Политика конфиденциальности",
+            view.findViewById(R.id.cardPrivacy), getString(R.string.menu_privacy),
             android.R.drawable.ic_menu_info_details,
             "#EEEEEE"
         )
         setupMenuCard(
-            view.findViewById(R.id.instructions),
-            "Инструкции",
+            view.findViewById(R.id.instructions), getString(R.string.menu_instructions),
             android.R.drawable.ic_menu_help,
             "#EEEEEE"
         )
         setupMenuCard(
-            view.findViewById(R.id.cardLogout),
-            "Выйти из аккаунта",
+            view.findViewById(R.id.cardLogout), getString(R.string.menu_logout),
             android.R.drawable.ic_lock_power_off,
             "#F3F4F6"
         )
 
         val cardDelete = view.findViewById<View>(R.id.cardDeleteAccount)
-        setupMenuCard(cardDelete, "Удалить аккаунт", android.R.drawable.ic_delete, "#FFCDD2")
+        setupMenuCard(
+            cardDelete,
+            getString(R.string.menu_delete_account),
+            android.R.drawable.ic_delete,
+            "#FFCDD2"
+        )
         cardDelete?.findViewById<TextView>(R.id.tvTitle)?.setTextColor(Color.RED)
 
         view.findViewById<View>(R.id.userPhoto)?.setOnClickListener { pickImage.launch("image/*") }
@@ -159,16 +160,17 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         }
 
         view.findViewById<View>(R.id.cardShareCode)?.setOnClickListener {
-            if (myPartnerCode != null && myPartnerCode != "Код не создан") {
+            if (myPartnerCode != null && myPartnerCode != getString(R.string.code_not_created)) {
                 shareCode(myPartnerCode!!)
             } else {
-                Toast.makeText(context, "Код загружается...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.code_loading), Toast.LENGTH_SHORT).show()
             }
         }
 
         val userName = view.findViewById<TextView>(R.id.userName)
         val userPhoto = view.findViewById<ImageView>(R.id.userPhoto)
         val tvPartnerCode = view.findViewById<TextView>(R.id.passwordForPartner)
+
         viewModel.user.observe(viewLifecycleOwner) { user ->
             if (user != null) {
                 userName?.text = user.name
@@ -213,7 +215,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val userPhoto = view?.findViewById<ImageView>(R.id.userPhoto)
         val tvPartnerCode = view?.findViewById<TextView>(R.id.passwordForPartner)
 
-        username?.text = user.displayName ?: "Пользователь"
+        username?.text = user.displayName ?: getString(R.string.default_user)
         if (userPhoto != null) {
             GlideHelper.loadAvatar(userPhoto, user.photoUrl?.toString(), "ProfileAvatar")
         }
@@ -294,10 +296,10 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     private fun shareCode(code: String) {
         val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "Мой код в OurMemories: $code")
+            putExtra(Intent.EXTRA_TEXT, getString(R.string.share_code_text, code))
             type = "text/plain"
         }
-        startActivity(Intent.createChooser(sendIntent, "Отправить код"))
+        startActivity(Intent.createChooser(sendIntent, getString(R.string.share_code_title)))
     }
 
     /**
@@ -308,7 +310,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
             requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("Partner Code", text)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(context, "Код скопирован", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, getString(R.string.code_copied), Toast.LENGTH_SHORT).show()
     }
 
     /**
@@ -323,8 +325,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
      */
     private fun updateProfilePhoto(uri: Uri) {
         val user = auth.currentUser ?: return
-        Toast.makeText(context, "Загрузка...", Toast.LENGTH_SHORT).show()
-
+        Toast.makeText(context, getString(R.string.loading), Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             try {
                 val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
@@ -337,9 +338,12 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
                     .await()
 
                 loadUserData()
-                Toast.makeText(context, "Фото обновлено", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.photo_updated), Toast.LENGTH_SHORT)
+                    .show()
             } catch (e: Exception) {
-                Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context, getString(R.string.error_generic, e.message), Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -348,11 +352,10 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
      * Открытие диалога удаления аккаунта.
      */
     private fun showDeleteAccountDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Удалить аккаунт?")
-            .setMessage("Это действие нельзя отменить. Все ваши данные будут удалены.")
-            .setPositiveButton("Удалить") { _, _ -> deleteAccount() }
-            .setNegativeButton("Отмена", null).show()
+        AlertDialog.Builder(requireContext()).setTitle(getString(R.string.delete_account_title))
+            .setMessage(getString(R.string.delete_account_message))
+            .setPositiveButton(getString(R.string.delete)) { _, _ -> deleteAccount() }
+            .setNegativeButton(getString(R.string.cancel), null).show()
     }
 
     /**
@@ -363,13 +366,15 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
         user.delete().addOnSuccessListener {
             db.collection("users").document(user.uid).delete()
-            Toast.makeText(context, "Аккаунт удален", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, getString(R.string.account_deleted), Toast.LENGTH_SHORT).show()
             restartApp()
         }.addOnFailureListener { e ->
             if (e is FirebaseAuthRecentLoginRequiredException) {
                 showReauthDialog(user)
             } else {
-                Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context, getString(R.string.error_generic, e.message), Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -379,25 +384,26 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
      */
     private fun showReauthDialog(user: com.google.firebase.auth.FirebaseUser) {
         val input = EditText(context).apply {
-            hint = "Введите текущий пароль"
+            hint = getString(R.string.enter_current_password)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             setPadding(50, 30, 50, 30)
         }
 
-        AlertDialog.Builder(requireContext()).setTitle("Подтвердите удаление")
-            .setMessage("В целях безопасности подтвердите пароль.").setView(input)
-            .setPositiveButton("Подтвердить") { _, _ ->
+        AlertDialog.Builder(requireContext()).setTitle(getString(R.string.confirm_deletion))
+            .setMessage(getString(R.string.confirm_deletion_message)).setView(input)
+            .setPositiveButton(getString(R.string.confirm)) { _, _ ->
                 val pass = input.text.toString()
                 if (pass.isNotEmpty() && user.email != null) {
                     val credential = EmailAuthProvider.getCredential(user.email!!, pass)
                     user.reauthenticate(credential).addOnSuccessListener {
                         deleteAccount()
                     }.addOnFailureListener {
-                        Toast.makeText(context, "Неверный пароль", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context, getString(R.string.wrong_password), Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
-            }
-            .setNegativeButton("Отмена", null)
+            }.setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -408,12 +414,12 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:")
             putExtra(Intent.EXTRA_EMAIL, arrayOf("atnzvdev@gmail.com"))
-            putExtra(Intent.EXTRA_SUBJECT, "Отзыв о приложении")
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.email_subject))
         }
         try {
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(context, "Нет приложения почты", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, getString(R.string.no_email_app), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -427,6 +433,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         try {
             startActivity(browserIntent)
         } catch (e: Exception) {
+            Toast.makeText(context, getString(R.string.no_email_app), Toast.LENGTH_SHORT).show()
         }
     }
 

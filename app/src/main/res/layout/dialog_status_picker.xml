@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
         android:gravity="center"
-        android:text="Установить статус"
+        android:text="@string/set_status"
         android:textColor="@color/text_primary"
         android:textSize="18sp"
         android:textStyle="bold" />
@@ -31,7 +31,7 @@
             android:layout_height="50dp"
             android:layout_weight="1"
             android:background="@drawable/bg_input_soft"
-            android:hint="Напишите что-нибудь..."
+            android:hint="@string/write_something"
             android:inputType="textCapSentences|textNoSuggestions"
             android:maxLength="20"
             android:paddingHorizontal="16dp"
@@ -47,7 +47,7 @@
             android:background="@drawable/bg_input_field"
             android:backgroundTint="@color/baby_pink"
             android:paddingHorizontal="20dp"
-            android:text="OK"
+            android:text="@string/ok"
             android:textColor="@color/text_primary"
             android:textStyle="bold" />
     </LinearLayout>
@@ -56,7 +56,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:text="Или выберите эмодзи:"
+        android:text="@string/choose_emoji"
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 
@@ -75,7 +75,7 @@
         android:layout_height="56dp"
         android:layout_marginTop="24dp"
         android:backgroundTint="@color/baby_pink"
-        android:text="Сбросить статус"
+        android:text="@string/return_status"
         android:textColor="@color/text_primary"
         android:textAllCaps="false"/>
 

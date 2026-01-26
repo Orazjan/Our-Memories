@@ -118,11 +118,11 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         }
 
         btnDelete.setOnClickListener {
-            AlertDialog.Builder(requireContext()).setTitle("Удалить альбом?")
-                .setMessage("Это действие необратимо. Все фотографии из этого альбома будут удалены.")
-                .setPositiveButton("Удалить") { _, _ ->
+            AlertDialog.Builder(requireContext()).setTitle(getString(R.string.delete_album_title))
+                .setMessage(getString(R.string.delete_album_message))
+                .setPositiveButton(getString(R.string.delete)) { _, _ ->
                     viewModel.deleteAlbum()
-                }.setNegativeButton("Отмена", null).show()
+                }.setNegativeButton(getString(R.string.cancel), null).show()
         }
     }
 
@@ -177,9 +177,11 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     }
 
     private fun showPhotoOptionsDialog(url: String) {
-        val options = arrayOf("Сделать обложкой", "Удалить фото")
+        val options = arrayOf(
+            getString(R.string.action_make_cover), getString(R.string.action_delete_photo)
+        )
 
-        AlertDialog.Builder(requireContext()).setTitle("Выберите действие")
+        AlertDialog.Builder(requireContext()).setTitle(getString(R.string.choose_action))
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> showSetCoverDialog(url)
@@ -208,21 +210,20 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
      * Диалог для выбора обложки
      */
     private fun showSetCoverDialog(url: String) {
-        AlertDialog.Builder(requireContext()).setTitle("Сделать обложкой?")
-            .setMessage("Это фото будет отображаться в ленте.")
-            .setPositiveButton("Да") { _, _ ->
+        AlertDialog.Builder(requireContext()).setTitle(getString(R.string.set_cover_title))
+            .setMessage(getString(R.string.set_cover_message))
+            .setPositiveButton(getString(R.string.yes)) { _, _ ->
                 viewModel.setCoverImage(url)
-            }
-            .setNegativeButton("Отмена", null)
+            }.setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
     private fun showDeletePhotoConfirmDialog(url: String) {
-        AlertDialog.Builder(requireContext()).setTitle("Удалить это фото?")
-            .setMessage("Фото будет удалено из альбома навсегда.")
-            .setPositiveButton("Удалить") { _, _ ->
+        AlertDialog.Builder(requireContext()).setTitle(getString(R.string.delete_photo_title))
+            .setMessage(getString(R.string.delete_photo_message))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 viewModel.deletePhoto(url)
-            }.setNegativeButton("Отмена", null).show()
+            }.setNegativeButton(getString(R.string.cancel), null).show()
     }
 
     /**
@@ -260,12 +261,12 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             if (newTitle.isNotEmpty()) {
                 viewModel.saveChanges(newTitle, newDesc, newTimestamp)
             } else {
-                Toast.makeText(context, "Название не может быть пустым", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.error_empty_title), Toast.LENGTH_SHORT)
+                    .show()
             }
             dialog.dismiss()
         }
         btnCancel?.setOnClickListener {
-            parentFragmentManager.popBackStack()
             dialog.dismiss()
         }
         dialog.show()
@@ -280,10 +281,10 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         )
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
 
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth)!!
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear)!!
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate)!!
+        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
+        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
+        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
+        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate) ?: return
 
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = initialTimestamp

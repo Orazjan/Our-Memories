@@ -1,39 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Our Memories</string>
+    <string name="app_name">Our Memories</string>
     <string name="password">Password</string>
-    <string name="enter_your_email">Enter your email</string>
+    <string name="enter_your_email">Enter Email</string>
     <string name="welcome_back">Welcome Back</string>
-    <string name="email" translatable="false">Email</string>
-    <string name="forgot_password">Forgot Password?</string>
-    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="reset_email_sent">Check your email %s</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="login">Log In</string>
     <string name="don_t_have_an_account">Don\'t have an account?</string>
     <string name="sign_up">Sign Up</string>
-    <string name="enter_your_password">Enter your password</string>
+    <string name="enter_your_password">Enter password</string>
     <string name="profile">Profile</string>
     <string name="days_together">Days Together</string>
     <string name="gallery">Gallery</string>
-    <string name="no_worries_enter_your_email_below_and_we_ll_send_you_a_link_to_reset_it">No worries! Enter your email below and we\'ll send you a link to reset it.</string>
+    <string name="no_worries_enter_your_email_below_and_we_ll_send_you_a_link_to_reset_it">No worries! We\'ll send you a link to reset your password.</string>
     <string name="send_reset_link">Send Reset Link</string>
     <string name="back_to_log_in">Back to Log In</string>
-    <string name="your_partner_password">Your partner password:</string>
-    <string name="main">Main</string>
+    <string name="your_partner_password">Your Partner Password:</string>
+    <string name="main">Home</string>
     <string name="choose_version">Choose version</string>
-    <string name="save_your_best_moments">Save your best moments</string>
-    <string name="Create_shared_albums">Create shared albums, manage a calendar of events, and share memories with your significant other.</string>
-    <string name="start">Start</string>
+    <string name="save_your_best_moments">Save your \n best moments</string>
+    <string name="Create_shared_albums">Create shared albums, keep an event calendar, and share memories with your better half.</string>
+    <string name="start">Get Started</string>
     <string name="next">Next</string>
-    <string name="choose_your_date_of_birthday">Choose your date of birthday</string>
+    <string name="choose_your_date_of_birthday">Select date of birth</string>
     <string name="select">Select</string>
-    <string name="connecting_accaunt">Connecting accaunt</string>
-    <string name="enter_your_partner_s_8_digit_code_it_s_located_in_their_profile">Enter your partner\'s 8-digit code (it\'s located in their profile).</string>
-    <string name="for_example_12345678">For example: 12345678</string>
+    <string name="connecting_accaunt">Connecting Accounts</string>
+    <string name="enter_your_partner_s_8_digit_code_it_s_located_in_their_profile">Enter your partner\'s 8-digit code (found in their profile).</string>
+    <string name="for_example_12345678">e.g., 12345678</string>
     <string name="connect">Connect</string>
     <string name="invite">Invite</string>
-    <string name="Searching">Searching…</string>
-    <string name="Code_not_found">Code is not found</string>
+    <string name="Searching">Searching...</string>
+    <string name="Code_not_found">Code not found</string>
     <string name="connected">Connected</string>
-    <string name="disconnect_partner_title">Disconnect partner title</string>
-    <string name="disconnect_partner_message">Disconnect partner message</string>
+    <string name="new_memory">New Memory</string>
+    <string name="tap_to_choose">Tap to select photos\n(multiple allowed)</string>
+    <string name="name_of_memory">Event Name</string>
+    <string name="example_our_delivery">e.g., Our Trip</string>
+    <string name="when_it_was_were">When was it?</string>
+    <string name="choose_date">Select Date</string>
+    <string name="description">Description (optional)</string>
+    <string name="some_word_about_this">A few words about this day...</string>
+    <string name="save_memory">Save Memory</string>
+    <string name="saving">Saving photos...</string>
+    <string name="saving_data">Saving...</string>
+    <string name="loading">Loading...</string>
+    <string name="day_of_birthday">Birthday:</string>
+    <string name="score_love_tree">\'Love Tree\' points:</string>
+    <string name="activity">Activity:</string>
+    <string name="uprawleniye_svyaz">Connection Management</string>
+    <string name="say_hello">❤️ Send Hello</string>
+    <string name="disconnect_partner">💔 Disconnect Partner</string>
+    <string name="new_wish">New Wish</string>
+    <string name="naming">Title</string>
+    <string name="what_would_you_like">What would you like?</string>
+    <string name="category">Category</string>
+    <string name="differents">✨ Misc</string>
+    <string name="cinema">🎬 Movies</string>
+    <string name="food">🍔 Food</string>
+    <string name="buy">🛒 Shopping</string>
+    <string name="travel">✈️ Travel</string>
+    <string name="dating">❤️ Date</string>
+    <string name="descriptionsss">Description</string>
+    <string name="detailing">Details (optional)</string>
+    <string name="cancel">Cancel</string>
+    <string name="add">Add</string>
+    <string name="redacting">Edit</string>
+    <string name="namings">Title</string>
+    <string name="data">05/20/2024</string>
+    <string name="notes">Note</string>
+    <string name="leave_notes">Leave a note...</string>
+    <string name="set_status">Set Status</string>
+    <string name="write_something">Write something...</string>
+    <string name="ok">OK</string>
+    <string name="choose_emoji">Or choose an emoji:</string>
+    <string name="return_status">Reset Status</string>
+    <string name="tree_of_love">Love Tree</string>
+    <string name="name_of_tree">Sprout</string>
+    <string name="score">120 / 200 points</string>
+    <string name="how_grow_tree">How to grow the tree?</string>
+    <string name="everyDay_bonus">Daily login: +10</string>
+    <string name="loading_photo">Upload photo: +5</string>
+    <string name="understand">Got it</string>
+    <string name="ic_photo">📸</string>
+    <string name="ic_sun">☀️</string>
+    <string name="redactingg">Editing</string>
+    <string name="your_name">Your Name</string>
+    <string name="name">Name</string>
+    <string name="dd_mm_yyyy">DD.MM.YYYY</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="instructions">Instructions</string>
+    <string name="QA">FAQ</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="list_of_wishes">Wishlist</string>
+    <string name="list_is_empty">The list is empty.\nAdd your first wish!</string>
+    <string name="searching">Searching...</string>
+    <string name="empty_add_first_photo">It\'s empty here.\nAdd your first photo!</string>
+    <string name="_26">26</string>
+    <string name="oct">OCT</string>
+    <string name="how_connect">How to connect a partner?</string>
+    <string name="how_add_partner_instructions">Go to profile, copy your code, and send it to your partner. Your partner needs to tap the \'+\' button on the main screen and enter this code.</string>
+    <string name="oblozka">Cover</string>
+    <string name="setting_item">Icon Image</string>
+    <string name="ic_star">✨</string>
+    <string name="_0">0</string>
+    <string name="ic_heart">❤️</string>
+    <string name="me">Me</string>
+    <string name="note_for_you">A note for you</string>
+    <string name="leave_note_lovely_person">Leave a note for your loved one...</string>
+    <string name="press_for_looking_for">Tap to view details</string>
+    <string name="send_photo_to_widget">Send photo to widget ❤️</string>
+    <string name="sending_photo">Sending photo...</string>
+    <string name="updating_widget">Updating partner\'s widget</string>
+    <string name="moments">Moments</string>
+    <string name="wishes">Wishes</string>
+    <string name="account">Account</string>
+    <string name="information">Information</string>
+    <string name="deystviye">Actions</string>
+    <string name="create_account">Create Account</string>
+    <string name="start_to_save_memory">Start saving memories</string>
+    <string name="registrating">Register</string>
+    <string name="have_account">Already have an account?</string>
+    <string name="full_profile">Complete Profile</string>
+    <string name="tell_about_yourself">Fill in your details</string>
+    <string name="choose_photo">Add Photo</string>
+    <string name="ready">Done</string>
+    <string name="history_of_update">Update History</string>
+    <string name="build_2025_12_14">Build 2025.12.14</string>
+
+
+    <string name="tree_stage_eternal">Tree of Eternal Love</string>
+    <string name="tree_stage_magic">Magic Tree</string>
+    <string name="tree_stage_abundant">Abundant Tree</string>
+    <string name="tree_stage_love">Tree of Love</string>
+    <string name="tree_stage_blooming">Blooming Tree</string>
+    <string name="tree_stage_mature">Mature Tree</string>
+    <string name="tree_stage_strong">Strong Tree</string>
+    <string name="tree_stage_young">Young Tree</string>
+    <string name="tree_stage_sapling">Sapling</string>
+    <string name="tree_stage_sprout">Sprout</string>
+
+    <string name="error_gallery">Failed to open gallery</string>
+    <string name="add_partner_first">Add a partner first</string>
+    <string name="error_max_chars">Maximum 20 characters</string>
+    <string name="unknown">Unknown</string>
+    <string name="disconnect_partner_title">Disconnect Partner?</string>
+    <string name="disconnect_partner_message">Are you sure you want to disconnect your partner?</string>
     <string name="yes">Yes</string>
-    <string name="partner_disconnected">Partner disconnected</string>
+    <string name="no">No</string>
+    <string name="points_format">%1$d / %2$d points</string>
+    <string name="cover_selected">Cover selected</string>
+    <string name="cancel_creation_title">Discard changes?</string>
+    <string name="cancel_creation_message">All unsaved data will be lost.</string>
+    <string name="exit">Discard</string>
+    <string name="stay">Keep editing</string>
+    <string name="first_new">First new</string>
+    <string name="first_old">First old</string>
+
+    <string name="faq_connect_partner_q">How to connect a partner?</string>
+    <string name="faq_connect_partner_a">1. Go to Profile -> Share Code.\n2. Send the code to your partner.\n3. Your partner taps "Invite" on the Home screen and enters your code.</string>
+
+    <string name="faq_love_tree_q">How does the Love Tree work?</string>
+    <string name="faq_love_tree_a">The tree grows as you use the app. You earn points for daily login (+10) and for uploading photos (+5). There are 10 growth stages in total!</string>
+
+    <string name="faq_add_widget_q">How to add a Widget?</string>
+    <string name="faq_add_widget_a">Long press on an empty space on your home screen -> Widgets -> Find Our Memories -> Drag the widget to the screen. It updates automatically.</string>
+
+    <string name="faq_photos_loading_q">Photos not loading?</string>
+    <string name="faq_photos_loading_a">Check your internet connection. If you use Xiaomi/Poco, make sure the app has network access and Autostart enabled in phone settings.</string>
+
+    <string name="faq_widget_bug_q">Why isn\'t the widget updating?</string>
+    <string name="faq_widget_bug_a">If you have Xiaomi (MIUI), Huawei, or Samsung:\n\n1. Open Phone Settings -> Apps -> Our Memories.\n2. Enable "Autostart".\n3. In "Battery Saver" or "Activity Control", select "No restrictions".\n\nThe system saves battery and might stop widget updates.</string>
+
+    <string name="faq_earn_points_q">How to earn Tree points?</string>
+    <string name="faq_earn_points_a">The tree grows from your love!\n\n☀️ Daily login: +10 points\n📸 Upload photo: +5 points per photo\n\nThere are 10 stages of tree evolution.</string>
+
+    <string name="faq_wishes_q">How to manage wishes?</string>
+    <string name="faq_wishes_a">👉 Tap a wish to mark it as done.\n🛑 Long press to delete it.</string>
+
+    <string name="faq_change_cover_q">How to change the album cover?</string>
+    <string name="faq_change_cover_a">Open any album. Press and hold on the photo you like. Select "Make Cover" from the menu.</string>
+
+    <string name="faq_fridge_q">What is the "Fridge Note"?</string>
+    <string name="faq_fridge_a">This is a shared text field. Text you write there appears immediately on your partner\'s screen. Perfect for "Good morning!" or "Buy milk".</string>
+
+    <string name="faq_privacy_q">Can anyone see our photos?</string>
+    <string name="faq_privacy_a">No. Your memories, lists, and chats are available only to the two of you. We use a secure connection to sync data.</string>
+
+
+    <string name="delete_album_title">Delete album?</string>
+    <string name="delete_album_message">This action cannot be undone. All photos in this album will be deleted.</string>
+
+    <string name="choose_action">Choose action</string>
+    <string name="action_make_cover">Set as Cover</string>
+    <string name="action_delete_photo">Delete Photo</string>
+
+    <string name="set_cover_title">Set as Cover?</string>
+    <string name="set_cover_message">This photo will be displayed in the feed.</string>
+
+    <string name="delete_photo_title">Delete this photo?</string>
+    <string name="delete_photo_message">The photo will be permanently deleted from the album.</string>
+
+    <string name="error_empty_title">Title cannot be empty</string>
+
+    <string name="menu_edit_profile">Edit Profile</string>
+    <string name="menu_share_code">Share Code</string>
+    <string name="menu_contact_dev">Contact Developer</string>
+    <string name="menu_privacy">Privacy Policy</string>
+    <string name="menu_instructions">Instructions</string>
+    <string name="menu_logout">Log Out</string>
+    <string name="menu_delete_account">Delete Account</string>
+
+    <string name="theme_light">Light Theme</string>
+    <string name="theme_dark">Dark Theme</string>
+
+    <string name="code_not_created">Code not created</string>
+    <string name="code_loading">Loading code...</string>
+    <string name="code_copied">Code copied</string>
+    <string name="share_code_text">My code in OurMemories: %s</string>
+    <string name="share_code_title">Send Code</string>
+
+    <string name="default_user">User</string>
+    <string name="photo_updated">Photo updated</string>
+    <string name="error_generic">Error: %s</string>
+
+    <string name="delete_account_title">Delete Account?</string>
+    <string name="delete_account_message">This action cannot be undone. All your data will be deleted.</string>
+    <string name="account_deleted">Account deleted</string>
+
+    <string name="confirm_deletion">Confirm Deletion</string>
+    <string name="confirm_deletion_message">For security reasons, confirm your password.</string>
+    <string name="enter_current_password">Enter current password</string>
+    <string name="confirm">Confirm</string>
+    <string name="wrong_password">Wrong password</string>
+
+    <string name="email_subject">Feedback for Our Memories App</string>
+    <string name="no_email_app">No email app found</string>
+
+    <string name="error_enter_title">Enter a title</string>
+    <string name="delete_wish_title">Delete wish?</string>
+    <string name="delete_wish_confirm">Are you sure you want to delete \'%s\'?</string>
+
+    <string name="notification_new_event">New event!</string>
+    <string name="notification_channel_name">Partner Notifications</string>
+
+    <string name="error_select_photo">Select at least one photo</string>
+    <string name="error_no_internet">No internet connection</string>
+    <string name="memory_saved_points">Album saved! +%d points</string>
+
+    <string name="album_deleted">Album deleted</string>
+    <string name="error_user_not_found">User not found</string>
+    <string name="error_invalid_credentials">Invalid Email or password</string>
+
+    <string name="daily_bonus_toast">Daily bonus: +%d points! 🌳</string>
+    <string name="your_partner_default_name">Your Better Half</string>
+    <string name="hello_sent">Hello sent! ❤️</string>
+    <string name="error_send">Sending error</string>
+    <string name="error_status_update">Status update error</string>
+    <string name="no_partner_for_widget">You don\'t have a partner to send to!</string>
+    <string name="partner_data_loading">Partner data is loading. Try again in a second.</string>
+    <string name="partner_no_widget_hint">If your partner doesn\'t have a widget, ask them to add it.</string>
+    <string name="widget_photo_sent">Photo sent to widget! ❤️</string>
+    <string name="error_db">DB Error: %s</string>
+    <string name="error_upload">Upload Error: %s</string>
+    <string name="note_updated">Note updated!</string>
+    <string name="error_save">Save error</string>
+    <string name="error_already_has_partner">You already have a partner!</string>
+    <string name="error_code_not_found">Code not found</string>
+    <string name="error_cannot_connect">Cannot connect</string>
+    <string name="error_network">Network error</string>
+    <string name="disconnected">Disconnected</string>
+
+    <string name="error_loading">Load error: %s</string>
+    <string name="photo_deleted">Photo deleted</string>
+    <string name="error_delete_photo">Error deleting photo</string>
+    <string name="saved">Saved</string>
+    <string name="cover_updated">Cover updated</string>
+    <string name="error_cover_update">Error updating cover</string>
+
+
 </resources>

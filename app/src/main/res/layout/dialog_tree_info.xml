@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:gravity="center"
-        android:text="Дерево Любви"
+        android:text="@string/tree_of_love"
         android:textColor="@color/text_primary"
         android:textSize="22sp"
         android:textStyle="bold" />
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:gravity="center"
-        android:text="Росток"
+        android:text="@string/name_of_tree"
         android:textColor="#2E7D32"
         android:textSize="20sp"
         android:textStyle="bold" />
@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:gravity="center"
-        android:text="120 / 200 очков"
+        android:text="@string/score"
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 
@@ -66,7 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="Как растить дерево?"
+            android:text="@string/how_grow_tree"
             android:textColor="@color/text_primary"
             android:textStyle="bold" />
 
@@ -80,13 +80,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="☀️"
+                android:text="@string/ic_sun"
                 android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ежедневный вход: +10"
+                android:text="@string/everyDay_bonus"
                 android:textColor="@color/text_secondary" />
         </LinearLayout>
 
@@ -99,13 +99,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="📸"
+                android:text="@string/ic_photo"
                 android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Загрузка фото: +5"
+                android:text="@string/loading_photo"
                 android:textColor="@color/text_secondary" />
         </LinearLayout>
     </LinearLayout>
@@ -117,7 +117,7 @@
         android:layout_marginTop="24dp"
         android:background="@drawable/bg_input_field"
         android:backgroundTint="#C8E6C9"
-        android:text="Понятно"
+        android:text="@string/understand"
         android:textColor="#2E7D32"
         android:textStyle="bold" />
 

@@ -7,6 +7,7 @@
     <string name="email">Email</string>
     <string name="forgot_password">Забыли пароль?</string>
     <string name="login">Вход</string>
+    <string name="reset_email_sent">Проверьте почту %s</string>
     <string name="don_t_have_an_account">Нет аккаунта?</string>
     <string name="sign_up">Зарегестрироваться</string>
     <string name="enter_your_password">Введите пароль</string>
@@ -33,6 +34,252 @@
     <string name="Searching">Поиск...</string>
     <string name="Code_not_found">Код не найден</string>
     <string name="connected">Соединено</string>
+    <string name="new_memory">Новое воспоминание</string>
+    <string name="tap_to_choose">Нажмите, чтобы\nвыбрать фото (можно несколько)</string>
+    <string name="name_of_memory">Название события</string>
+    <string name="example_our_delivery">Например: Наша поездка</string>
+    <string name="when_it_was_were">Когда это было?</string>
+    <string name="choose_date">Выберите дату</string>
+    <string name="description">Описание (необязательно)</string>
+    <string name="some_word_about_this">Пару слов об этом дне...</string>
+    <string name="save_memory">Сохранить воспоминание</string>
+    <string name="saving">Сохраняем фото...</string>
+    <string name="loading">Загрузка...</string>
+    <string name="day_of_birthday">День рождение:</string>
+    <string name="score_love_tree">Очки в \'Дерево любви\':</string>
+    <string name="activity">Активность:</string>
+    <string name="uprawleniye_svyaz">Управление связью</string>
+    <string name="say_hello">❤️ Отправить привет</string>
+    <string name="disconnect_partner">💔 Отключить партнера</string>
+    <string name="new_wish">Новое желание</string>
+    <string name="naming">Название</string>
+    <string name="what_would_you_like">Чего хочется?</string>
+    <string name="category">Категория</string>
+    <string name="differents">✨ Разное</string>
+    <string name="cinema">🎬 Кино</string>
+    <string name="food">🍔 Еда</string>
+    <string name="buy">🛒 Купить</string>
+    <string name="travel">✈️ Поездка</string>
+    <string name="dating">❤️ Свидание</string>
+    <string name="descriptionsss">Описание</string>
+    <string name="detailing">Детали (необязательно)</string>
+    <string name="cancel">Отмена</string>
+    <string name="add">Добавить</string>
+    <string name="redacting">Редактировать</string>
+    <string name="namings">Название</string>
+    <string name="data">20.05.2024</string>
+    <string name="notes">Записка</string>
+    <string name="leave_notes">Оставьте записку...</string>
+    <string name="set_status">Установить статус</string>
+    <string name="write_something">Напишите что-нибудь...</string>
+    <string name="ok">OK</string>
+    <string name="choose_emoji">Или выберите эмодзи:</string>
+    <string name="return_status">Сбросить статус</string>
+    <string name="tree_of_love">Дерево Любви</string>
+    <string name="name_of_tree">Росток</string>
+    <string name="score">120 / 200 очков</string>
+    <string name="how_grow_tree">Как растить дерево?</string>
+    <string name="everyDay_bonus">Ежедневный вход: +10</string>
+    <string name="loading_photo">Загрузка фото: +5</string>
+    <string name="understand">Понятно</string>
+    <string name="ic_photo">📸</string>
+    <string name="ic_sun">☀️</string>
+    <string name="redactingg">Редактирование</string>
+    <string name="your_name">Ваше имя</string>
+    <string name="name">Имя</string>
+    <string name="dd_mm_yyyy">ДД.ММ.ГГГГ</string>
+    <string name="save_changes">Сохранить изменения</string>
+    <string name="instructions">Инструкции</string>
+    <string name="QA">Частые вопросы</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Изменить</string>
+    <string name="list_of_wishes">Список желаний</string>
+    <string name="list_is_empty">Список пуст.\nДобавьте первое желание!</string>
+    <string name="searching">Поиск...</string>
+    <string name="empty_add_first_photo">Здесь пока пусто.\nДобавьте первое фото!</string>
+    <string name="_26">26</string>
+    <string name="oct">ОКТ</string>
+    <string name="how_connect">Как подключить партнера?</string>
+    <string name="how_add_partner_instructions">Перейдите в профиль, скопируйте свой код и отправьте партнеру. Партнер должен нажать кнопку \'+\' на главном экране и ввести этот код.</string>
+    <string name="oblozka">Обложка</string>
+    <string name="setting_item">Изображение иконки</string>
+    <string name="ic_star">✨</string>
+    <string name="_0">0</string>
+    <string name="ic_heart">❤️</string>
+    <string name="me">Я</string>
+    <string name="note_for_you">Записка для тебя</string>
+    <string name="leave_note_lovely_person">Оставьте записку для любимого человека...</string>
+    <string name="press_for_looking_for">Нажмите чтобы увидеть детально</string>
+    <string name="send_photo_to_widget">Отправить фото на виджет❤️</string>
+    <string name="sending_photo">Отправляем фото...</string>
+    <string name="updating_widget">Обновляем виджет партнера</string>
+    <string name="moments">Моментов</string>
+    <string name="wishes">Желаний</string>
+    <string name="account">Аккаунт</string>
+    <string name="information">Информация</string>
+    <string name="deystviye">Действия</string>
+    <string name="create_account">Создать аккаунт</string>
+    <string name="start_to_save_memory">Начните сохранять воспоминания</string>
+    <string name="registrating">Зарегистрироваться</string>
+    <string name="have_account">Уже есть аккаунт?</string>
+    <string name="full_profile">Заполните профиль</string>
+    <string name="tell_about_yourself">Заполните данные о себе</string>
+    <string name="choose_photo">Добавить фото</string>
+    <string name="ready">Готово</string>
+    <string name="saving_data">Сохраняем...</string>
+    <string name="history_of_update">История обновлений</string>
+    <string name="build_2025_12_14">Build 2025.12.14</string>
+
+
+    <string name="tree_stage_eternal">Древо Вечной Любви</string>
+    <string name="tree_stage_magic">Волшебное Дерево</string>
+    <string name="tree_stage_abundant">Изобильное Дерево</string>
+    <string name="tree_stage_love">Древо Любви</string>
+    <string name="tree_stage_blooming">Цветущее Дерево</string>
+    <string name="tree_stage_mature">Взрослое Дерево</string>
+    <string name="tree_stage_strong">Крепкое Дерево</string>
+    <string name="tree_stage_young">Молодое Дерево</string>
+    <string name="tree_stage_sapling">Саженец</string>
+    <string name="tree_stage_sprout">Росток</string>
+
+    <string name="error_gallery">Не удалось открыть галерею</string>
+    <string name="add_partner_first">Сначала добавьте партнера</string>
+    <string name="error_max_chars">Максимум 20 символов</string>
+    <string name="unknown">Неизвестно</string>
+    <string name="disconnect_partner_title">Отключить партнера?</string>
+    <string name="disconnect_partner_message">Вы уверены, что хотите отключить партнера?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="points_format">%1$d / %2$d очков</string>
+    <string name="cover_selected">Обложка выбрана</string>
+    <string name="cancel_creation_title">Отменить создание?</string>
+    <string name="cancel_creation_message">Все несохраненные данные будут потеряны.</string>
+    <string name="exit">Выйти</string>
+    <string name="stay">Остаться</string>
+    <string name="first_new">Сначало новые</string>
+    <string name="first_old">Сначало старые</string>
+
+
+    <string name="faq_connect_partner_q">Как подключить партнера?</string>
+    <string name="faq_connect_partner_a">1. Зайдите в Профиль -> Поделиться кодом.\n2. Отправьте код партнеру.\n3. Партнер нажимает «Пригласить» на Главной и вводит ваш код.</string>
+
+    <string name="faq_love_tree_q">Как работает Дерево Любви?</string>
+    <string name="faq_love_tree_a">Дерево растет, когда вы пользуетесь приложением. Вы получаете очки за ежедневный вход (+10) и за загрузку фотографий (+5). Всего есть 10 стадий роста!</string>
+
+    <string name="faq_add_widget_q">Как добавить Виджет?</string>
+    <string name="faq_add_widget_a">Зажмите палец на пустом месте рабочего стола -> Виджеты -> Найдите Our Memories -> Перетащите виджет на экран. Он обновляется автоматически.</string>
+
+    <string name="faq_photos_loading_q">Фотографии не загружаются?</string>
+    <string name="faq_photos_loading_a">Проверьте интернет-соединение. Если вы используете Xiaomi/Poco, убедитесь, что в настройках телефона для приложения включен доступ к сети и автозапуск.</string>
+
+    <string name="faq_widget_bug_q">Почему виджет не обновляется?</string>
+    <string name="faq_widget_bug_a">Если у вас Xiaomi (MIUI), Huawei или Samsung:\n\n1. Откройте Настройки телефона -> Приложения -> Our Memories.\n2. Включите «Автозапуск».\n3. В разделе «Контроль активности» выберите «Нет ограничений».\n\nСистема экономит заряд и может останавливать обновление виджета.</string>
+
+    <string name="faq_earn_points_q">Как заработать очки для Дерева?</string>
+    <string name="faq_earn_points_a">Дерево растет от вашей любви!\n\n☀️ Ежедневный вход: +10 очков\n📸 Загрузка фото: +5 очков за каждое фото\n\nВсего есть 10 стадий эволюции дерева.</string>
+
+    <string name="faq_wishes_q">Как управлять желаниями?</string>
+    <string name="faq_wishes_a">👉 Нажмите на желание, чтобы отметить выполненным.\n🛑 Зажмите (долгое нажатие) для удаления.</string>
+
+    <string name="faq_change_cover_q">Как поменять обложку альбома?</string>
+    <string name="faq_change_cover_a">Откройте любой альбом. Нажмите и удерживайте палец на понравившейся фотографии. В меню выберите «Сделать обложкой».</string>
+
+    <string name="faq_fridge_q">Что такое «Записка на холодильнике»?</string>
+    <string name="faq_fridge_a">Это общее текстовое поле. Текст, который вы пишете там, сразу же появляется на экране вашего любимого человека. Идеально для «Доброе утро!» или «Купи молока».</string>
+
+    <string name="faq_privacy_q">Видит ли кто-то наши фото?</string>
+    <string name="faq_privacy_a">Нет. Ваши воспоминания, списки и чаты доступны только вам двоим. Мы используем защищенное соединение для синхронизации данных.</string>
+
+
+    <string name="delete_album_title">Удалить альбом?</string>
+    <string name="delete_album_message">Это действие необратимо. Все фотографии из этого альбома будут удалены.</string>
+
+    <string name="choose_action">Выберите действие</string>
+    <string name="action_make_cover">Сделать обложкой</string>
+    <string name="action_delete_photo">Удалить фото</string>
+
+    <string name="set_cover_title">Сделать обложкой?</string>
+    <string name="set_cover_message">Это фото будет отображаться в ленте.</string>
+
+    <string name="delete_photo_title">Удалить это фото?</string>
+    <string name="delete_photo_message">Фото будет удалено из альбома навсегда.</string>
+
+    <string name="error_empty_title">Название не может быть пустым</string>
+
+    <string name="menu_edit_profile">Редактировать профиль</string>
+    <string name="menu_share_code">Поделиться кодом</string>
+    <string name="menu_contact_dev">Написать разработчику</string>
+    <string name="menu_privacy">Политика конфиденциальности</string>
+    <string name="menu_instructions">Инструкции</string>
+    <string name="menu_logout">Выйти из аккаунта</string>
+    <string name="menu_delete_account">Удалить аккаунт</string>
+
+    <string name="theme_light">Светлая тема</string>
+    <string name="theme_dark">Тёмная тема</string>
+
+    <string name="code_not_created">Код не создан</string>
+    <string name="code_loading">Код загружается...</string>
+    <string name="code_copied">Код скопирован</string>
+    <string name="share_code_text">Мой код в OurMemories: %s</string>
+    <string name="share_code_title">Отправить код</string>
+
+    <string name="default_user">Пользователь</string>
+    <string name="photo_updated">Фото обновлено</string>
+    <string name="error_generic">Ошибка: %s</string>
+
+    <string name="delete_account_title">Удалить аккаунт?</string>
+    <string name="delete_account_message">Это действие нельзя отменить. Все ваши данные будут удалены.</string>
+    <string name="account_deleted">Аккаунт удален</string>
+
+    <string name="confirm_deletion">Подтвердите удаление</string>
+    <string name="confirm_deletion_message">В целях безопасности подтвердите пароль.</string>
+    <string name="enter_current_password">Введите текущий пароль</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="wrong_password">Неверный пароль</string>
+
+    <string name="email_subject">Отзыв о приложении Our Memories</string>
+    <string name="no_email_app">Нет приложения почты</string>
+
+    <string name="error_enter_title">Введите название</string>
+    <string name="delete_wish_title">Удалить желание?</string>
+    <string name="delete_wish_confirm">Вы уверены, что хотите удалить \'%s\'?</string>
+
+    <string name="notification_new_event">Новое событие!</string>
+    <string name="notification_channel_name">Уведомления от партнера</string>
+
+    <string name="error_select_photo">Выберите хотя бы одно фото</string>
+    <string name="error_no_internet">Нет интернета</string>
+    <string name="memory_saved_points">Альбом сохранен! +%d очков</string>
+
+    <string name="album_deleted">Альбом удален</string>
+    <string name="error_user_not_found">Пользователь не найден</string>
+    <string name="error_invalid_credentials">Неверный Email или пароль</string>
+
+    <string name="daily_bonus_toast">Ежедневный бонус: +%d очков! 🌳</string>
+    <string name="your_partner_default_name">Ваша половинка</string>
+    <string name="hello_sent">Привет отправлен! ❤️</string>
+    <string name="error_send">Ошибка отправки</string>
+    <string name="error_status_update">Ошибка обновления статуса</string>
+    <string name="no_partner_for_widget">У вас нет партнера для отправки!</string>
+    <string name="partner_data_loading">Данные партнера еще не загружены. Попробуйте через секунду.</string>
+    <string name="partner_no_widget_hint">Если у партнёра нет виджета, попросите его добавить</string>
+    <string name="widget_photo_sent">Фото отправлено на виджет! ❤️</string>
+    <string name="error_db">Ошибка БД: %s</string>
+    <string name="error_upload">Ошибка загрузки: %s</string>
+    <string name="note_updated">Записка обновлена!</string>
+    <string name="error_save">Ошибка сохранения</string>
+    <string name="error_already_has_partner">У вас уже есть партнер!</string>
+    <string name="error_code_not_found">Код не найден</string>
+    <string name="error_cannot_connect">Невозможно подключиться</string>
+    <string name="error_network">Ошибка сети</string>
+    <string name="disconnected">Связь разорвана</string>
+
+    <string name="error_loading">Ошибка загрузки: %s</string>
+    <string name="photo_deleted">Фото удалено</string>
+    <string name="error_delete_photo">Ошибка удаления фото</string>
+    <string name="saved">Сохранено</string>
+    <string name="cover_updated">Обложка обновлена</string>
+    <string name="error_cover_update">Ошибка обновления обложки</string>
 
 
 </resources>

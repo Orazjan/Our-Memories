@@ -112,7 +112,8 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
                 viewModel.addWish(title, desc, category)
                 dialog.dismiss()
             } else {
-                Toast.makeText(context, "Введите название", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.error_enter_title), Toast.LENGTH_SHORT)
+                    .show()
             }
         }
 
@@ -127,10 +128,10 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
      * Открытие диалога для удаления желания.
      */
     private fun showDeleteDialog(item: WishItem) {
-        AlertDialog.Builder(requireContext()).setTitle("Удалить желание?")
-            .setMessage("Вы уверены, что хотите удалить '${item.title}'?")
-            .setPositiveButton("Удалить") { _, _ ->
+        AlertDialog.Builder(requireContext()).setTitle(getString(R.string.delete_wish_title))
+            .setMessage(getString(R.string.delete_wish_confirm, item.title))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 viewModel.deleteWish(item)
-            }.setNegativeButton("Отмена", null).show()
+            }.setNegativeButton(getString(R.string.cancel), null).show()
     }
 }

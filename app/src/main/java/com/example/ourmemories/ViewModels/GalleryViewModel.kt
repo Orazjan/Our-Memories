@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.ourmemories.Models.Memory
+import com.example.ourmemories.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -32,6 +33,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val context = application.applicationContext
     private val TAG = "GalleryViewModel"
 
     private val _memories = MutableLiveData<List<Memory>>()
@@ -183,11 +185,11 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
                 }
 
                 withContext(Dispatchers.Main) {
-                    _toastMessage.value = "Альбом удален"
+                    _toastMessage.value = context.getString(R.string.album_deleted)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    _toastMessage.value = "Ошибка: ${e.message}"
+                    _toastMessage.value = context.getString(R.string.error_generic, e.message)
                 }
             }
         }

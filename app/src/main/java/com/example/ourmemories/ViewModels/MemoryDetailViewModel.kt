@@ -1,9 +1,11 @@
 package com.example.ourmemories.ViewModels
 
+import android.app.Application
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.example.ourmemories.R
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -16,10 +18,10 @@ import com.google.firebase.storage.FirebaseStorage
  * - Сохранение изменений (редактирование текста и даты).
  * - Назначение новой обложки альбома.
  */
-class MemoryDetailViewModel : ViewModel() {
-
+class MemoryDetailViewModel(application: Application) : AndroidViewModel(application) {
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
+    private val context = application.applicationContext
 
     private val _images = MutableLiveData<List<String>?>()
     val images: LiveData<List<String>> = _images as LiveData<List<String>>
@@ -92,7 +94,7 @@ class MemoryDetailViewModel : ViewModel() {
                 }
             }
             .addOnFailureListener {
-                _toastMessage.value = "Ошибка загрузки: ${it.message}"
+                _toastMessage.value = context.getString(R.string.error_loading, it.message)
             }
     }
 
@@ -119,10 +121,10 @@ class MemoryDetailViewModel : ViewModel() {
                     _coverUrl.value = newCover
                 }
 
-                _toastMessage.value = "Фото удалено"
+                _toastMessage.value = context.getString(R.string.photo_deleted)
             }
             .addOnFailureListener {
-                _toastMessage.value = "Ошибка удаления фото"
+                _toastMessage.value = context.getString(R.string.error_delete_photo)
             }
     }
 
@@ -135,12 +137,12 @@ class MemoryDetailViewModel : ViewModel() {
         _coverUrl.value?.let { if (it.isNotEmpty()) imagesToDelete.add(it) }
 
         db.collection("memories").document(memoryId).delete().addOnSuccessListener {
-                _toastMessage.value = "Альбом удален"
-                _isDeleted.value = true
+            _toastMessage.value = context.getString(R.string.album_deleted)
+            _isDeleted.value = true
 
                 cleanupStorage(imagesToDelete.toList())
             }.addOnFailureListener {
-                _toastMessage.value = "Ошибка удаления: ${it.message}"
+            _toastMessage.value = context.getString(R.string.error_generic, it.message)
             }
     }
 
@@ -168,9 +170,9 @@ class MemoryDetailViewModel : ViewModel() {
             _title.value = newTitle
             _description.value = newDesc
             _timestamp.value = newTimestamp
-            _toastMessage.value = "Сохранено"
+            _toastMessage.value = context.getString(R.string.saved)
         }.addOnFailureListener {
-            _toastMessage.value = "Ошибка сохранения"
+            _toastMessage.value = context.getString(R.string.error_save)
         }
     }
 
@@ -181,10 +183,10 @@ class MemoryDetailViewModel : ViewModel() {
         db.collection("memories").document(memoryId).update("imageUrl", url)
             .addOnSuccessListener {
                 _coverUrl.value = url
-                _toastMessage.value = "Обложка обновлена"
+                _toastMessage.value = context.getString(R.string.cover_updated)
             }
             .addOnFailureListener {
-                _toastMessage.value = "Ошибка обновления обложки"
+                _toastMessage.value = context.getString(R.string.error_cover_update)
             }
     }
 

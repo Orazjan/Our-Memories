@@ -1,16 +1,18 @@
 package com.example.ourmemories.ViewModels
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.example.ourmemories.R
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
-class LoginViewModel : ViewModel() {
-
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val auth = FirebaseAuth.getInstance()
+    private val context = application.applicationContext
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -34,11 +36,14 @@ class LoginViewModel : ViewModel() {
                     _loginSuccess.value = true
                 } else {
                     val exception = task.exception
+                    // Используем ресурсы для локализации сообщений об ошибках
                     val errorMessage = when (exception) {
-                        is FirebaseAuthInvalidUserException -> "Пользователь не найден"
-                        is FirebaseAuthInvalidCredentialsException -> "Неверный Email или пароль"
-                        is FirebaseNetworkException -> "Нет интернета"
-                        else -> "Ошибка: ${exception?.localizedMessage}"
+                        is FirebaseAuthInvalidUserException -> context.getString(R.string.error_user_not_found)
+                        is FirebaseAuthInvalidCredentialsException -> context.getString(R.string.error_invalid_credentials)
+                        is FirebaseNetworkException -> context.getString(R.string.error_no_internet)
+                        else -> context.getString(
+                            R.string.error_generic, exception?.localizedMessage
+                        )
                     }
                     _toastMessage.value = errorMessage
                 }

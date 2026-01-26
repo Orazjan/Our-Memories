@@ -1,5 +1,6 @@
 package com.example.ourmemories.Fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -25,11 +26,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.ourmemories.Models.TreeInfo
 import com.example.ourmemories.Models.User
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MainViewModel
-import com.example.ourmemories.ViewModels.TreeInfo
 import com.example.ourmemories.Widget.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
@@ -84,16 +85,15 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val cardTree = view.findViewById<View>(R.id.cardTree)
         val tvHeart = view.findViewById<TextView>(R.id.tvHeartIcon)
         view.findViewById<View>(R.id.btnAction)?.setOnClickListener {
-            Log.d(TAG, "Нажата кнопка отправки на виджет")
             if (viewModel.currentUser.value?.partnerUid != null) {
                 try {
                     pickWidgetImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 } catch (e: Exception) {
                     Log.e(TAG, "Ошибка запуска пикера", e)
-                    Toast.makeText(context, "Не удалось открыть галерею", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.error_gallery), Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(context, "Сначала добавьте партнера", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.add_partner_first), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -142,11 +142,11 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         viewModel.isWidgetLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
-                btnSendWidget.text = "Идёт отправка..."
+                btnSendWidget.text = getString(R.string.sending_photo)
                 btnSendWidget.isEnabled = false
                 btnSendWidget.alpha = 0.7f
             } else {
-                btnSendWidget.text = "Отправить фото на виджет ❤️"
+                btnSendWidget.text = getString(R.string.send_photo_to_widget)
                 btnSendWidget.isEnabled = true
                 btnSendWidget.alpha = 1.0f
             }
@@ -162,13 +162,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         viewModel.partnerUser.observe(viewLifecycleOwner) { partner ->
             updatePartnerUI(view, partner)
             partner?.let { updateWidgetData(it, false) }
-        }
-
-        viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
-            msg?.let {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                viewModel.onToastShown()
-            }
         }
     }
 
@@ -189,7 +182,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         view.findViewById<TextView>(R.id.tvFridgeNote)?.text =
             user.sharedNote?.takeIf { it.isNotEmpty() }
-                ?: "Оставьте записку для любимого человека..."
+                ?: getString(R.string.leave_note_lovely_person)
 
         currentRelationshipTimestamp = user.relationshipDate
         updateDaysCounter(view, user.relationshipDate)
@@ -263,7 +256,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                     viewModel.updateStatus(text)
                     dialog.dismiss()
                 } else {
-                    Toast.makeText(context, "Максимум 20 символов", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.error_max_chars), Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -349,6 +343,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     /**
      * Показ меню опций партнёра
      */
+    @SuppressLint("StringFormatInvalid")
     private fun showPartnerOptions(
         partnerUid: String,
         partnerName: String,
@@ -367,7 +362,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.findViewById<TextView>(R.id.lastActive)?.text = if (date != null) {
             SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(date)
         } else {
-            "Неизвестно"
+            getString(R.string.unknown)
         }
 
         val ivAvatar = dialog.findViewById<ImageView>(R.id.userPhoto)
@@ -387,7 +382,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 .setMessage(getString(R.string.disconnect_partner_message, partnerName))
                 .setPositiveButton(getString(R.string.yes)) { _, _ ->
                     viewModel.disconnectPartner(partnerUid)
-                }.setNegativeButton("Нет", null).show()
+                }.setNegativeButton(getString(R.string.no), null).show()
         }
         dialog.show()
     }
@@ -398,14 +393,13 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private fun updateTreeUI(view: View, treeInfo: TreeInfo) {
         val ivTree = view.findViewById<ImageView>(R.id.ivTreeIcon)
 
-        if (ivTree == null) return
-
         ivTree.setImageResource(treeInfo.iconRes)
     }
 
     /**
      * Показ дерева любви
      */
+    @SuppressLint("StringFormatInvalid")
     private fun showTreeDialog() {
         val points = viewModel.currentUser.value?.treePoints ?: 0L
         val treeInfo = viewModel.getTreeInfo(points)
@@ -418,13 +412,17 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialogView.findViewById<ImageView>(R.id.ivTreeLarge).setImageResource(treeInfo.iconRes)
-        dialogView.findViewById<TextView>(R.id.tvLevelName).text = treeInfo.levelName
+
+        dialogView.findViewById<TextView>(R.id.tvLevelName).text =
+            getString(treeInfo.levelNameResId)
 
         val progressBar = dialogView.findViewById<ProgressBar>(R.id.pbLevelProgress)
-        progressBar.max = treeInfo.maxPoints
-        progressBar.progress = treeInfo.points.toInt()
+        progressBar.max = treeInfo.maxPoints.toInt()
+        progressBar.progress = treeInfo.currentPoints.toInt()
 
-        dialogView.findViewById<TextView>(R.id.tvPointsInfo).text = "${treeInfo.points} / ${treeInfo.maxPoints} очков"
+        val pointsText =
+            getString(R.string.points_format, treeInfo.currentPoints, treeInfo.maxPoints)
+        dialogView.findViewById<TextView>(R.id.tvPointsInfo).text = pointsText
 
         dialogView.findViewById<View>(R.id.btnClose).setOnClickListener {
             dialog.dismiss()
@@ -460,9 +458,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private fun showRelationshipDatePicker() {
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth)!!
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear)!!
+        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
+        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
+        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
 
         val calendar = Calendar.getInstance()
         if (currentRelationshipTimestamp > 0) calendar.timeInMillis = currentRelationshipTimestamp

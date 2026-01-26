@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -13,13 +14,14 @@
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingEnd="16dp">
+        android:paddingEnd="16dp"
+        tools:ignore="RtlSymmetry">
 
         <TextView
             android:id="@+id/tvDay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="26"
+            android:text="@string/_26"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:fontFamily="sans-serif-black"
@@ -29,7 +31,7 @@
             android:id="@+id/tvMonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ОКТ"
+            android:text="@string/oct"
             android:textColor="@color/text_secondary"
             android:textSize="12sp"
             android:textAllCaps="true"
@@ -73,7 +75,7 @@
                     android:id="@+id/tvTimelineTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Название"
+                    android:text="@string/naming"
                     android:textColor="@color/text_primary"
                     android:fontFamily="sans-serif-bold"
                     android:textSize="16sp"
@@ -85,7 +87,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Описание события..."
+                    android:text="@string/descriptionsss"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp"
                     android:ellipsize="end"

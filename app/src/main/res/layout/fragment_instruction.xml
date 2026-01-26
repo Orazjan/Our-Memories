@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
-            android:text="Помощь"
+            android:text="@string/instructions"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -56,7 +56,7 @@
                 android:layout_marginTop="5sp"
                 android:layout_marginBottom="8sp"
                 android:paddingHorizontal="24sp"
-                android:text="Частые вопросы"
+                android:text="@string/QA"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 android:textStyle="bold" />

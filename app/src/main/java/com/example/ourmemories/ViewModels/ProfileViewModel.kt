@@ -1,9 +1,11 @@
 package com.example.ourmemories.ViewModels
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.example.ourmemories.Models.User
+import com.example.ourmemories.R
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
@@ -17,10 +19,12 @@ import com.google.firebase.firestore.ListenerRegistration
  * - Загрузку данных пользователя и статистики (количество фото, желаний).
  * - Выход и удаление аккаунта.
  */
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
+    private val context = application.applicationContext
+
 
     private val _user = MutableLiveData<User?>()
     val user: LiveData<User?> = _user
@@ -124,7 +128,7 @@ class ProfileViewModel : ViewModel() {
             deleteAccount()
         }.addOnFailureListener {
             _actionState.value = ActionState.Idle
-            _toastMessage.value = "Неверный пароль"
+            _toastMessage.value = context.getString(R.string.wrong_password)
         }
     }
 

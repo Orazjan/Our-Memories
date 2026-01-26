@@ -33,7 +33,7 @@
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="2"
-            android:text="0"
+            android:text="@string/_0"
             android:textColor="@android:color/white"
             android:textSize="28sp"
             android:textStyle="bold" />
@@ -45,7 +45,7 @@
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="2"
-            android:text="дней вместе"
+            android:text="@string/days_together"
             android:textAllCaps="true"
             android:textColor="#E0E0E0"
             android:textSize="12sp" />

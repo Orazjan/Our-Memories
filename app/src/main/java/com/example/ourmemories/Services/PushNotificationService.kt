@@ -47,7 +47,9 @@ class PushNotificationService : FirebaseMessagingService() {
         }
 
         remoteMessage.notification?.let {
-            sendNotification(it.title ?: "Our Memories", it.body ?: "Новое событие!")
+            val title = it.title ?: getString(R.string.app_name)
+            val body = it.body ?: getString(R.string.notification_new_event)
+            sendNotification(title, body)
         }
     }
 
@@ -116,8 +118,9 @@ class PushNotificationService : FirebaseMessagingService() {
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelName = getString(R.string.notification_channel_name)
             val channel = NotificationChannel(
-                channelId, "Уведомления от партнера", NotificationManager.IMPORTANCE_HIGH
+                channelId, channelName, NotificationManager.IMPORTANCE_HIGH
             )
             notificationManager.createNotificationChannel(channel)
         }

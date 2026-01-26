@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
-            android:text="Редактирование"
+            android:text="@string/redactingg"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -81,7 +81,6 @@
                         android:visibility="gone"/>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Значок камеры (Edit badge) -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
@@ -100,11 +99,10 @@
                 </androidx.cardview.widget.CardView>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Поля ввода -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Ваше имя"
+                android:text="@string/your_name"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 android:layout_marginBottom="8dp"/>
@@ -114,7 +112,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_input_field"
-                android:hint="Имя"
+                android:hint="@string/name"
                 android:inputType="textPersonName|textCapWords"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
@@ -123,7 +121,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Дата рождения"
+                android:text="@string/choose_your_date_of_birthday"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 android:layout_marginBottom="8dp"/>
@@ -135,7 +133,7 @@
                 android:background="@drawable/bg_input_field"
                 android:clickable="true"
                 android:focusable="false"
-                android:hint="ДД.ММ.ГГГГ"
+                android:hint="@string/dd_mm_yyyy"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
                 android:drawableEnd="@android:drawable/ic_menu_my_calendar"
@@ -148,7 +146,7 @@
                 android:layout_height="56dp"
                 android:background="@drawable/bg_input_field"
                 android:backgroundTint="@color/baby_pink"
-                android:text="Сохранить изменения"
+                android:text="@string/save_changes"
                 android:textAllCaps="false"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"

@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
-            android:text="Список желаний"
+            android:text="@string/list_of_wishes"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -65,7 +65,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Список пуст.\nДобавьте первое желание!"
+                    android:text="@string/list_is_empty"
                     android:textAlignment="center"
                     android:textColor="@color/text_secondary"
                     android:textSize="16sp" />

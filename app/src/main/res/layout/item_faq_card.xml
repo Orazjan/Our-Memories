@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="sans-serif-medium"
-                android:text="Как подключить партнера?"
+                android:text="@string/how_connect"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp" />
 
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="4dp"
-                android:text="Перейдите в профиль, скопируйте свой код и отправьте партнеру. Партнер должен нажать кнопку '+' на главном экране и ввести этот код."
+                android:text="@string/how_add_partner_instructions"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
         </LinearLayout>

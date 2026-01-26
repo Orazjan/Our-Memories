@@ -67,7 +67,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/tiktokshrift"
-                            android:text="0"
+                            android:text="@string/_0"
                             android:textColor="@color/heart_red"
                             android:textSize="48sp"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -91,7 +91,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="50dp"
-                            android:text="❤️"
+                            android:text="@string/ic_heart"
                             android:textSize="40sp"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -158,7 +158,7 @@
                             android:fontFamily="@font/tiktokshrift"
                             android:maxWidth="100dp"
                             android:maxLines="1"
-                            android:text="Я"
+                            android:text="@string/me"
                             android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold"
@@ -290,7 +290,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="Записка для тебя"
+                                android:text="@string/note_for_you"
                                 android:textColor="#FBC02D"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -301,7 +301,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-medium"
-                            android:text="Оставьте записку для любимого человека..."
+                            android:text="@string/leave_note_lovely_person"
                             android:textColor="#5D4037"
                             android:textSize="18sp" />
 
@@ -345,7 +345,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Дерево Любви"
+                                android:text="@string/tree_of_love"
                                 android:textColor="@color/text_derevo"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
@@ -353,7 +353,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Нажмите чтобы увидеть детально"
+                                android:text="@string/press_for_looking_for"
                                 android:textColor="@color/secondary_text_derevo"
                                 android:textSize="14sp" />
 
@@ -378,7 +378,7 @@
                     android:background="@drawable/bg_button_accent"
                     android:elevation="4dp"
                     android:stateListAnimator="@null"
-                    android:text="Отправить фото на виджет❤️"
+                    android:text="@string/send_photo_to_widget"
                     android:textAllCaps="false"
                     android:textColor="#5D3A40"
                     android:textSize="18sp"
@@ -424,7 +424,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Отправляем фото..."
+                    android:text="@string/sending_photo"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -433,7 +433,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Обновляем виджет партнера"
+                    android:text="@string/updating_widget"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
 

@@ -76,7 +76,7 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             viewModel.removeImage(position)
         }, onImageClick = { position ->
             viewModel.setCover(position)
-            Toast.makeText(context, "Обложка выбрана", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, getString(R.string.cover_selected), Toast.LENGTH_SHORT).show()
         })
 
         rvSelectedImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -90,7 +90,7 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             try {
                 pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             } catch (e: Exception) {
-                Toast.makeText(context, "Не удалось открыть галерею", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.error_gallery), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -151,11 +151,14 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
      * Отображение диалога подтверждения выхода.
      */
     private fun showExitConfirmationDialog() {
-        AlertDialog.Builder(requireContext()).setTitle("Отменить создание?")
-            .setMessage("Все несохраненные данные будут потеряны.")
-            .setPositiveButton("Выйти") { _, _ ->
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.cancel_creation_title))
+            .setMessage(getString(R.string.cancel_creation_message))
+            .setPositiveButton(getString(R.string.exit)) { _, _ ->
                 parentFragmentManager.popBackStack()
-            }.setNegativeButton("Остаться", null).show()
+            }
+            .setNegativeButton(getString(R.string.stay), null)
+            .show()
     }
 
     /**
@@ -165,10 +168,10 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         val dialog = BottomSheetDialog(requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
 
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth)!!
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear)!!
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate)!!
+        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
+        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
+        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
+        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate) ?: return
 
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = initialTimestamp

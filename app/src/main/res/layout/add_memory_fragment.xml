@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
-            android:text="Новое воспоминание"
+            android:text="@string/new_memory"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -80,7 +80,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Нажмите, чтобы\nвыбрать фото (можно несколько)"
+                        android:text="@string/tap_to_choose"
                         android:textAlignment="center"
                         android:textColor="@color/text_secondary" />
                 </LinearLayout>
@@ -101,7 +101,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp"
-                android:text="Название события"
+                android:text="@string/name_of_memory"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold" />
 
@@ -110,7 +110,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_input_field"
-                android:hint="Например: Наша поездка"
+                android:hint="@string/example_our_delivery"
                 android:inputType="textCapSentences"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
@@ -121,7 +121,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
-                android:text="Когда это было?"
+                android:text="@string/when_it_was_were"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold" />
 
@@ -147,7 +147,7 @@
                     android:background="@null"
                     android:clickable="true"
                     android:focusable="false"
-                    android:hint="Выберите дату"
+                    android:hint="@string/choose_date"
                     android:textColor="@color/text_primary"
                     android:textColorHint="@color/text_secondary" />
             </LinearLayout>
@@ -157,7 +157,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
-                android:text="Описание (необязательно)"
+                android:text="@string/description"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold" />
 
@@ -167,7 +167,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_field"
                 android:gravity="top"
-                android:hint="Пару слов об этом дне..."
+                android:hint="@string/some_word_about_this"
                 android:inputType="textMultiLine|textCapSentences"
                 android:minHeight="100dp"
                 android:padding="16dp"
@@ -181,7 +181,7 @@
                 android:layout_marginTop="32dp"
                 android:background="@drawable/bg_input_field"
                 android:backgroundTint="@color/baby_pink"
-                android:text="Сохранить воспоминание"
+                android:text="@string/save_memory"
                 android:textAllCaps="false"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
@@ -214,7 +214,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Сохраняем фото..."
+                android:text="@string/saving"
                 android:textColor="@color/white"
                 android:layout_marginTop="8dp"/>
         </LinearLayout>

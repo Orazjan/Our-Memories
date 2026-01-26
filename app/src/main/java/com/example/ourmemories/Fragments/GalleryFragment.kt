@@ -165,8 +165,8 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
      */
     private fun showSortMenu(anchor: View) {
         val popup = PopupMenu(context, anchor)
-        popup.menu.add(0, 1, 0, "Сначала новые")
-        popup.menu.add(0, 2, 1, "Сначала старые")
+        popup.menu.add(0, 1, 0, getString(R.string.first_new))
+        popup.menu.add(0, 2, 1, getString(R.string.first_old))
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> viewModel.setSortOrder(true)

@@ -72,7 +72,7 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             }
             if (name.isEmpty()) {
                 shakeView(etName)
-                etName.error = "Введите имя"
+                etName.error = getString(R.string.your_name)
                 hasError = true
             }
             if (date.isEmpty()) {
@@ -98,11 +98,11 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             if (isLoading) {
                 loadingOverlay.visibility = View.VISIBLE
                 btnSave.isEnabled = false
-                btnSave.text = "Сохранение..."
+                btnSave.text = getString(R.string.saving_data)
             } else {
                 loadingOverlay.visibility = View.GONE
                 btnSave.isEnabled = true
-                btnSave.text = "Готово"
+                btnSave.text = getString(R.string.ready)
             }
         }
 

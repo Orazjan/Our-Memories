@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
+import com.example.ourmemories.Models.TreeInfo
 import com.example.ourmemories.Models.User
 import com.example.ourmemories.R
 import com.google.firebase.auth.FirebaseAuth
@@ -18,13 +19,6 @@ import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 /**
- * Информация о состоянии "Дерева Любви".
- */
-data class TreeInfo(
-    val levelName: String, val iconRes: Int, val points: Long, val maxPoints: Int
-)
-
-/**
  * ViewModel для главного экрана [com.example.ourmemories.Fragments.MainFragment].
  */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -32,6 +26,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val storage = FirebaseStorage.getInstance()
+    private val context = application.applicationContext
 
     private val TAG = "MainViewModel"
 
@@ -134,7 +129,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             db.collection("users").document(user.uid).update(
                 mapOf("treePoints" to FieldValue.increment(dailyBonus), "lastDailyDate" to today)
             ).addOnSuccessListener {
-                _toastMessage.value = "Ежедневный бонус: +$dailyBonus очков! 🌳"
+                _toastMessage.value = context.getString(R.string.daily_bonus_toast, dailyBonus)
             }
         }
     }
@@ -144,7 +139,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun sendHello(partnerUid: String) {
         val myUid = auth.currentUser?.uid ?: return
-        val myName = _currentUser.value?.name ?: "Ваша половинка"
+        val myName =
+            _currentUser.value?.name ?: context.getString(R.string.your_partner_default_name)
 
         val actionData = hashMapOf(
             "type" to "hello",
@@ -155,10 +151,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         db.collection("actions").add(actionData).addOnSuccessListener {
-                _toastMessage.value = "Привет отправлен! ❤️"
-            }.addOnFailureListener {
-                _toastMessage.value = "Ошибка отправки"
-            }
+            _toastMessage.value = context.getString(R.string.hello_sent)
+        }.addOnFailureListener {
+            _toastMessage.value = context.getString(R.string.error_send)
+        }
     }
 
     /**
@@ -169,7 +165,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val updates =
             if (status == null) mapOf("status" to FieldValue.delete()) else mapOf("status" to status)
         db.collection("users").document(uid).update(updates)
-            .addOnFailureListener { _toastMessage.value = "Ошибка обновления статуса" }
+        _toastMessage.value = context.getString(R.string.error_status_update)
     }
 
     /**
@@ -179,20 +175,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val partnerUid = _currentUser.value?.partnerUid
 
         if (partnerUid == null) {
-            _toastMessage.value = "У вас нет партнера для отправки!"
+            _toastMessage.value = context.getString(R.string.no_partner_for_widget)
             return
         }
 
         val partner = _partnerUser.value
 
         if (partner == null) {
-            _toastMessage.value = "Данные партнера еще не загружены. Попробуйте через секунду."
+            _toastMessage.value = context.getString(R.string.partner_data_loading)
             return
         }
 
         if (!partner.hasWidget) {
-            _toastMessage.value = "Если у партнёра нет виджета, попросите его добавить"
-
+            _toastMessage.value = context.getString(R.string.partner_no_widget_hint)
         }
 
         _isWidgetLoading.value = true
@@ -204,15 +199,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 db.collection("users").document(partnerUid)
                     .update("widgetImageUrl", url.toString()).addOnSuccessListener {
                         _isWidgetLoading.value = false
-                        _toastMessage.value = "Фото отправлено на виджет! ❤️"
+                        _toastMessage.value = context.getString(R.string.widget_photo_sent)
                     }.addOnFailureListener {
                         _isWidgetLoading.value = false
-                        _toastMessage.value = "Ошибка БД: ${it.message}"
+                        _toastMessage.value = context.getString(R.string.error_db, it.message)
                     }
             }
         }.addOnFailureListener {
             _isWidgetLoading.value = false
-            _toastMessage.value = "Ошибка загрузки: ${it.message}"
+            _toastMessage.value = context.getString(R.string.error_upload, it.message)
         }
     }
 
@@ -228,8 +223,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             batch.update(db.collection("users").document(currentPartnerUid!!), updates)
         }
         batch.commit()
-            .addOnSuccessListener { _toastMessage.value = "Записка обновлена!" }
-            .addOnFailureListener { _toastMessage.value = "Ошибка сохранения" }
+            .addOnSuccessListener { _toastMessage.value = context.getString(R.string.note_updated) }
+            .addOnFailureListener { _toastMessage.value = context.getString(R.string.error_save) }
     }
 
     /**
@@ -257,19 +252,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Логика определения уровня дерева.
      */
     fun getTreeInfo(points: Long): TreeInfo {
-        val (levelName, iconRes, maxPoints) = when {
-            points >= 1000 -> Triple("Древо Вечной Любви", R.drawable.ic_tree_stage_10, 2000)
-            points >= 800 -> Triple("Волшебное Дерево", R.drawable.ic_tree_stage_9, 1000)
-            points >= 650 -> Triple("Изобильное Дерево", R.drawable.ic_tree_stage_8, 800)
-            points >= 500 -> Triple("Древо Любви", R.drawable.ic_tree_stage_7, 650)
-            points >= 350 -> Triple("Цветущее Дерево", R.drawable.ic_tree_stage_6, 500)
-            points >= 200 -> Triple("Взрослое Дерево", R.drawable.ic_tree_stage_5, 350)
-            points >= 100 -> Triple("Крепкое Дерево", R.drawable.ic_tree_stage_4, 200)
-            points >= 50 -> Triple("Молодое Дерево", R.drawable.ic_tree_stage_3, 100)
-            points >= 20 -> Triple("Саженец", R.drawable.ic_tree_stage_2, 50)
-            else -> Triple("Росток", R.drawable.ic_tree_stage_1, 20)
+        val (nameResId, iconRes, maxPoints) = when {
+            points >= 1000 -> Triple(
+                R.string.tree_stage_eternal, R.drawable.ic_tree_stage_10, 2000L
+            )
+
+            points >= 800 -> Triple(R.string.tree_stage_magic, R.drawable.ic_tree_stage_9, 1000L)
+            points >= 650 -> Triple(R.string.tree_stage_abundant, R.drawable.ic_tree_stage_8, 800L)
+            points >= 500 -> Triple(R.string.tree_stage_love, R.drawable.ic_tree_stage_7, 650L)
+            points >= 350 -> Triple(R.string.tree_stage_blooming, R.drawable.ic_tree_stage_6, 500L)
+            points >= 200 -> Triple(R.string.tree_stage_mature, R.drawable.ic_tree_stage_5, 350L)
+            points >= 150 -> Triple(R.string.tree_stage_strong, R.drawable.ic_tree_stage_4, 200L)
+            points >= 100 -> Triple(R.string.tree_stage_young, R.drawable.ic_tree_stage_3, 150L)
+            points >= 50 -> Triple(R.string.tree_stage_sapling, R.drawable.ic_tree_stage_2, 50L)
+            else -> Triple(R.string.tree_stage_sprout, R.drawable.ic_tree_stage_1, 20L)
         }
-        return TreeInfo(levelName, iconRes, points, maxPoints)
+
+        return TreeInfo(nameResId, iconRes, points, maxPoints)
     }
 
     /**
@@ -317,18 +316,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun connectPartner(code: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         val myUid = auth.currentUser?.uid ?: return
         if (currentPartnerUid != null) {
-            onFailure("У вас уже есть партнер!")
+            onFailure(context.getString(R.string.error_cannot_connect))
             return
         }
         db.collection("users").whereEqualTo("partnerCode", code).get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
-                    onFailure("Код не найден")
+                    onFailure(context.getString(R.string.error_code_not_found))
                 } else {
                     val partnerDoc = documents.documents[0]
                     val partnerUid = partnerDoc.id
                     if (partnerUid == myUid || !partnerDoc.getString("partnerUid").isNullOrEmpty()) {
-                        onFailure("Невозможно подключиться")
+                        onFailure(context.getString(R.string.error_cannot_connect))
                         return@addOnSuccessListener
                     }
                     val myRef = db.collection("users").document(myUid)
@@ -336,10 +335,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     db.runBatch { batch ->
                         batch.update(myRef, "partnerUid", partnerUid)
                         batch.update(partnerRef, "partnerUid", myUid)
-                    }.addOnSuccessListener { onSuccess() }
-                        .addOnFailureListener { onFailure(it.message ?: "Ошибка") }
+                    }.addOnSuccessListener { onSuccess() }.addOnFailureListener {
+                        onFailure(
+                            context.getString(
+                                R.string.error_generic, it.message
+                            )
+                        )
+                    }
                 }
-            }.addOnFailureListener { onFailure(it.message ?: "Ошибка сети") }
+            }.addOnFailureListener { onFailure(context.getString(R.string.error_network)) }
+
     }
 
     /**
@@ -352,7 +357,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         db.runBatch { batch ->
             batch.update(myRef, "partnerUid", null)
             batch.update(partnerRef, "partnerUid", null)
-        }.addOnSuccessListener { _toastMessage.value = "Связь разорвана" }
+        }.addOnSuccessListener {
+            _toastMessage.value = context.getString(R.string.disconnected)
+        }
     }
 
     fun onToastShown() {

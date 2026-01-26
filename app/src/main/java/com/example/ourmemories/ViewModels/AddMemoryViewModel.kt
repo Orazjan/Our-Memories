@@ -12,6 +12,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.ourmemories.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -43,6 +44,7 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
     private val contentResolver = application.contentResolver
+    private val context = application.applicationContext
 
     private val _selectedUris = MutableLiveData<MutableList<Uri>>(mutableListOf())
     val selectedUris: LiveData<MutableList<Uri>> = _selectedUris
@@ -123,11 +125,11 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         val user = auth.currentUser
 
         if (uris.isNullOrEmpty()) {
-            _toastMessage.value = "Выберите хотя бы одно фото"
+            _toastMessage.value = context.getString(R.string.error_select_photo)
             return
         }
         if (title.isEmpty()) {
-            _toastMessage.value = "Введите название"
+            _toastMessage.value = context.getString(R.string.error_enter_title)
             return
         }
         if (user == null) return
@@ -168,15 +170,20 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
 
                 withContext(Dispatchers.Main) {
                     _isLoading.value = false
-                    _toastMessage.value = "Альбом сохранен! +$pointsToAdd очков"
+                    _toastMessage.value =
+                        context.getString(R.string.memory_saved_points, pointsToAdd)
                     _saveSuccess.value = true
                 }
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     _isLoading.value = false
-                    val msg = if (e.message?.contains("Unable to resolve host") == true) "Нет интернета" else e.localizedMessage
-                    _toastMessage.value = "Ошибка: $msg"
+                    val msg = if (e.message?.contains("Unable to resolve host") == true) {
+                        context.getString(R.string.error_no_internet)
+                    } else {
+                        e.localizedMessage ?: "Unknown error"
+                    }
+                    _toastMessage.value = context.getString(R.string.error_generic, msg)
                 }
             }
         }
