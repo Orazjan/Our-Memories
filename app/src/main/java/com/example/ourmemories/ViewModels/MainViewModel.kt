@@ -2,16 +2,14 @@ package com.example.ourmemories.ViewModels
 
 import android.app.Application
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
-import com.example.ourmemories.Models.TreeInfo
 import com.example.ourmemories.Models.User
 import com.example.ourmemories.R
+import com.example.ourmemories.Models.UserRepository
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
@@ -21,11 +19,15 @@ import java.util.concurrent.TimeUnit
 /**
  * ViewModel для главного экрана [com.example.ourmemories.Fragments.MainFragment].
  */
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+class MainViewModel(
+    application: Application, private val repository: UserRepository
+) : AndroidViewModel(application) {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val storage = FirebaseStorage.getInstance()
+    private var localBonusProcessedDate: Long = 0
+
     private val context = application.applicationContext
 
     private val TAG = "MainViewModel"
@@ -46,13 +48,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Список доступных эмодзи-статусов.
      */
     val availableStatuses = listOf("😴", "💼", "❤️", "🏠", "🎮", "🍔", "☕", "🎉", "💪", "🎧", "🚗", "📚")
-
-    /**
-     * Реактивный расчет состояния дерева на основе очков текущего пользователя.
-     */
-    val treeInfo: LiveData<TreeInfo?> = currentUser.map { user ->
-        user?.let { getTreeInfo(it.treePoints) }
-    }
 
     /**
      * Реактивный расчет количества дней вместе.
@@ -79,18 +74,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun startListening() {
         val myUid = auth.currentUser?.uid ?: return
         myListener?.remove()
-        myListener = db.collection("users").document(myUid).addSnapshotListener { document, e ->
-            if (e != null) {
-                Log.e(TAG, "Listen failed.", e)
-                return@addSnapshotListener
-            }
-            if (document != null && document.exists()) {
-                val user = document.toObject(User::class.java)?.copy(uid = myUid)
-                _currentUser.value = user
-                if (user != null) {
-                    checkDailyBonus(user)
-                    handlePartnerListener(user.partnerUid)
-                }
+        myListener = repository.listenToUser(myUid) { user ->
+            _currentUser.value = user
+            if (user != null) {
+                checkDailyBonus(user)
+                handlePartnerListener(user.partnerUid)
             }
         }
     }
@@ -102,13 +90,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (partnerUid == currentPartnerUid && partnerListener != null) return
         currentPartnerUid = partnerUid
         partnerListener?.remove()
+
         if (partnerUid != null) {
-            partnerListener = db.collection("users").document(partnerUid).addSnapshotListener { doc, e ->
-                if (e != null) return@addSnapshotListener
-                if (doc != null && doc.exists()) {
-                    val partner = doc.toObject(User::class.java)?.copy(uid = partnerUid)
-                    _partnerUser.value = partner
-                }
+            partnerListener = repository.listenToUser(partnerUid) { partner ->
+                _partnerUser.value = partner
             }
         } else {
             _partnerUser.value = null
@@ -118,19 +103,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Проверка ежедневного бонуса.
      */
-    private fun checkDailyBonus(user: User) {
+    fun checkDailyBonus(user: User) {
         val today = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
+        if (localBonusProcessedDate == today) return
+
         if (user.lastDailyDate < today) {
+            localBonusProcessedDate = today
             val dailyBonus = 10L
-            db.collection("users").document(user.uid).update(
-                mapOf("treePoints" to FieldValue.increment(dailyBonus), "lastDailyDate" to today)
-            ).addOnSuccessListener {
-                _toastMessage.value = context.getString(R.string.daily_bonus_toast, dailyBonus)
-            }
+
+            repository.updateTreePoints(user.uid, dailyBonus, today)
+
+            _toastMessage.value = "Ежедневный бонус: +$dailyBonus очков! 🌳"
+        } else {
+            localBonusProcessedDate = today
         }
     }
 
@@ -162,10 +153,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun updateStatus(status: String?) {
         val uid = auth.currentUser?.uid ?: return
-        val updates =
-            if (status == null) mapOf("status" to FieldValue.delete()) else mapOf("status" to status)
-        db.collection("users").document(uid).update(updates)
-        _toastMessage.value = context.getString(R.string.error_status_update)
+        repository.updateStatus(uid, status) {
+            _toastMessage.value = context.getString(R.string.error_status_update)
+        }
+    }
+
+    /**
+     * Обновление статуса виджета.
+     */
+    fun updateWidgetStatus(hasWidget: Boolean) {
+        val uid = auth.currentUser?.uid ?: return
+        repository.updateWidgetStatus(uid, hasWidget)
     }
 
     /**
@@ -186,7 +184,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        if (!partner.hasWidget) {
+        if (partner.hasWidget == false) {
             _toastMessage.value = context.getString(R.string.partner_no_widget_hint)
         }
 
@@ -216,15 +214,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun updateSharedNote(text: String) {
         val uid = auth.currentUser?.uid ?: return
-        val updates = hashMapOf<String, Any>("sharedNote" to text)
-        val batch = db.batch()
-        batch.update(db.collection("users").document(uid), updates)
-        if (currentPartnerUid != null) {
-            batch.update(db.collection("users").document(currentPartnerUid!!), updates)
-        }
-        batch.commit()
-            .addOnSuccessListener { _toastMessage.value = context.getString(R.string.note_updated) }
-            .addOnFailureListener { _toastMessage.value = context.getString(R.string.error_save) }
+        val partnerUid = _currentUser.value?.partnerUid
+
+        repository.updateSharedNote(
+            uid,
+            partnerUid,
+            text,
+            onSuccess = { _toastMessage.value = context.getString(R.string.note_updated) },
+            onFailure = { _toastMessage.value = context.getString(R.string.error_db, partnerUid) })
     }
 
     /**
@@ -249,65 +246,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Логика определения уровня дерева.
-     */
-    fun getTreeInfo(points: Long): TreeInfo {
-        val (nameResId, iconRes, maxPoints) = when {
-            points >= 1000 -> Triple(
-                R.string.tree_stage_eternal, R.drawable.ic_tree_stage_10, 2000L
-            )
-
-            points >= 800 -> Triple(R.string.tree_stage_magic, R.drawable.ic_tree_stage_9, 1000L)
-            points >= 650 -> Triple(R.string.tree_stage_abundant, R.drawable.ic_tree_stage_8, 800L)
-            points >= 500 -> Triple(R.string.tree_stage_love, R.drawable.ic_tree_stage_7, 650L)
-            points >= 350 -> Triple(R.string.tree_stage_blooming, R.drawable.ic_tree_stage_6, 500L)
-            points >= 200 -> Triple(R.string.tree_stage_mature, R.drawable.ic_tree_stage_5, 350L)
-            points >= 150 -> Triple(R.string.tree_stage_strong, R.drawable.ic_tree_stage_4, 200L)
-            points >= 100 -> Triple(R.string.tree_stage_young, R.drawable.ic_tree_stage_3, 150L)
-            points >= 50 -> Triple(R.string.tree_stage_sapling, R.drawable.ic_tree_stage_2, 50L)
-            else -> Triple(R.string.tree_stage_sprout, R.drawable.ic_tree_stage_1, 20L)
-        }
-
-        return TreeInfo(nameResId, iconRes, points, maxPoints)
-    }
-
-    /**
-     * Получение знака зодиака по дате рождения.
-     */
-    fun getZodiacSign(dateString: String?): String {
-        if (dateString.isNullOrEmpty()) return ""
-        try {
-            val parts = dateString.split(".")
-            val day = parts[0].toInt()
-            val month = parts[1].toInt()
-
-            return when (month) {
-                1 -> if (day < 20) "♑" else "♒"
-                2 -> if (day < 19) "♒" else "♓"
-                3 -> if (day < 21) "♓" else "♈"
-                4 -> if (day < 20) "♈" else "♉"
-                5 -> if (day < 21) "♉" else "♊"
-                6 -> if (day < 21) "♊" else "♋"
-                7 -> if (day < 23) "♋" else "♌"
-                8 -> if (day < 23) "♌" else "♍"
-                9 -> if (day < 23) "♍" else "♎"
-                10 -> if (day < 23) "♎" else "♏"
-                11 -> if (day < 22) "♏" else "♐"
-                12 -> if (day < 22) "♐" else "♑"
-                else -> ""
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return ""
-        }
-    }
-
-    /**
      * Обновление последнего времени активности пользователя.
      */
     fun updateLastActive() {
         val uid = auth.currentUser?.uid ?: return
-        db.collection("users").document(uid).update("lastActive", System.currentTimeMillis())
+        repository.updateLastActive(uid)
     }
 
     /**

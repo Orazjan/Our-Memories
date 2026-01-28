@@ -263,7 +263,7 @@
                     android:focusable="true"
                     android:background="@drawable/bg_button_accent"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="#FFF9C4"
+                    app:cardBackgroundColor="@color/for_notes"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp">
 
@@ -291,7 +291,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
                                 android:text="@string/note_for_you"
-                                android:textColor="#FBC02D"
+                                android:textColor="@color/for_text_notes"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -302,7 +302,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/leave_note_lovely_person"
-                            android:textColor="#5D4037"
+                            android:textColor="@color/for_text_notes_secondary"
                             android:textSize="18sp" />
 
                     </LinearLayout>

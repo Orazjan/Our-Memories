@@ -1,6 +1,8 @@
 package com.example.ourmemories.Fragments
 
 import android.annotation.SuppressLint
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -28,9 +30,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Models.TreeInfo
 import com.example.ourmemories.Models.User
+import com.example.ourmemories.Models.UserRepository
+import com.example.ourmemories.Models.Zodiac
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MainViewModel
+import com.example.ourmemories.ViewModels.MainViewModelFactory
 import com.example.ourmemories.Widget.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
@@ -56,6 +61,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private val updateHandler = Handler(Looper.getMainLooper())
     private var currentRelationshipTimestamp: Long = 0
 
+
     private val updateRunnable = Runnable {
         updateDaysUI()
         scheduleNextUpdate()
@@ -63,14 +69,37 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val repository = UserRepository()
         prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        val factory = MainViewModelFactory(requireActivity().application, repository)
+        viewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]
 
         viewModel.updateLastActive()
 
         setupUI(view)
         observeViewModel(view)
         scheduleNextUpdate()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        try {
+            val context = requireContext()
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val ids = appWidgetManager.getAppWidgetIds(
+                ComponentName(
+                    context, CoupleWidget::class.java
+                )
+            )
+            val hasWidget = ids.isNotEmpty()
+
+            viewModel.updateWidgetStatus(hasWidget)
+            viewModel.updateLastActive()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -161,6 +190,20 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
         viewModel.partnerUser.observe(viewLifecycleOwner) { partner ->
             updatePartnerUI(view, partner)
+            if (partner == null) {
+                updateDaysCounter(view, 0)
+            }
+            if (partner != null) {
+                updateWidgetData(partner, false)
+            } else {
+
+                updateDaysCounter(view, 0)
+
+                prefs.edit().putString("partner_name", null).putString("partner_photo", null)
+                    .putString("partner_status", null).apply()
+
+                updateWidget()
+            }
             partner?.let { updateWidgetData(it, false) }
         }
     }
@@ -177,7 +220,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             user.status
         )
 
-        val treeInfo = viewModel.getTreeInfo(user.treePoints)
+        val treeInfo = TreeInfo.getTreeInfo(user.treePoints)
         updateTreeUI(view, treeInfo)
 
         view.findViewById<TextView>(R.id.tvFridgeNote)?.text =
@@ -350,6 +393,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         partnerPhoto: String?,
         partnerDr: String?, points: Long, date: Date?
     ) {
+        val zodiac = Zodiac.getZodiacSign(partnerDr)
+
         val dialog = BottomSheetDialog(
             requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
         )
@@ -358,7 +403,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.findViewById<TextView>(R.id.userName)?.text = partnerName
         dialog.findViewById<TextView>(R.id.drPartner)?.text = partnerDr
         dialog.findViewById<TextView>(R.id.tvtreepoints)?.text = points.toString()
-        dialog.findViewById<TextView>(R.id.zodiac)?.text = viewModel.getZodiacSign(partnerDr)
+        dialog.findViewById<TextView>(R.id.zodiac)?.text = zodiac
         dialog.findViewById<TextView>(R.id.lastActive)?.text = if (date != null) {
             SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(date)
         } else {
@@ -399,10 +444,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     /**
      * Показ дерева любви
      */
-    @SuppressLint("StringFormatInvalid")
     private fun showTreeDialog() {
         val points = viewModel.currentUser.value?.treePoints ?: 0L
-        val treeInfo = viewModel.getTreeInfo(points)
+        val treeInfo = TreeInfo.getTreeInfo(points)
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_tree_info, null)
         val dialog = AlertDialog.Builder(requireContext())
@@ -431,6 +475,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         dialog.show()
     }
 
+    /**
+     * Обновление счетчика дней
+     */
     private fun updateDaysCounter(view: View, date: Long) {
         view.findViewById<TextView>(R.id.tvDaysCount).text = calculateDays(date).toString()
     }
@@ -514,6 +561,13 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 .apply()
         }
         context?.let { CoupleWidget.sendRefreshBroadcast(it) }
+    }
+
+    /**
+     * Обновление виджета
+     */
+    private fun updateWidget() {
+        CoupleWidget.sendRefreshBroadcast(requireContext())
     }
 
     override fun onDestroyView() {

@@ -6,7 +6,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -102,18 +101,11 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
             "#FAD1E6"
         )
 
-        val currentNightMode = AppCompatDelegate.getDefaultNightMode()
-        val isSystemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val isDarkNow =
-            currentNightMode == AppCompatDelegate.MODE_NIGHT_YES || (currentNightMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM && isSystemDark)
-        val themeTitle =
-            if (isDarkNow) getString(R.string.theme_light) else getString(R.string.theme_dark)
-
         setupMenuCard(
-            view.findViewById(R.id.cardTheme),
-            themeTitle,
-            android.R.drawable.ic_menu_view,
-            colorHex = if (isDarkNow) "#BDE0FE" else "#EEEEEE"
+            view.findViewById(R.id.settings),
+            getString(R.string.settings),
+            android.R.drawable.ic_menu_manage,
+            colorHex = "#BDE0FE"
         )
 
         setupMenuCard(
@@ -149,7 +141,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         view.findViewById<View>(R.id.userPhoto)?.setOnClickListener { pickImage.launch("image/*") }
         view.findViewById<View>(R.id.cardEditProfile)?.setOnClickListener { openEditProfile() }
         view.findViewById<View>(R.id.instructions)?.setOnClickListener { openInstruction() }
-        view.findViewById<View>(R.id.cardTheme)?.setOnClickListener { toggleTheme() }
+        view.findViewById<View>(R.id.settings)?.setOnClickListener { openSettings() }
         view.findViewById<View>(R.id.cardLogout)
             ?.setOnClickListener { viewModel.logout(); restartApp() }
         view.findViewById<View>(R.id.cardDeleteAccount)
@@ -243,24 +235,6 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     }
 
     /**
-     * Переключение темы приложения.
-     */
-    private fun toggleTheme() {
-        val currentMode = AppCompatDelegate.getDefaultNightMode()
-        val newMode = when (currentMode) {
-            AppCompatDelegate.MODE_NIGHT_YES -> AppCompatDelegate.MODE_NIGHT_NO
-            AppCompatDelegate.MODE_NIGHT_NO -> AppCompatDelegate.MODE_NIGHT_YES
-            else -> {
-                val uiMode = requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-                if (uiMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES
-            }
-        }
-
-        prefs.edit().putInt("theme_mode", newMode).apply()
-        AppCompatDelegate.setDefaultNightMode(newMode)
-    }
-
-    /**
      * Установка карточки меню.
      */
     private fun setupMenuCard(card: View?, title: String, iconRes: Int, colorHex: String) {
@@ -274,6 +248,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
             iconCard?.setCardBackgroundColor(colorHex.toColorInt())
         } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -419,6 +394,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         try {
             startActivity(intent)
         } catch (e: Exception) {
+            e.printStackTrace()
             Toast.makeText(context, getString(R.string.no_email_app), Toast.LENGTH_SHORT).show()
         }
     }
@@ -433,6 +409,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         try {
             startActivity(browserIntent)
         } catch (e: Exception) {
+            e.printStackTrace()
             Toast.makeText(context, getString(R.string.no_email_app), Toast.LENGTH_SHORT).show()
         }
     }
@@ -444,6 +421,11 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         val intent = Intent(requireActivity(), EnterActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
+    }
+
+    private fun openSettings() {
+        (activity as? MainActivity)?.replaceFragment(SettingsFragment())
+
     }
 
     /**
@@ -459,6 +441,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
                 requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
             versionName = pInfo.versionName
         } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         tv.text = "V $versionName"
@@ -477,4 +460,3 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
         }
     }
 }
-

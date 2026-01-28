@@ -2,14 +2,19 @@ package com.example.ourmemories
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -21,6 +26,8 @@ import com.example.ourmemories.Fragments.GalleryFragment
 import com.example.ourmemories.Fragments.MainFragment
 import com.example.ourmemories.Fragments.ProfileFragment
 import com.example.ourmemories.Fragments.WishlistFragment
+import com.example.ourmemories.Utils.AutoStartPermissionHelper
+import com.example.ourmemories.Utils.LocaleHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -62,14 +69,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        LocaleHelper.applyLanguage(this)
         val prefs = getSharedPreferences("AppCache", Context.MODE_PRIVATE)
         val savedThemeMode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+
 
         if (AppCompatDelegate.getDefaultNightMode() != savedThemeMode) {
             AppCompatDelegate.setDefaultNightMode(savedThemeMode)
         }
 
+        checkAutoStartPermission(prefs)
         hideSystemUI()
         checkNotificationPermission()
         updateFcmToken()
@@ -103,6 +112,48 @@ class MainActivity : AppCompatActivity() {
         if (supportFragmentManager.findFragmentById(R.id.fragment_container) == null) {
             bottomNav.selectedItemId = R.id.nav_home
         }
+    }
+
+    /**
+     * Проверка разрешения на автозапуск приложения.
+     */
+    private fun checkAutoStartPermission(prefs: SharedPreferences) {
+        val isAsked = prefs.getBoolean("autostart_asked", false)
+
+        if (!isAsked) {
+            val intent = AutoStartPermissionHelper.getAutoStartPermissionIntent(this)
+            if (intent != null) {
+                showAutoStartDialog(intent, prefs)
+            }
+        }
+    }
+
+    /**
+     * Показ диалога для автозапуска приложения.
+     */
+    private fun showAutoStartDialog(intent: Intent, prefs: SharedPreferences) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_autostart_permission, null)
+        val btnSettings = dialogView.findViewById<Button>(R.id.btnSettings)
+        val btnLater = dialogView.findViewById<TextView>(R.id.btnLater)
+        val btnDontAsk = dialogView.findViewById<TextView>(R.id.btnDontAsk)
+
+        val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+
+        btnSettings.setOnClickListener {
+            startActivity(intent)
+            prefs.edit().putBoolean("autostart_asked", true).apply()
+            dialog.dismiss()
+        }
+        btnLater.setOnClickListener {
+            dialog.dismiss()
+        }
+        btnDontAsk.setOnClickListener {
+            prefs.edit().putBoolean("autostart_asked", true).apply()
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     /**

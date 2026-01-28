@@ -206,7 +206,7 @@
                 android:layout_marginTop="12dp" />
 
             <include
-                android:id="@+id/cardTheme"
+                android:id="@+id/settings"
                 layout="@layout/item_settings_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

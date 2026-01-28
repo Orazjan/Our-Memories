@@ -11,8 +11,9 @@
 
     <color name="white">#2D2D2D</color>
 
-    <color name="baby_pink">#682842</color> 
-    
+    <color name="baby_pink">#682842</color>
+    <color name="prozrachno">#00000000</color>
+
     <color name="light_blue">#0d91d9</color>
 
     <color name="heart_red">#E57373</color>
@@ -22,4 +23,9 @@
 
     <color name="nav_icon_active">#D0BCFF</color>
     <color name="nav_icon_inactive">#8E8E93</color>
+
+
+    <color name="for_notes">#FFF9C4</color>
+    <color name="for_text_notes">#FBC02D</color>
+    <color name="for_text_notes_secondary">#5D4037</color>
 </resources>

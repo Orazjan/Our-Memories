@@ -5,7 +5,6 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import com.example.ourmemories.Models.User
 import com.example.ourmemories.ViewModels.MainViewModel
-import com.example.ourmemories.ViewModels.TreeInfo
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -77,23 +76,6 @@ class MainViewModelTest {
         assertEquals(0L, result)
     }
 
-    @Test
-    fun `treeInfo updates reactively when user points change`() {
-        val observer = mockk<Observer<TreeInfo?>>(relaxed = true)
-        viewModel.treeInfo.observeForever(observer)
-
-        val userWithPoints = User(uid = testUid, treePoints = 150)
-
-        val field = viewModel.javaClass.getDeclaredField("_currentUser")
-        field.isAccessible = true
-        (field.get(viewModel) as androidx.lifecycle.MutableLiveData<User?>).value = userWithPoints
-
-        verify {
-            observer.onChanged(match {
-                it?.levelName == "Крепкое Дерево" && it.maxPoints == 200
-            })
-        }
-    }
 
     @Test
     fun `daysTogether updates reactively when relationshipDate changes`() {

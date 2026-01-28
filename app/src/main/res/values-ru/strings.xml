@@ -281,5 +281,21 @@
     <string name="cover_updated">Обложка обновлена</string>
     <string name="error_cover_update">Ошибка обновления обложки</string>
 
+    <string name="autostart_title">Работа в фоне</string>
+    <string name="autostart_message">Чтобы виджет обновлялся, а уведомления приходили вовремя, разрешите приложению «Автозапуск» в настройках.</string>
+    <string name="autostart_settings">Настроить</string>
+    <string name="autostart_later">Позже</string>
+    <string name="autostart_dont_ask">Больше не спрашивать</string>
+    <string name="autostart_not_supported">Автозапуск не поддерживается</string>
+    <string name="menu_auto_start">Настройка автозапуска</string>
+    <string name="settings">Настройки приложения</string>
+    <string name="view_of_app">Внешний вид</string>
+    <string name="system">Система</string>
+    <string name="language">Язык</string>
+
+    <string name="russian">Русский</string>
+    <string name="kyrgyz">Кыргыз тили</string>
+    <string name="englisg">English</string>
+    <string name="turkmen">Türkmen dili</string>
 
 </resources>

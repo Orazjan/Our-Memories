@@ -3,8 +3,6 @@ package com.example.ourmemories.Services
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -12,14 +10,23 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
-import com.example.ourmemories.Widget.CoupleWidget
+import com.example.ourmemories.Workers.WidgetUpdateWorker
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import java.util.concurrent.TimeUnit
 
 class PushNotificationService : FirebaseMessagingService() {
 
@@ -35,13 +42,22 @@ class PushNotificationService : FirebaseMessagingService() {
             val imageUrl = data["imageUrl"]
             if (imageUrl != null) {
                 Log.d("FCM", "Получено фото для виджета: $imageUrl")
+                val inputData = Data.Builder().putString("imageUrl", imageUrl).build()
+
+                val constraints =
+                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
 
-                val prefs = getSharedPreferences("AppCache", Context.MODE_PRIVATE)
-                prefs.edit().putString("widget_live_photo", imageUrl).apply()
+                val request =
+                    OneTimeWorkRequestBuilder<WidgetUpdateWorker>().setInputData(inputData)
+                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                        .setConstraints(constraints).setBackoffCriteria(
+                            BackoffPolicy.LINEAR, 10, TimeUnit.SECONDS
+                        ).build()
 
-
-                forceUpdateWidget()
+                WorkManager.getInstance(this).enqueueUniqueWork(
+                    "widget_update_work", ExistingWorkPolicy.REPLACE, request
+                )
             }
             return
         }
@@ -50,30 +66,6 @@ class PushNotificationService : FirebaseMessagingService() {
             val title = it.title ?: getString(R.string.app_name)
             val body = it.body ?: getString(R.string.notification_new_event)
             sendNotification(title, body)
-        }
-    }
-
-    /**
-     * Прямое обновление виджета без использования Broadcast.
-     * Это надежнее работает из фонового сервиса.
-     */
-    private fun forceUpdateWidget() {
-        try {
-            val appWidgetManager = AppWidgetManager.getInstance(this)
-            val componentName = ComponentName(this, CoupleWidget::class.java)
-            val ids = appWidgetManager.getAppWidgetIds(componentName)
-
-            if (ids.isNotEmpty()) {
-                Log.d("FCM", "Найдено виджетов для обновления: ${ids.size}")
-                for (id in ids) {
-                    CoupleWidget.updateAppWidget(this, appWidgetManager, id)
-                }
-            } else {
-                Log.d("FCM", "Виджеты не найдены на рабочем столе")
-            }
-        } catch (e: Exception) {
-            Log.e("FCM", "Ошибка обновления виджета", e)
-            e.printStackTrace()
         }
     }
 

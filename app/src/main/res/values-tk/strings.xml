@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Our Memories</string>
+    <string name="password">Açar sözi</string>
+    <string name="enter_your_email">Email giriziň</string>
+    <string name="welcome_back">Hoş geldiňiz</string>
+    <string name="email">Email</string>
+    <string name="reset_email_sent">Poçtaňyzy barlaň %s</string>
+    <string name="forgot_password">Açar sözüni unutdyňyzmy?</string>
+    <string name="login">Girmek</string>
+    <string name="don_t_have_an_account">Hasabyňyz ýokmy?</string>
+    <string name="sign_up">Agza bolmak</string>
+    <string name="enter_your_password">Açar sözüni giriziň</string>
+    <string name="profile">Profil</string>
+    <string name="days_together">Bile bolan günler</string>
+    <string name="gallery">Galereýa</string>
+    <string name="no_worries_enter_your_email_below_and_we_ll_send_you_a_link_to_reset_it">Alada etmäň! Biz size açar sözüni dikeltmek üçin salgy ibereris.</string>
+    <string name="send_reset_link">Salgyny ibermek</string>
+    <string name="back_to_log_in">Girmek sahypasyna dolanmak</string>
+    <string name="your_partner_password">Ýoldaşyňyzyň kody:</string>
+    <string name="main">Baş sahypa</string>
+    <string name="choose_version">Wersiýany saýlaň</string>
+    <string name="save_your_best_moments">Iň gowy pursatlary \n saklaň</string>
+    <string name="Create_shared_albums">Umumy albomlary dörediň, wakalar senenamasyny ýörediň we ýatlamalary ýoldaşyňyz bilen paýlaşyň.</string>
+    <string name="start">Başlamak</string>
+    <string name="next">Indiki</string>
+    <string name="choose_your_date_of_birthday">Doglan güni saýlaň</string>
+    <string name="select">Saýlamak</string>
+    <string name="connecting_accaunt">Hasaplary birikdirmek</string>
+    <string name="enter_your_partner_s_8_digit_code_it_s_located_in_their_profile">Ýoldaşyňyzyň 8 sanly koduny giriziň (onuň profilinde ýerleşýär).</string>
+    <string name="for_example_12345678">meselem, 12345678</string>
+    <string name="connect">Birikdirmek</string>
+    <string name="invite">Çagymak</string>
+    <string name="Searching">Gözlenýär...</string>
+    <string name="Code_not_found">Kod tapylmady</string>
+    <string name="connected">Birikdirildi</string>
+    <string name="new_memory">Täze ýatlama</string>
+    <string name="tap_to_choose">Surat saýlamak üçin basyň\n(birnäçesini saýlap bolýar)</string>
+    <string name="name_of_memory">Wakanyň ady</string>
+    <string name="example_our_delivery">Meselem: Biziň syýahatymyz</string>
+    <string name="when_it_was_were">Haçan boldy?</string>
+    <string name="choose_date">Senäni saýlaň</string>
+    <string name="description">Düşündiriş (hökmany däl)</string>
+    <string name="some_word_about_this">Bu gün barada birnäçe söz...</string>
+    <string name="save_memory">Ýatlamany saklamak</string>
+    <string name="saving">Suratlar saklanýar...</string>
+    <string name="saving_data">Saklanýar...</string>
+    <string name="loading">Ýüklenýär...</string>
+    <string name="day_of_birthday">Doglan güni:</string>
+    <string name="score_love_tree">"Söýgi Agajynyn" utuklary:</string>
+    <string name="activity">Işjeňlik:</string>
+    <string name="uprawleniye_svyaz">Birikmäni dolandyrmak</string>
+    <string name="say_hello">❤️ Salam ibermek</string>
+    <string name="disconnect_partner">💔 Ýoldaşy aýyrmak</string>
+    <string name="new_wish">Täze isleg</string>
+    <string name="naming">Ady</string>
+    <string name="what_would_you_like">Näme isleýärsiňiz?</string>
+    <string name="category">Kategoriýa</string>
+    <string name="differents">✨ Dürli</string>
+    <string name="cinema">🎬 Kino</string>
+    <string name="food">🍔 Iýmit</string>
+    <string name="buy">🛒 Satyn almak</string>
+    <string name="travel">✈️ Syýahat</string>
+    <string name="dating">❤️ Duşuşyk</string>
+    <string name="descriptionsss">Düşündiriş</string>
+    <string name="detailing">Giňişleýin (hökmany däl)</string>
+    <string name="cancel">Ýatyrmak</string>
+    <string name="add">Goşmak</string>
+    <string name="redacting">Üýtgetmek</string>
+    <string name="namings">Ady</string>
+    <string name="data">20.05.2024</string>
+    <string name="notes">Hat</string>
+    <string name="leave_notes">Hat galdyrmak...</string>
+    <string name="set_status">Status goýmak</string>
+    <string name="write_something">Bir zatlar ýazyň...</string>
+    <string name="ok">OK</string>
+    <string name="choose_emoji">Ýa-da emoji saýlaň:</string>
+    <string name="return_status">Statusy aýyrmak</string>
+    <string name="tree_of_love">Söýgi Agajy</string>
+    <string name="name_of_tree">Şaha</string>
+    <string name="score">120 / 200 utuk</string>
+    <string name="how_grow_tree">Agajy nädip ösdürmeli?</string>
+    <string name="everyDay_bonus">Gündelik girmek: +10</string>
+    <string name="loading_photo">Surat ýüklemek: +5</string>
+    <string name="understand">Düşnükli</string>
+    <string name="ic_photo">📸</string>
+    <string name="ic_sun">☀️</string>
+    <string name="redactingg">Üýtgedilýär</string>
+    <string name="your_name">Siziň adyňyz</string>
+    <string name="name">Ady</string>
+    <string name="dd_mm_yyyy">GG.AA.ÝÝÝÝ</string>
+    <string name="save_changes">Üýtgetmeleri saklamak</string>
+    <string name="instructions">Gollanma</string>
+    <string name="QA">Sorag-jogap</string>
+    <string name="delete">Pozmak</string>
+    <string name="edit">Üýtgetmek</string>
+    <string name="list_of_wishes">Islegler sanawy</string>
+    <string name="list_is_empty">Sanaw boş.\nIlkinji islegiňizi goşuň!</string>
+    <string name="searching">Gözlenýär...</string>
+    <string name="empty_add_first_photo">Bu ýer boş.\nIlkinji suraty goşuň!</string>
+    <string name="_26">26</string>
+    <string name="oct">OKT</string>
+    <string name="how_connect">Ýoldaşy nädip birikdirmeli?</string>
+    <string name="how_add_partner_instructions">Profile giriň, kody nusgalaň we ýoldaşyňyza iberiň. Ýoldaşyňyz baş ekrandaky \'+\' düwmesine basyp, bu kody girizmelidir.</string>
+    <string name="oblozka">Daşy (Obloşka)</string>
+    <string name="setting_item">Nyşan suraty</string>
+    <string name="ic_star">✨</string>
+    <string name="_0">0</string>
+    <string name="ic_heart">❤️</string>
+    <string name="me">Men</string>
+    <string name="note_for_you">Size hat</string>
+    <string name="leave_note_lovely_person">Söýgüliňize hat ýazyň...</string>
+    <string name="press_for_looking_for">Görmek üçin basyň</string>
+    <string name="send_photo_to_widget">Wije surat ibermek ❤️</string>
+    <string name="sending_photo">Surat iberilýär...</string>
+    <string name="updating_widget">Ýoldaşyň wiji täzelenýär</string>
+    <string name="moments">Pursatlar</string>
+    <string name="wishes">Islegler</string>
+    <string name="account">Hasap</string>
+    <string name="information">Maglumat</string>
+    <string name="deystviye">Hereketler</string>
+    <string name="create_account">Hasap döretmek</string>
+    <string name="start_to_save_memory">Ýatlamalary saklap başlaň</string>
+    <string name="registrating">Agza bolmak</string>
+    <string name="have_account">Hasabyňyz barmy?</string>
+    <string name="full_profile">Profili doldurmak</string>
+    <string name="tell_about_yourself">Özüňiz barada aýdyp beriň</string>
+    <string name="choose_photo">Surat goşmak</string>
+    <string name="ready">Taýyn</string>
+    <string name="history_of_update">Täzelenme taryhy</string>
+    <string name="build_2025_12_14">Build 2025.12.14</string>
+
+    <string name="tree_stage_eternal">Baky söýgi agajy</string>
+    <string name="tree_stage_magic">Jadyly Agaç</string>
+    <string name="tree_stage_abundant">Bereketli Agaç</string>
+    <string name="tree_stage_love">Söýgi agajy</string>
+    <string name="tree_stage_blooming">Güllän Agaç</string>
+    <string name="tree_stage_mature">Ýetişen Agaç</string>
+    <string name="tree_stage_strong">Güýçli Agaç</string>
+    <string name="tree_stage_young">Ýaş Agaç</string>
+    <string name="tree_stage_sapling">Nahal</string>
+    <string name="tree_stage_sprout">Filiz</string>
+
+    <string name="error_gallery">Galereýany açyp bolmady</string>
+    <string name="add_partner_first">Ilki bilen ýoldaş goşuň</string>
+    <string name="error_max_chars">Iň köp 20 belligi</string>
+    <string name="unknown">Nämälim</string>
+    <string name="disconnect_partner_title">Ýoldaşy aýyrmak?</string>
+    <string name="disconnect_partner_message">Siz hakykatdanam ýoldaşy aýyrmak isleýärsiňizmi?</string>
+    <string name="yes">Hawa</string>
+    <string name="no">Ýok</string>
+    <string name="points_format">%1$d / %2$d utuk</string>
+    <string name="cover_selected">Daşy saýlandy</string>
+    <string name="cancel_creation_title">Üýtgetmeleri ýatyrmak?</string>
+    <string name="cancel_creation_message">Saklanmadyk maglumatlar ýiter.</string>
+    <string name="exit">Çykmak</string>
+    <string name="stay">Galmak</string>
+    <string name="first_new">Ilki täzeleri</string>
+    <string name="first_old">Ilki köoneleri</string>
+
+    <string name="faq_connect_partner_q">Ýoldaşy nädip birikdirmeli?</string>
+    <string name="faq_connect_partner_a">1. Profil -> Kody paýlaşmak.\n2. Kody ýoldaşyňyza iberiň.\n3. Ýoldaşyňyz Baş ekranda \"Çagymak\" düwmesine basyp, kody girizmelidir.</string>
+
+    <string name="faq_love_tree_q">Söýgi agajy nädip işleýär?</string>
+    <string name="faq_love_tree_a">Agaç siz programmany ulananyňyzda ösýär. Gündelik girmek üçin +10 utuk, surat ýüklemek üçin +5 utuk berilýär. Jemi 10 ösüş tapgyry bar!</string>
+
+    <string name="faq_add_widget_q">Wiji nädip goşmaly?</string>
+    <string name="faq_add_widget_a">Ekranyň boş ýerine basyp duruň -> Wijetler -> Our Memories tapyň -> Wiji ekrana süýräň. Ol awtomatiki täzelener.</string>
+
+    <string name="faq_photos_loading_q">Suratlar ýüklenmeýärmi?</string>
+    <string name="faq_photos_loading_a">Internedi barlaň. Eger Xiaomi/Poco ulanýan bolsaňyz, sazlamalardan \"Awtoçykaryş\" (Autostart) we internet rugsadyny barlaň.</string>
+
+    <string name="faq_widget_bug_q">Näme üçin wijet täzelenmeýär?</string>
+    <string name="faq_widget_bug_a">Eger Xiaomi (MIUI), Huawei ýa-da Samsung bolsa:\n\n1. Sazlamalar -> Programmalar -> Our Memories açyň.\n2. \"Awtoçykaryşy\" (Autostart) açyň.\n3. \"Batareýa tygşytlamak\" bölüminde \"Çäklendirmesiz\" saýlaň.\n\nUlgam energiýany tygşytlamak üçin wiji saklap biler.</string>
+
+    <string name="faq_earn_points_q">Utuklary nädip toplamaly?</string>
+    <string name="faq_earn_points_a">Agaç söýgi bilen iýmitlenýär!\n\n☀️ Gündelik girmek: +10 utuk\n📸 Surat ýüklemek: +5 utuk\n\nJemi 10 ewolýusiýa tapgyry bar.</string>
+
+    <string name="faq_wishes_q">Islegleri nädip dolandyrmaly?</string>
+    <string name="faq_wishes_a">👉 Ýerine ýetirildi diýip bellemek üçin basyň.\n🛑 Pozmak üçin basyp duruň.</string>
+
+    <string name="faq_change_cover_q">Albomyň suratyny nädip üýtgetmeli?</string>
+    <string name="faq_change_cover_a">Albomy açyň. Halan suratyňyzy basyp duruň. Menýudan \"Daşy (Obloşka) etmek\" saýlaň.</string>
+
+    <string name="faq_fridge_q">\"Sowadyjydaky hat\" näme?</string>
+    <string name="faq_fridge_a">Bu umumy ýazuw meýdançasy. Ol ýere ýazan tekstiňiz derrew ýoldaşyňyza görünýär. \"Kutman taň!\" ýa-da \"Süýt satyn al\" diýip ýazmak üçin amatly.</string>
+
+    <string name="faq_privacy_q">Biziň suratlarymyzy başgalar görüp bilermi?</string>
+    <string name="faq_privacy_a">Ýok. Siziň ýatlamalaryňyz, sanawlaryňyz we hatlaryňyz diňe ikinize elýeterli. Maglumatlar howpsuz saklanýar.</string>
+
+    <string name="delete_album_title">Albomy pozmak?</string>
+    <string name="delete_album_message">Bu hereketi yzyna gaýtaryp bolmaýar. Albomdaky ähli suratlar pozular.</string>
+
+    <string name="choose_action">Hereketi saýlaň</string>
+    <string name="action_make_cover">Daşy (Obloşka) etmek</string>
+    <string name="action_delete_photo">Suraty pozmak</string>
+
+    <string name="set_cover_title">Daşy (Obloşka) edersiňizmi?</string>
+    <string name="set_cover_message">Bu surat lentada görkeziler.</string>
+
+    <string name="delete_photo_title">Bu suraty pozmak?</string>
+    <string name="delete_photo_message">Surat albomdan düýbünden pozular.</string>
+
+    <string name="error_empty_title">Ady boş bolmaly däl</string>
+
+    <string name="menu_edit_profile">Profili üýtgetmek</string>
+    <string name="menu_share_code">Kody paýlaşmak</string>
+    <string name="menu_contact_dev">Işläp düzüjä ýazmak</string>
+    <string name="menu_privacy">Gizlinlik syýasaty</string>
+    <string name="menu_instructions">Gollanma</string>
+    <string name="menu_logout">Çykmak</string>
+    <string name="menu_delete_account">Hasaby pozmak</string>
+
+    <string name="theme_light">Ýagty tema</string>
+    <string name="theme_dark">Garaňky tema</string>
+
+    <string name="code_not_created">Kod döredilmedi</string>
+    <string name="code_loading">Kod ýüklenýär...</string>
+    <string name="code_copied">Kod nusgalandy</string>
+    <string name="share_code_text">OurMemories programmasyndaky kodum: %s</string>
+    <string name="share_code_title">Kody ibermek</string>
+
+    <string name="default_user">Ulanyjy</string>
+    <string name="photo_updated">Surat täzelendi</string>
+    <string name="error_generic">Ýalňyşlyk: %s</string>
+
+    <string name="delete_account_title">Hasaby pozmak?</string>
+    <string name="delete_account_message">Bu hereketi yzyna gaýtaryp bolmaýar. Ähli maglumatlar pozular.</string>
+    <string name="account_deleted">Hasap pozuldy</string>
+
+    <string name="confirm_deletion">Pozmagy tassyklamak</string>
+    <string name="confirm_deletion_message">Howpsuzlyk üçin açar sözüňizi tassyklaň.</string>
+    <string name="enter_current_password">Häzirki açar sözüňizi ýazyň</string>
+    <string name="confirm">Tassyklamak</string>
+    <string name="wrong_password">Açar sözi nädogry</string>
+
+    <string name="email_subject">Our Memories programmasy barada pikir</string>
+    <string name="no_email_app">Poçta programmasy tapylmady</string>
+
+    <string name="error_enter_title">Adyny ýazyň</string>
+    <string name="delete_wish_title">Islegi pozmak?</string>
+    <string name="delete_wish_confirm">\'%s\' islegini hakykatdanam pozmak isleýärsiňizmi?</string>
+
+    <string name="notification_new_event">Täze waka!</string>
+    <string name="notification_channel_name">Ýoldaşyň habarnamalary</string>
+
+    <string name="error_select_photo">Iň bolmanda bir surat saýlaň</string>
+    <string name="error_no_internet">Internet ýok</string>
+    <string name="memory_saved_points">Albom saklandy! +%d utuk</string>
+
+    <string name="album_deleted">Albom pozuldy</string>
+    <string name="error_user_not_found">Ulanyjy tapylmady</string>
+    <string name="error_invalid_credentials">Email ýa-da açar sözi nädogry</string>
+
+    <string name="daily_bonus_toast">Gündelik bonus: +%d utuk! 🌳</string>
+    <string name="your_partner_default_name">Siziň ýoldaşyňyz</string>
+    <string name="hello_sent">Salam iberildi! ❤️</string>
+    <string name="error_send">Ibekmekde ýalňyşlyk boldy</string>
+    <string name="error_status_update">Statusy täzelemekde ýalňyşlyk boldy</string>
+    <string name="no_partner_for_widget">Ibermek üçin ýoldaş ýok!</string>
+    <string name="partner_data_loading">Ýoldaşyň maglumatlary ýüklenýär. Az wagtdan soň gaýtadan synanyşyň.</string>
+    <string name="partner_no_widget_hint">Eger ýoldaşda wijet ýok bolsa, ony goşmagyny haýyş ediň.</string>
+    <string name="widget_photo_sent">Surat wije iberildi! ❤️</string>
+    <string name="error_db">MAGLUMAT BAZASY ýalňyşlygy: %s</string>
+    <string name="error_upload">Ýükleme ýalňyşlygy: %s</string>
+    <string name="note_updated">Hat täzelendi!</string>
+    <string name="error_save">Saklamakda ýalňyşlyk</string>
+    <string name="error_already_has_partner">Sizde eýýäm ýoldaş bar!</string>
+    <string name="error_code_not_found">Kod tapylmady</string>
+    <string name="error_cannot_connect">Birikdirmek mümkin däl</string>
+    <string name="error_network">Tor ýalňyşlygy</string>
+    <string name="disconnected">Aýryldy</string>
+
+    <string name="error_loading">Ýükleme ýalňyşlygy: %s</string>
+    <string name="photo_deleted">Surat pozuldy</string>
+    <string name="error_delete_photo">Suraty pozmakda ýalňyşlyk</string>
+    <string name="saved">Saklandy</string>
+    <string name="cover_updated">Daşy (Obloşka) täzelendi</string>
+    <string name="error_cover_update">Daşyny (Obloşka) täzelemekde ýalňyşlyk</string>
+
+    <string name="autostart_title">Fonda işlemek</string>
+    <string name="autostart_message">Wijet täzelenip, habarnamalar wagtynda gelmegi üçin, sazlamalardan "Awtoçykaryşa" (Autostart) rugsat beriň.</string>
+    <string name="autostart_settings">Sazlamak</string>
+    <string name="autostart_later">Soňrak</string>
+    <string name="autostart_dont_ask">Gaýtadan sorama</string>
+    <string name="autostart_not_supported">Awtoçykaryş goldanmaýar</string>
+    <string name="menu_auto_start">Awtoçykaryş sazlamalary</string>
+    <string name="settings">Programma sazlamalary</string>
+    <string name="view_of_app">Daşky görnüşi</string>
+    <string name="system">Ulgam</string>
+    <string name="language">Dil</string>
+
+    <string name="russian">Русский</string>
+    <string name="kyrgyz">Кыргыз тили</string>
+    <string name="englisg">English</string>
+    <string name="turkmen">Türkmen dili</string>
+
+</resources>
