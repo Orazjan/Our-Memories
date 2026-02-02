@@ -13,10 +13,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ourmemories.Factory.MemoryDetailFactory
 import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.MemoryDetailRepository
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MemoryDetailViewModel
 import com.google.android.material.appbar.AppBarLayout
@@ -30,7 +32,11 @@ import kotlin.math.abs
 
 class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
-    private lateinit var viewModel: MemoryDetailViewModel
+    private val viewModel: MemoryDetailViewModel by viewModels {
+        val application = requireActivity().application
+        val repository = MemoryDetailRepository()
+        MemoryDetailFactory(application, repository)
+    }
     
     private var imagesList = mutableListOf<String>()
     private lateinit var adapter: AlbumPhotosAdapter
@@ -60,7 +66,6 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this)[MemoryDetailViewModel::class.java]
 
         val args = arguments ?: return
         val memoryId = args.getString("id") ?: return

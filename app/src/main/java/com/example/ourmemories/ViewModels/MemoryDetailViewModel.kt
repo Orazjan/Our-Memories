@@ -1,26 +1,24 @@
 package com.example.ourmemories.ViewModels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.ourmemories.R
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.example.ourmemories.Repositories.MemoryDetailRepository
 
 /**
- * ViewModel для экрана деталей альбома [MemoryDetailFragment].
+ * ViewModel для экрана деталей альбома [com.example.ourmemories.Fragments.MemoryDetailFragment].
  *
  * Отвечает за:
  * - Загрузку данных альбома (заголовок, описание, фото) из Firestore.
  * - Сохранение изменений (редактирование текста и даты).
  * - Назначение новой обложки альбома.
  */
-class MemoryDetailViewModel(application: Application) : AndroidViewModel(application) {
-    private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
+class MemoryDetailViewModel(
+    application: Application,
+    private val repository: MemoryDetailRepository,
+) : AndroidViewModel(application) {
     private val context = application.applicationContext
 
     private val _images = MutableLiveData<List<String>?>()
@@ -72,30 +70,16 @@ class MemoryDetailViewModel(application: Application) : AndroidViewModel(applica
     private fun loadDataFromFirestore() {
         if (memoryId.isEmpty()) return
 
-        db.collection("memories").document(memoryId).get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    document.getString("title")?.let { _title.value = it }
-                    document.getString("description")?.let { _description.value = it }
-                    document.getLong("timestamp")?.let { _timestamp.value = it }
+        repository.getMemoryDetail(memoryId, onSuccess = { title, desc, time, cover, imgList ->
+            _title.value = title
+            _description.value = desc
+            _timestamp.value = time
+            _coverUrl.value = cover
+            _images.value = imgList
+        }, onFailure = { errorMsg ->
+            _toastMessage.value = errorMsg
+        })
 
-                    val fetchedCover = document.getString("imageUrl")
-                    fetchedCover?.let { _coverUrl.value = it }
-
-                    val list = document.get("images") as? List<String>
-
-                    if (list != null && list.isNotEmpty()) {
-                        _images.value = list
-                    } else {
-                        if (!fetchedCover.isNullOrEmpty()) {
-                            _images.value = listOf(fetchedCover)
-                        }
-                    }
-                }
-            }
-            .addOnFailureListener {
-                _toastMessage.value = context.getString(R.string.error_loading, it.message)
-            }
     }
 
     /**
@@ -103,29 +87,21 @@ class MemoryDetailViewModel(application: Application) : AndroidViewModel(applica
      */
     fun deletePhoto(url: String) {
         if (memoryId.isEmpty()) return
-
-        db.collection("memories").document(memoryId)
-            .update("images", FieldValue.arrayRemove(url))
-            .addOnSuccessListener {
-                try {
-                    storage.getReferenceFromUrl(url).delete()
-                } catch (e: Exception) { }
-
+        repository.deletePhoto(memoryId, url, onSuccess = {
                 val currentList = _images.value?.toMutableList() ?: mutableListOf()
                 currentList.remove(url)
                 _images.value = currentList
 
                 if (_coverUrl.value == url) {
                     val newCover = currentList.firstOrNull() ?: ""
-                    db.collection("memories").document(memoryId).update("imageUrl", newCover)
                     _coverUrl.value = newCover
+                    repository.updateCoverUrl(memoryId, newCover)
                 }
 
                 _toastMessage.value = context.getString(R.string.photo_deleted)
-            }
-            .addOnFailureListener {
-                _toastMessage.value = context.getString(R.string.error_delete_photo)
-            }
+        }, onFailure = {
+            _toastMessage.value = context.getString(R.string.error_delete_photo)
+        })
     }
 
     /**
@@ -136,58 +112,41 @@ class MemoryDetailViewModel(application: Application) : AndroidViewModel(applica
         _images.value?.let { imagesToDelete.addAll(it) }
         _coverUrl.value?.let { if (it.isNotEmpty()) imagesToDelete.add(it) }
 
-        db.collection("memories").document(memoryId).delete().addOnSuccessListener {
+        repository.deleteAlbum(memoryId, onSuccess = {
             _toastMessage.value = context.getString(R.string.album_deleted)
             _isDeleted.value = true
-
-                cleanupStorage(imagesToDelete.toList())
-            }.addOnFailureListener {
+        }, onFailure = {
             _toastMessage.value = context.getString(R.string.error_generic, it.message)
-            }
-    }
 
-    private fun cleanupStorage(urls: List<String>) {
-        urls.forEach { url ->
-            try {
-                storage.getReferenceFromUrl(url).delete()
-            } catch (e: Exception) {
-                Log.e("MemoryDetailViewModel", "Не удалось удалить фото: $url", e)
-            }
-        }
+        })
     }
 
     /**
      * Сохраняет отредактированные данные альбома.
      */
     fun saveChanges(newTitle: String, newDesc: String, newTimestamp: Long) {
-        db.collection("memories").document(memoryId).update(
-            mapOf(
-                "title" to newTitle,
-                "description" to newDesc,
-                "timestamp" to newTimestamp
-            )
-        ).addOnSuccessListener {
+        repository.saveChanges(newTitle, newDesc, newTimestamp, memoryId, onSuccess = {
             _title.value = newTitle
             _description.value = newDesc
             _timestamp.value = newTimestamp
             _toastMessage.value = context.getString(R.string.saved)
-        }.addOnFailureListener {
+
+        }, onFailure = {
             _toastMessage.value = context.getString(R.string.error_save)
-        }
+        })
     }
 
     /**
      * Устанавливает выбранное фото в качестве обложки альбома.
      */
     fun setCoverImage(url: String) {
-        db.collection("memories").document(memoryId).update("imageUrl", url)
-            .addOnSuccessListener {
-                _coverUrl.value = url
-                _toastMessage.value = context.getString(R.string.cover_updated)
-            }
-            .addOnFailureListener {
-                _toastMessage.value = context.getString(R.string.error_cover_update)
-            }
+        repository.setCover(url, memoryId, onSuccess = {
+            _coverUrl.value = url
+            _toastMessage.value = context.getString(R.string.cover_updated)
+
+        }, onFailure = {
+            _toastMessage.value = context.getString(R.string.error_cover_update)
+        })
     }
 
     fun onToastShown() {

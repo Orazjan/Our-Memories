@@ -105,6 +105,14 @@
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
                             tools:src="@tools:sample/avatars" />
+
+                        <ProgressBar
+                            android:id="@+id/pdAvatarLoader"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:indeterminateTint="@color/baby_pink"
+                            android:visibility="gone" />
                     </androidx.cardview.widget.CardView>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>

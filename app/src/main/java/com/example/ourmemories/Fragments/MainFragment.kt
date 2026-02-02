@@ -30,12 +30,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Models.TreeInfo
 import com.example.ourmemories.Models.User
-import com.example.ourmemories.Models.UserRepository
+import com.example.ourmemories.Repositories.MainRepository
 import com.example.ourmemories.Models.Zodiac
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MainViewModel
-import com.example.ourmemories.ViewModels.MainViewModelFactory
+import com.example.ourmemories.Factory.MainViewModelFactory
 import com.example.ourmemories.Widget.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
@@ -70,7 +70,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val repository = UserRepository()
+        val repository = MainRepository()
         prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
         val factory = MainViewModelFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]

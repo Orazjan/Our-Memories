@@ -1,35 +1,23 @@
 package com.example.ourmemories.ViewModels
 
 import android.app.Application
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.media.ExifInterface
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.ourmemories.R
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.example.ourmemories.Repositories.AddMemoryRepository
+import com.example.ourmemories.Utils.ImageHandler
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.UUID
 
 /**
- * ViewModel для создания нового воспоминания [AddMemoryFragment].
+ * ViewModel для создания нового воспоминания [com.example.ourmemories.Fragments.AddMemoryFragment].
  *
  * Функции:
  * - Выбор и хранение списка изображений (Uri).
@@ -38,12 +26,12 @@ import java.util.UUID
  * - Параллельная загрузка фото в Firebase Storage.
  * - Сохранение записи в Firestore и начисление баллов.
  */
-class AddMemoryViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
-    private val contentResolver = application.contentResolver
+class AddMemoryViewModel(
+    application: Application,
+    private val repository: AddMemoryRepository,
+    private val imageHandler: ImageHandler,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : AndroidViewModel(application) {
     private val context = application.applicationContext
 
     private val _selectedUris = MutableLiveData<MutableList<Uri>>(mutableListOf())
@@ -52,7 +40,7 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
     private val _coverUri = MutableLiveData<Uri?>()
     val coverUri: LiveData<Uri?> = _coverUri
 
-    private val _eventDate = MutableLiveData<Long>(System.currentTimeMillis())
+    private val _eventDate = MutableLiveData(System.currentTimeMillis())
     val eventDate: LiveData<Long> = _eventDate
 
     private val _isLoading = MutableLiveData(false)
@@ -71,7 +59,7 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
     fun addImages(uris: List<Uri>) {
         val currentList = _selectedUris.value ?: mutableListOf()
         val isFirstLoad = currentList.isEmpty()
-        
+
         currentList.addAll(uris)
         _selectedUris.value = currentList
 
@@ -80,7 +68,14 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         }
 
         if (isFirstLoad && uris.isNotEmpty()) {
-            extractDateFromImage(uris[0])
+            viewModelScope.launch(ioDispatcher) {
+                val date = imageHandler.extractDateFromImage(uris[0])
+                if (date != null) {
+                    withContext(Dispatchers.Main) {
+                        _eventDate.value = date
+                    }
+                }
+            }
         }
     }
 
@@ -92,7 +87,7 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
         if (position in currentList.indices) {
             val removedUri = currentList[position]
             currentList.removeAt(position)
-            
+
             if (removedUri == _coverUri.value) {
                 _coverUri.value = currentList.firstOrNull()
             }
@@ -122,7 +117,7 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
      */
     fun saveMemory(title: String, description: String) {
         val uris = _selectedUris.value
-        val user = auth.currentUser
+        val uid = repository.getCurrentUserUid()
 
         if (uris.isNullOrEmpty()) {
             _toastMessage.value = context.getString(R.string.error_select_photo)
@@ -132,7 +127,7 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
             _toastMessage.value = context.getString(R.string.error_enter_title)
             return
         }
-        if (user == null) return
+        if (uid == null) return
 
         _isLoading.value = true
 
@@ -140,7 +135,10 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val uploadJobs = uris.map { uri ->
                     async {
-                        val url = uploadSingleImage(uri, user.uid)
+                        val bytes = withContext(ioDispatcher) {
+                            imageHandler.compressImage(uri)
+                        }
+                        val url = repository.uploadImageBytes(bytes, uid)
                         Pair(uri, url)
                     }
                 }
@@ -153,7 +151,7 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
                 val finalCoverUrl = coverPair?.second ?: allUrls.firstOrNull() ?: ""
 
                 val memoryMap = hashMapOf(
-                    "uploaderUid" to user.uid,
+                    "uploaderUid" to uid,
                     "title" to title,
                     "description" to description,
                     "timestamp" to (_eventDate.value ?: System.currentTimeMillis()),
@@ -162,11 +160,9 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
                     "imageUrl" to finalCoverUrl
                 )
 
-                db.collection("memories").add(memoryMap).await()
-
+                repository.addMemory(memoryMap)
                 val pointsToAdd = uris.size * 5L
-                db.collection("users").document(user.uid)
-                    .update("treePoints", FieldValue.increment(pointsToAdd))
+                repository.incrementUserPoints(uid, pointsToAdd)
 
                 withContext(Dispatchers.Main) {
                     _isLoading.value = false
@@ -185,91 +181,6 @@ class AddMemoryViewModel(application: Application) : AndroidViewModel(applicatio
                     }
                     _toastMessage.value = context.getString(R.string.error_generic, msg)
                 }
-            }
-        }
-    }
-
-    /**
-     * Загружает одно фото в Firebase Storage.
-     */
-    private suspend fun uploadSingleImage(uri: Uri, uid: String): String {
-        return withContext(Dispatchers.IO) {
-            val compressedData = compressImage(uri)
-            val fileName = UUID.randomUUID().toString()
-            val ref = storage.reference.child("memories/$uid/$fileName.jpg")
-            ref.putBytes(compressedData).await()
-            ref.downloadUrl.await().toString()
-        }
-    }
-
-    /**
-     * Сжатие изображения до 1280x1280.
-     */
-    private fun compressImage(uri: Uri): ByteArray {
-        try {
-            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(contentResolver, uri)
-                ImageDecoder.decodeBitmap(source)
-            } else {
-                @Suppress("DEPRECATION")
-                MediaStore.Images.Media.getBitmap(contentResolver, uri)
-            }
-
-            val scaledBitmap = scaleBitmap(bitmap, 1280)
-            val outputStream = ByteArrayOutputStream()
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 75, outputStream)
-            return outputStream.toByteArray()
-        } catch (e: Exception) {
-            Log.e("AddMemoryVM", "Error compressing image", e)
-            throw e
-        }
-    }
-
-    /**
-     * Сжатие изображения до заданного размера
-     */
-    private fun scaleBitmap(bitmap: Bitmap, maxDimension: Int): Bitmap {
-        val originalWidth = bitmap.width
-        val originalHeight = bitmap.height
-        var newWidth = originalWidth
-        var newHeight = originalHeight
-
-        if (originalWidth > maxDimension || originalHeight > maxDimension) {
-            if (originalWidth > originalHeight) {
-                newWidth = maxDimension
-                newHeight = (newWidth * originalHeight) / originalWidth
-            } else {
-                newHeight = maxDimension
-                newWidth = (newHeight * originalWidth) / originalHeight
-            }
-        }
-        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
-    }
-
-    /**
-     *
-     */
-    private fun extractDateFromImage(uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                contentResolver.openInputStream(uri)?.use { inputStream ->
-                    val exifInterface = ExifInterface(inputStream)
-                    val dateString = exifInterface.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
-                        ?: exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
-
-                    if (dateString != null) {
-                        val format = if (dateString.contains("-")) "yyyy-MM-dd HH:mm:ss" else "yyyy:MM:dd HH:mm:ss"
-                        val sdf = SimpleDateFormat(format, Locale.US)
-                        val date = sdf.parse(dateString)
-                        if (date != null) {
-                            withContext(Dispatchers.Main) {
-                                _eventDate.value = date.time
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("AddMemoryVM", "Error extracting date", e)
             }
         }
     }

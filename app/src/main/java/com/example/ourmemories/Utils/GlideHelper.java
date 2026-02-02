@@ -3,6 +3,7 @@ package com.example.ourmemories.Utils;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -23,10 +24,8 @@ import com.bumptech.glide.request.target.Target;
 
 public class GlideHelper {
     /**
-     * Загрузка аватара
-     * @param imageView
-     * @param url
-     * @param debugTag
+     * Загрузка аватара по URL (строка).
+     * Используется для загрузки из Firebase.
      */
     public static void loadAvatar(ImageView imageView, String url, String debugTag) {
         imageView.clearColorFilter();
@@ -35,13 +34,10 @@ public class GlideHelper {
         if (url != null && !url.isEmpty()) {
             imageView.setPadding(0, 0, 0, 0);
 
-            RequestOptions requestOptions = new RequestOptions().timeout(60000).diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(android.R.drawable.ic_menu_camera)
-                    .error(android.R.drawable.stat_notify_error).circleCrop().priority(Priority.HIGH)
+            RequestOptions requestOptions = new RequestOptions().timeout(60000).diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(android.R.drawable.ic_menu_camera).error(android.R.drawable.stat_notify_error).circleCrop().priority(Priority.HIGH)
                     .override(300, 300);
 
-            Glide.with(imageView.getContext())
-                    .load(url).apply(requestOptions).thumbnail(0.1f).transition(DrawableTransitionOptions.withCrossFade())
+            Glide.with(imageView.getContext()).load(url).apply(requestOptions).thumbnail(0.1f).transition(DrawableTransitionOptions.withCrossFade())
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -61,6 +57,23 @@ public class GlideHelper {
         }
     }
 
+    /**
+     * === ДОБАВЛЕНО ===
+     * Загрузка аватара по URI (локальный файл).
+     * Нужно для EditProfileFragment при выборе фото из галереи.
+     */
+    public static void loadAvatar(ImageView imageView, Uri uri) {
+        imageView.clearColorFilter();
+        imageView.setImageTintList(null);
+
+        if (uri != null) {
+            imageView.setPadding(0, 0, 0, 0);
+
+            RequestOptions requestOptions = new RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL).circleCrop().override(300, 300);
+
+            Glide.with(imageView.getContext()).load(uri).apply(requestOptions).transition(DrawableTransitionOptions.withCrossFade()).into(imageView);
+        }
+    }
     /**
      * Загрузка галереи.
      */

@@ -2,6 +2,7 @@ package com.example.ourmemories.LogAndReg
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import android.widget.Button
@@ -9,12 +10,16 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import com.bumptech.glide.Glide
+import androidx.fragment.app.viewModels
 import com.example.ourmemories.EnterActivity
+import com.example.ourmemories.Factory.SetupProfileFactory
 import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.SetupProfileRepository
+import com.example.ourmemories.Utils.GlideHelper
+import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.SetupProfileViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
@@ -23,18 +28,25 @@ import java.util.Locale
 
 class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
 
-    private lateinit var viewModel: SetupProfileViewModel
-
-    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            viewModel.setSelectedImage(uri)
-        }
+    private val viewModel: SetupProfileViewModel by viewModels() {
+        val application = requireActivity().application
+        val repository = SetupProfileRepository()
+        val imageHandler = ImageHandler(requireContext())
+        SetupProfileFactory(application, repository, imageHandler)
     }
+
+    private val pickImage =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                viewModel.setSelectedImage(uri)
+            } else {
+                Log.d("ProfileFragment", "Пользователь отменил выбор фото")
+            }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this)[SetupProfileViewModel::class.java]
 
         setupUI(view)
         observeViewModel(view)
@@ -54,7 +66,7 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
         cardAvatar.animate().scaleX(1f).scaleY(1f).setDuration(500)
             .setInterpolator(OvershootInterpolator()).start()
         cardAvatar.setOnClickListener {
-            pickImage.launch("image/*")
+            pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
         etDate.setOnClickListener {
@@ -121,8 +133,7 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
 
         viewModel.selectedImageUri.observe(viewLifecycleOwner) { uri ->
             if (uri != null) {
-                avatarView.setPadding(0, 0, 0, 0)
-                Glide.with(this).load(uri).centerCrop().into(avatarView)
+                GlideHelper.loadAvatar(avatarView, uri)
             }
         }
     }

@@ -114,7 +114,7 @@
     <string name="sending_photo">Отправляем фото...</string>
     <string name="updating_widget">Обновляем виджет партнера</string>
     <string name="moments">Моментов</string>
-    <string name="wishes">Желаний</string>
+    <string name="wishes">Желания</string>
     <string name="account">Аккаунт</string>
     <string name="information">Информация</string>
     <string name="deystviye">Действия</string>
@@ -292,6 +292,7 @@
     <string name="view_of_app">Внешний вид</string>
     <string name="system">Система</string>
     <string name="language">Язык</string>
+    <string name="updated">Обновлено</string>
 
     <string name="russian">Русский</string>
     <string name="kyrgyz">Кыргыз тили</string>

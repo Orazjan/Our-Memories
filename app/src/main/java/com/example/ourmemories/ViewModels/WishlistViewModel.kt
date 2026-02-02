@@ -1,30 +1,23 @@
 package com.example.ourmemories.ViewModels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.ourmemories.Models.User
 import com.example.ourmemories.Models.WishItem
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.WishlistRepository
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
 
 /**
- * ViewModel для списка желаний [WishlistFragment].
- *
- * Функции:
- * - Загрузка списка желаний (своих и партнера).
- * - Добавление нового желания.
- * - Переключение статуса выполнения (выполнено/не выполнено).
- * - Удаление желания.
+ * ViewModel для списка желаний.
  */
-class WishlistViewModel(application: Application) : AndroidViewModel(application) {
+class WishlistViewModel(
+    application: Application, private val repository: WishlistRepository
+) : AndroidViewModel(application) {
 
-    private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-    private val TAG = "WishlistViewModel"
+    private val context = getApplication<Application>().applicationContext
 
     private val _wishes = MutableLiveData<List<WishItem>>()
     val wishes: LiveData<List<WishItem>> = _wishes
@@ -48,73 +41,62 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
      * затем запускает слушатель желаний.
      */
     fun startListening() {
-        val myUid = auth.currentUser?.uid
+        val myUid = repository.getCurrentUserUid()
         if (myUid == null) {
             _isRefreshing.value = false
             return
         }
 
         _isRefreshing.value = true
-        
+
         userListener?.remove()
-        userListener = db.collection("users").document(myUid).addSnapshotListener { snapshot, e ->
-            if (e != null) {
-                _isRefreshing.value = false
-                return@addSnapshotListener
+        userListener = repository.listenToUser(myUid) { user ->
+            handleUserUpdate(user, myUid)
+        }
+    }
+
+    private fun handleUserUpdate(user: User?, myUid: String) {
+        if (user != null) {
+            val partnerUid = user.partnerUid
+            val uids = mutableListOf(myUid)
+            if (!partnerUid.isNullOrEmpty()) {
+                uids.add(partnerUid)
             }
 
-            if (snapshot != null && snapshot.exists()) {
-                val partnerUid = snapshot.getString("partnerUid")
-                val uids = mutableListOf(myUid)
-                if (!partnerUid.isNullOrEmpty()) uids.add(partnerUid)
-
-                if (currentUids != uids) {
-                    currentUids = uids
-                    setupWishesListener(uids)
-                } else {
-                    if (_wishes.value != null) _isRefreshing.value = false
-                }
+            if (currentUids != uids) {
+                currentUids = uids
+                setupWishesListener(uids)
             } else {
-                _isRefreshing.value = false
+                if (_wishes.value != null) _isRefreshing.value = false
             }
+        } else {
+            _isRefreshing.value = false
         }
     }
 
     /**
-     * Запускает слушатель желаний.
+     * Запускает слушатель желаний через репозиторий.
      */
     private fun setupWishesListener(uids: List<String>) {
         wishesListener?.remove()
 
-        wishesListener = db.collection("wishes")
-            .whereIn("createdBy", uids)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshots, e ->
+        wishesListener = repository.listenToWishes(uids = uids, onData = { loadedWishes ->
                 _isRefreshing.value = false
-
-                if (e != null) {
-                    if (e.message?.contains("index") == true) {
-                        _toastMessage.value = "Требуется индекс Firestore. Проверьте логи."
-                    }
-                    Log.e(TAG, "Error fetching wishes", e)
-                    return@addSnapshotListener
+            val sortedWishes = loadedWishes.sortedBy { it.isCompleted }
+            _wishes.value = sortedWishes
+        }, onError = { e ->
+            _isRefreshing.value = false
+            if (e.message?.contains("index") == true) {
+                _toastMessage.value = "Требуется индекс Firestore."
                 }
-
-                if (snapshots != null) {
-                    val loadedWishes = snapshots.map { doc ->
-                        doc.toObject(WishItem::class.java).copy(id = doc.id)
-                    }
-                    val sortedWishes = loadedWishes.sortedBy { it.isCompleted }
-                    _wishes.value = sortedWishes
-                }
-            }
+        })
     }
 
     /**
      * Добавление нового желания.
      */
     fun addWish(title: String, desc: String, category: String) {
-        val user = auth.currentUser ?: return
+        val user = repository.getCurrentUser() ?: return
 
         val wish = WishItem(
             title = title,
@@ -126,8 +108,8 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
             timestamp = System.currentTimeMillis()
         )
 
-        db.collection("wishes").add(wish).addOnFailureListener {
-            _toastMessage.value = "Ошибка добавления: ${it.message}"
+        repository.addWish(wish) { e ->
+            _toastMessage.value = getStringSafe(R.string.error_generic, e.message ?: "")
         }
     }
 
@@ -136,11 +118,10 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
      */
     fun toggleWishStatus(item: WishItem, isCompleted: Boolean) {
         if (item.id.isNotEmpty()) {
-            db.collection("wishes").document(item.id).update("isCompleted", isCompleted)
-                .addOnFailureListener {
-                    _toastMessage.value = "Ошибка обновления"
-                    startListening() 
-                }
+            repository.updateWishStatus(item.id, isCompleted) {
+                _toastMessage.value = getStringSafe(R.string.error_save)
+                startListening()
+            }
         }
     }
 
@@ -149,13 +130,19 @@ class WishlistViewModel(application: Application) : AndroidViewModel(application
      */
     fun deleteWish(item: WishItem) {
         if (item.id.isNotEmpty()) {
-            db.collection("wishes").document(item.id).delete()
-                .addOnSuccessListener {
-                    _toastMessage.value = "Желание удалено"
-                }
-                .addOnFailureListener {
-                    _toastMessage.value = "Ошибка удаления"
-                }
+            repository.deleteWish(item.id, onSuccess = {}, onFailure = {
+                _toastMessage.value = getStringSafe(R.string.error_delete_photo)
+            })
+        }
+    }
+
+    private fun getStringSafe(resId: Int, vararg formatArgs: Any): String {
+        return try {
+            if (formatArgs.isNotEmpty()) context.getString(
+                resId, *formatArgs
+            ) else context.getString(resId)
+        } catch (e: Exception) {
+            ""
         }
     }
 

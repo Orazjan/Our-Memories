@@ -20,6 +20,7 @@ package com.example.ourmemories.Models
 data class User(
     val uid: String = "",
     val name: String = "Я",
+    val email: String? = null,
     val photoUrl: String? = null,
     val status: String? = null,
     val sharedNote: String? = null,
@@ -30,6 +31,10 @@ data class User(
     val partnerCode: String? = null,
     val birthDate: String? = null,
     val hasWidget: Boolean = false,
-    val lastActive: Long = 0
+    val lastActive: Long = 0,
+
+
+    val fcmToken: String? = null,
+    val widgetImageUrl: String? = null
 
 )

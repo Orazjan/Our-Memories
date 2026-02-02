@@ -16,7 +16,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourmemories.Adapters.SelectedImagesAdapter
 import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.AddMemoryRepository
+import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.AddMemoryViewModel
+import com.example.ourmemories.Factory.AddMemoryViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
@@ -38,7 +41,11 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this)[AddMemoryViewModel::class.java]
+        val repository = AddMemoryRepository()
+        val imageHandler = ImageHandler(requireContext())
+        val factory =
+            AddMemoryViewModelFactory(requireActivity().application, repository, imageHandler)
+        viewModel = ViewModelProvider(this, factory)[AddMemoryViewModel::class.java]
 
         setupUI(view)
         observeViewModel(view)
@@ -90,6 +97,7 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             try {
                 pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             } catch (e: Exception) {
+                e.printStackTrace()
                 Toast.makeText(context, getString(R.string.error_gallery), Toast.LENGTH_SHORT).show()
             }
         }
@@ -117,7 +125,9 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
 
         viewModel.selectedUris.observe(viewLifecycleOwner) { uris ->
 
-        imagesAdapter.updateList(uris)
+            imagesAdapter.images = uris.toMutableList()
+            imagesAdapter.notifyDataSetChanged()
+
             rvSelectedImages.visibility = if (uris.isNotEmpty()) View.VISIBLE else View.GONE
         }
 
@@ -127,22 +137,25 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             etDate.setText(sdf.format(Date(timestamp)))
         }
 
+        viewModel.coverUri.observe(viewLifecycleOwner) { uri ->
+            imagesAdapter.setCover(uri)
+        }
+
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
+        viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                parentFragmentManager.popBackStack()
+            }
+        }
 
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 viewModel.onToastShown()
-            }
-        }
-
-        viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->
-            if (success) {
-                parentFragmentManager.popBackStack()
             }
         }
     }

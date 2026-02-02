@@ -1,32 +1,25 @@
 package com.example.ourmemories.ViewModels
 
 import android.app.Application
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.example.ourmemories.Repositories.SetupProfileRepository
+import com.example.ourmemories.Utils.ImageHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 import kotlin.random.Random
 
-class SetupProfileViewModel(application: Application) : AndroidViewModel(application) {
+class SetupProfileViewModel(
+    application: Application,
+    private val repository: SetupProfileRepository,
+    private val imageHandler: ImageHandler
+) : AndroidViewModel(application) {
 
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
     private val context = application.applicationContext
 
     private val _isLoading = MutableLiveData(false)
@@ -49,11 +42,12 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
      * Сохранение профиля пользователя.
      */
     fun saveProfile(name: String, date: String) {
-        val user = auth.currentUser
+        val user = repository.getCurrentUser()
         if (user == null) {
             _toastMessage.value = "Ошибка авторизации"
             return
         }
+
         val uri = _selectedImageUri.value
         if (uri == null) {
             _toastMessage.value = "Выберите фото профиля"
@@ -72,41 +66,26 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
 
         viewModelScope.launch {
             try {
-                val compressedData = compressImage(uri)
-                val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
-                storageRef.putBytes(compressedData).await()
-                val photoUrl = storageRef.downloadUrl.await().toString()
+                val compressedData = withContext(Dispatchers.IO) {
+                    imageHandler.compressImage(uri)
+                }
+                val photoUrl = repository.uploadAvatar(user.uid, compressedData)
 
-                val profileUpdates = UserProfileChangeRequest.Builder()
-                    .setDisplayName(name)
-                    .setPhotoUri(Uri.parse(photoUrl))
-                    .build()
-                user.updateProfile(profileUpdates).await()
+                repository.updateAuthProfile(user, name, photoUrl)
 
                 var partnerCode = ""
-                var isCodeReserved = false
-
+                var isUnique = false
                 var attempts = 0
-                while (!isCodeReserved && attempts < 5) {
+
+                while (!isUnique && attempts < 5) {
                     partnerCode = generatePartnerCode()
-
-                    val codeRef = db.collection("partner_codes").document(partnerCode)
-                    val codeSnapshot = codeRef.get().await()
-
-                    if (!codeSnapshot.exists()) {
-                        isCodeReserved = true
-                    }
+                    isUnique = repository.isCodeUnique(partnerCode)
                     attempts++
                 }
 
-                if (!isCodeReserved) {
-                    throw Exception("Не удалось сгенерировать уникальный код. Попробуйте снова.")
+                if (!isUnique) {
+                    throw Exception("Не удалось создать уникальный код. Попробуйте снова.")
                 }
-
-                val batch = db.batch()
-
-                val userRef = db.collection("users").document(user.uid)
-                val codeRef = db.collection("partner_codes").document(partnerCode)
 
                 val userData = hashMapOf(
                     "name" to name,
@@ -115,25 +94,23 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
                     "email" to user.email,
                     "photoUrl" to photoUrl,
                     "partnerCode" to partnerCode,
-                    "partnerUid" to null
+                    "partnerUid" to null,
+                    "status" to null,
+                    "sharedNote" to "",
+                    "treePoints" to 0
                 )
+
                 val codeData = hashMapOf(
                     "uid" to user.uid
                 )
 
-                batch.set(userRef, userData)
-                batch.set(codeRef, codeData)
-                batch.commit().await()
-
-                _setupSuccess.value = true
-
-                db.collection("users").document(user.uid).set(userData).await()
+                repository.saveUserProfile(user.uid, userData, partnerCode, codeData)
 
                 _setupSuccess.value = true
                 _toastMessage.value = "Профиль готов!"
 
             } catch (e: Exception) {
-                _toastMessage.value = "Ошибка: Попробуйте позже"
+                _toastMessage.value = "Ошибка: ${e.localizedMessage}"
                 Log.e("SetupProfileViewModel", "Error saving profile", e)
             } finally {
                 _isLoading.value = false
@@ -144,34 +121,7 @@ class SetupProfileViewModel(application: Application) : AndroidViewModel(applica
     /**
      * Сжатие изобрпжения
      */
-    private suspend fun compressImage(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        }
 
-        val maxDimension = 800
-        val scale =
-            (maxDimension.toDouble() / bitmap.width).coerceAtMost(maxDimension.toDouble() / bitmap.height)
-
-        val scaledBitmap = if (scale < 1.0) {
-            Bitmap.createScaledBitmap(
-                bitmap,
-                (bitmap.width * scale).toInt(),
-                (bitmap.height * scale).toInt(),
-                true
-            )
-        } else {
-            bitmap
-        }
-
-        val outputStream = ByteArrayOutputStream()
-        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
-        outputStream.toByteArray()
-    }
 
     private fun generatePartnerCode(): String {
         return Random.nextInt(10000000, 99999999).toString()

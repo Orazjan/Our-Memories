@@ -8,25 +8,35 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Adapters.WishlistAdapter
+import com.example.ourmemories.Factory.WishListFactory
 import com.example.ourmemories.Models.WishItem
 import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.WishlistRepository
 import com.example.ourmemories.ViewModels.WishlistViewModel
 
 class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
 
-    private lateinit var viewModel: WishlistViewModel
+    private val viewModel: WishlistViewModel by viewModels {
+        val application = requireActivity().application
+        val repository = WishlistRepository()
+        WishListFactory(application, repository)
+    }
+
     private lateinit var adapter: WishlistAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this)[WishlistViewModel::class.java]
+        setupUI(view)
+        observeViewModel(view)
+    }
 
+    private fun setupUI(view: View) {
         val rvWishlist = view.findViewById<RecyclerView>(R.id.rvWishlist)
         val fabAdd = view.findViewById<View>(R.id.fabAddWish)
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshWishlist)
@@ -49,13 +59,8 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
         swipeRefresh.setOnRefreshListener {
             viewModel.startListening()
         }
-
-        observeViewModel(view)
     }
 
-    /**
-     * Наблюдение за изменениями в ViewModel.
-     */
     private fun observeViewModel(view: View) {
         val layoutEmpty = view.findViewById<View>(R.id.layoutEmpty)
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshWishlist)
@@ -77,9 +82,6 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
         }
     }
 
-    /**
-     * Открытие диалога для добавления желания.
-     */
     private fun showAddWishDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_wish, null)
 
@@ -124,9 +126,6 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
         dialog.show()
     }
 
-    /**
-     * Открытие диалога для удаления желания.
-     */
     private fun showDeleteDialog(item: WishItem) {
         AlertDialog.Builder(requireContext()).setTitle(getString(R.string.delete_wish_title))
             .setMessage(getString(R.string.delete_wish_confirm, item.title))

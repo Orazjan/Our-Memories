@@ -11,25 +11,30 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Adapters.MemoryAdapter
+import com.example.ourmemories.Factory.GalleryFactory
 import com.example.ourmemories.Models.Memory
 import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.GalleryRepository
+import com.example.ourmemories.Repositories.MainRepository
 import com.example.ourmemories.ViewModels.GalleryViewModel
 
 class GalleryFragment : Fragment(R.layout.gallery_fragment) {
+    private val viewModel: GalleryViewModel by viewModels {
+        val application = requireActivity().application
+        val repository = GalleryRepository()
+        val mainRepository = MainRepository()
+        GalleryFactory(application, repository, mainRepository)
+    }
 
-    private lateinit var viewModel: GalleryViewModel
     private lateinit var adapter: MemoryAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
-        viewModel = ViewModelProvider(this)[GalleryViewModel::class.java]
 
         setupUI(view)
         observeViewModel(view)

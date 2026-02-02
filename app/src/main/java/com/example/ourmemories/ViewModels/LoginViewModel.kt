@@ -36,7 +36,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     _loginSuccess.value = true
                 } else {
                     val exception = task.exception
-                    // Используем ресурсы для локализации сообщений об ошибках
                     val errorMessage = when (exception) {
                         is FirebaseAuthInvalidUserException -> context.getString(R.string.error_user_not_found)
                         is FirebaseAuthInvalidCredentialsException -> context.getString(R.string.error_invalid_credentials)

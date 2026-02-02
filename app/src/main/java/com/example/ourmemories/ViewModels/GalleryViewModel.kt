@@ -1,85 +1,69 @@
 package com.example.ourmemories.ViewModels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import com.example.ourmemories.Models.Memory
-import com.example.ourmemories.R
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.ourmemories.Repositories.GalleryRepository
+import com.example.ourmemories.Repositories.MainRepository
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
-import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
 /**
- * ViewModel для экрана галереи [GalleryFragment].
- *
- * Отвечает за:
- * - Загрузку списка воспоминаний из Firestore (с поддержкой пагинации).
- * - Фильтрацию по пользователям (показывать фото свои и партнера).
- * - Локальный поиск/фильтрацию по названию и описанию.
- * - Сортировку списка.
- * - Удаление воспоминаний (из БД и Storage).
+ * ViewModel для экрана Галереи.
+ * Управляет загрузкой, фильтрацией и удалением воспоминаний.
  */
-class GalleryViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-    private val context = application.applicationContext
-    private val TAG = "GalleryViewModel"
+class GalleryViewModel(
+    application: Application,
+    private val galleryRepository: GalleryRepository,
+    private val userRepository: MainRepository
+) : AndroidViewModel(application) {
 
     private val _memories = MutableLiveData<List<Memory>>()
     val memories: LiveData<List<Memory>> = _memories
 
-    private val _isLoading = MutableLiveData<Boolean>()
+    private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _isRefreshing = MutableLiveData(false)
+    val isRefreshing: LiveData<Boolean> = _isRefreshing
 
     private val _toastMessage = MutableLiveData<String?>()
     val toastMessage: LiveData<String?> = _toastMessage
 
-    private val _isRefreshing = MutableLiveData<Boolean>()
-    val isRefreshing: LiveData<Boolean> = _isRefreshing
-
     private var allLoadedMemories = listOf<Memory>()
-    private var currentUidsToLoad: List<String>? = null
-    private var queryLimit: Long = 20
-    private var isNewestFirst = true
-    private var currentSearchQuery = ""
 
-    private var userListener: ListenerRegistration? = null
+    private var isNewestFirst = true
+    private var queryLimit = 20L
+    private var currentSearchQuery = ""
+    private var currentUidsToLoad = listOf<String>()
+
     private var memoriesListener: ListenerRegistration? = null
+    private var userListener: ListenerRegistration? = null
 
     init {
-        startListeningForUser()
+        startListening()
     }
 
     /**
-     * Подписывается на профиль пользователя, чтобы узнать UID партнера.
-     * После получения обновляет список загружаемых авторов.
+     * Слушатель пользователя через Репозиторий.
      */
-    fun startListeningForUser() {
-        val myUid = auth.currentUser?.uid ?: return
-        _isRefreshing.value = true
-        
-        userListener?.remove()
-        userListener = db.collection("users").document(myUid).addSnapshotListener { snapshot, e ->
-            if (e != null) {
-                _isRefreshing.value = false
-                return@addSnapshotListener
-            }
+    fun startListening() {
+        val myUid = userRepository.getCurrentUserUid()
+        if (myUid == null) {
+            _isRefreshing.value = false
+            return
+        }
 
-            if (snapshot != null && snapshot.exists()) {
-                val partnerUid = snapshot.getString("partnerUid")
+        _isRefreshing.value = true
+
+        userListener?.remove()
+        userListener = userRepository.listenToUser(myUid) { user ->
+            if (user != null) {
                 val uids = mutableListOf(myUid)
-                if (!partnerUid.isNullOrEmpty()) uids.add(partnerUid)
+                if (!user.partnerUid.isNullOrEmpty()) {
+                    uids.add(user.partnerUid)
+                }
 
                 if (currentUidsToLoad != uids) {
                     currentUidsToLoad = uids
@@ -87,113 +71,98 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
                 } else {
                     _isRefreshing.value = false
                 }
+            } else {
+                _isRefreshing.value = false
             }
         }
     }
 
     /**
-     * Настраивает слушатель коллекции `memories` с учетом фильтров и лимитов.
-     */
-    private fun setupMemoriesListener() {
-        val uids = currentUidsToLoad ?: return
-        memoriesListener?.remove()
-
-        val direction = if (isNewestFirst) Query.Direction.DESCENDING else Query.Direction.ASCENDING
-
-        _isLoading.value = true
-        
-        memoriesListener = db.collection("memories")
-            .whereIn("uploaderUid", uids)
-            .orderBy("timestamp", direction)
-            .limit(queryLimit)
-            .addSnapshotListener { snapshots, e ->
-                _isLoading.value = false
-                _isRefreshing.value = false
-                
-                if (e != null) {
-                    Log.e(TAG, "Error loading memories", e)
-                    return@addSnapshotListener
-                }
-
-                if (snapshots != null) {
-                    allLoadedMemories = snapshots.map { doc ->
-                        doc.toObject(Memory::class.java).copy(id = doc.id)
-                    }
-                    applyFilterAndSort()
-                }
-            }
-    }
-
-    /**
-     * Применяет локальный текстовый фильтр к загруженному списку.
+     * Фильтрация и сортировка
      */
     private fun applyFilterAndSort() {
         val filtered = if (currentSearchQuery.isEmpty()) {
             allLoadedMemories
         } else {
             allLoadedMemories.filter {
-                it.title.contains(currentSearchQuery, ignoreCase = true) || 
-                it.description.contains(currentSearchQuery, ignoreCase = true)
+                it.title.contains(currentSearchQuery, ignoreCase = true) || it.description.contains(
+                    currentSearchQuery, ignoreCase = true
+                )
             }
         }
         _memories.value = filtered
     }
 
-    fun loadMore() {
-        if (_isLoading.value == true) return
-        queryLimit += 20
-        setupMemoriesListener()
-    }
-
-    fun refresh() {
-        queryLimit = 20
-        startListeningForUser()
-    }
-
-    fun setSearchQuery(query: String) {
-        currentSearchQuery = query
-        applyFilterAndSort()
-    }
-
+    /**
+     * Установка очереди
+     */
     fun setSortOrder(newestFirst: Boolean) {
         if (isNewestFirst != newestFirst) {
             isNewestFirst = newestFirst
+            queryLimit = 20L
             setupMemoriesListener()
         }
     }
 
     /**
-     * TODO добавить
-     * Удаляет память из Firestore и Storage.
+     * Загрузка
      */
-    fun deleteMemory(memory: Memory) {
-        viewModelScope.launch {
-            try {
-                val snapshot = db.collection("memories").document(memory.id).get().await()
+    fun loadMore() {
+        if (_isLoading.value == true) return
 
-                val imagesToDelete = snapshot.get("images") as? List<String>
-                    ?: listOf(memory.imageUrl).filter { it.isNotEmpty() }
-
-                db.collection("memories").document(memory.id).delete().await()
-
-                imagesToDelete.forEach { url ->
-                    try {
-                        storage.getReferenceFromUrl(url).delete().await()
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Не удалось удалить фото: $url", e)
-                    }
-                }
-
-                withContext(Dispatchers.Main) {
-                    _toastMessage.value = context.getString(R.string.album_deleted)
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _toastMessage.value = context.getString(R.string.error_generic, e.message)
-                }
-            }
-        }
+        queryLimit += 20
+        setupMemoriesListener()
     }
+
+    /**
+     *
+     * Обновление
+     */
+    fun refresh() {
+        _isRefreshing.value = true
+        queryLimit = 20L
+        setupMemoriesListener()
+    }
+
+    /**
+     * Cлушатель воспоминаний.
+     */
+    private fun setupMemoriesListener() {
+        memoriesListener?.remove()
+
+        if (currentUidsToLoad.isEmpty()) {
+            _isRefreshing.value = false
+            return
+        }
+
+        _isLoading.value = true
+
+        memoriesListener = galleryRepository.listenToMemories(
+            uids = currentUidsToLoad,
+            isNewestFirst = isNewestFirst,
+            limit = queryLimit,
+            onDataCallback = { loadedList ->
+                _isLoading.value = false
+                _isRefreshing.value = false
+
+                allLoadedMemories = loadedList
+                applyFilterAndSort()
+            },
+            onError = { e ->
+                _isLoading.value = false
+                _isRefreshing.value = false
+                _toastMessage.value = "Ошибка загрузки: ${e.message}"
+            })
+    }
+
+    /**
+     * Поиск
+     */
+    fun setSearchQuery(query: String) {
+        currentSearchQuery = query
+        applyFilterAndSort()
+    }
+
 
     fun onToastShown() {
         _toastMessage.value = null
@@ -201,7 +170,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
 
     override fun onCleared() {
         super.onCleared()
-        userListener?.remove()
         memoriesListener?.remove()
+        userListener?.remove()
     }
 }

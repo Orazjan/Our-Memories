@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.glide)
     kapt(libs.glideCompiler)
     implementation(libs.photoview)
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.firebase.storage)
