@@ -62,7 +62,7 @@
         android:backgroundTint="#FAD1E6"
         android:text="@string/next"
         android:textAllCaps="false"
-        android:textColor="@color/text_primary"
+        android:textColor="@color/prosto_black"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -2,8 +2,10 @@ package com.example.ourmemories.LogAndReg
 
 import android.content.Context
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Patterns
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
@@ -19,6 +21,8 @@ import com.example.ourmemories.ViewModels.RegisterViewModel
 class RegFragment : Fragment(R.layout.register_fragment) {
 
     private lateinit var viewModel: RegisterViewModel
+
+    private var lastClickTime: Long = 0
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -42,16 +46,50 @@ class RegFragment : Fragment(R.layout.register_fragment) {
 
             btnRegister.isEnabled = isEmailValid && isPasswordValid
             btnRegister.alpha = if (btnRegister.isEnabled) 1.0f else 0.5f
+
+            if (isEmailValid) etEmail.error = null
+            if (isPasswordValid) etPassword.error = null
+        }
+
+        fun attemptRegister() {
+            if (SystemClock.elapsedRealtime() - lastClickTime < 1000) return
+            lastClickTime = SystemClock.elapsedRealtime()
+
+            val email = etEmail.text.toString().trim()
+            val password = etPassword.text.toString().trim()
+
+            if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                etEmail.error = getString(R.string.error_invalid_credentials)
+                etEmail.requestFocus()
+                return
+            }
+
+            if (password.length < 6) {
+                etPassword.error = "Пароль слишком короткий"
+                etPassword.requestFocus()
+                return
+            }
+
+            hideKeyboard(view)
+            viewModel.register(email, password)
         }
 
         etEmail.doAfterTextChanged { validateInputs() }
         etPassword.doAfterTextChanged { validateInputs() }
 
         btnRegister.setOnClickListener {
-            hideKeyboard(view)
-            val email = etEmail.text.toString().trim()
-            val password = etPassword.text.toString().trim()
-            viewModel.register(email, password)
+            attemptRegister()
+        }
+
+        etPassword.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
+                if (btnRegister.isEnabled) {
+                    attemptRegister()
+                }
+                true
+            } else {
+                false
+            }
         }
 
         tvGoToLogin.setOnClickListener {
@@ -64,7 +102,21 @@ class RegFragment : Fragment(R.layout.register_fragment) {
     private fun observeViewModel(progressBar: ProgressBar, btn: Button, et1: EditText, et2: EditText) {
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            btn.visibility = if (isLoading) View.INVISIBLE else View.VISIBLE
+
+            if (isLoading) {
+                btn.text = ""
+                btn.isEnabled = false
+                btn.alpha = 0.5f
+            } else {
+                btn.text = getString(R.string.sign_up)
+                btn.visibility = View.VISIBLE
+
+                val emailValid = Patterns.EMAIL_ADDRESS.matcher(et1.text.toString().trim()).matches()
+                val passValid = et2.text.toString().trim().length >= 6
+                btn.isEnabled = emailValid && passValid
+                btn.alpha = if (btn.isEnabled) 1.0f else 0.5f
+            }
+
             et1.isEnabled = !isLoading
             et2.isEnabled = !isLoading
         }

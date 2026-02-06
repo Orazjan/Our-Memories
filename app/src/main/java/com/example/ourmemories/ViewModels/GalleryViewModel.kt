@@ -151,7 +151,7 @@ class GalleryViewModel(
             onError = { e ->
                 _isLoading.value = false
                 _isRefreshing.value = false
-                _toastMessage.value = "Ошибка загрузки: ${e.message}"
+                e.stackTraceToString()
             })
     }
 

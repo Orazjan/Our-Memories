@@ -47,7 +47,7 @@
         android:backgroundTint="@color/baby_pink"
         android:text="@string/autostart_settings"
         android:textAllCaps="false"
-        android:textColor="#5D3A40"
+        android:textColor="@color/text_primary"
         android:textSize="16sp"
         android:textStyle="bold" />
 

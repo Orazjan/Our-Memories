@@ -91,7 +91,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
 
         setupMenuCard(
             view.findViewById(R.id.instructions), getString(R.string.instructions),
-            android.R.drawable.ic_menu_manage, "#E0F2F1"
+            android.R.drawable.ic_menu_help, "#E0F2F1"
         )
 
         setupMenuCard(

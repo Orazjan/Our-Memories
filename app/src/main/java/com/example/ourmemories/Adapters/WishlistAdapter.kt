@@ -15,7 +15,7 @@ import com.example.ourmemories.R
 import com.example.ourmemories.Utils.GlideHelper
 
 class WishlistAdapter(
-    private val onCheckClick: (WishItem, Boolean) -> Unit,
+    private val onCheckClick: (WishItem, Boolean, View) -> Unit,
     private val onLongClick: (WishItem) -> Unit
 ) : ListAdapter<WishItem, WishlistAdapter.WishViewHolder>(WishDiffCallback()) {
 
@@ -27,27 +27,14 @@ class WishlistAdapter(
         val cbComplete: CheckBox = itemView.findViewById(R.id.cbComplete)
 
         init {
-            cbComplete.setOnClickListener {
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    val item = getItem(position)
-                    val isChecked = cbComplete.isChecked
-                    
-                    updateStrikeThrough(tvTitle, tvDescription, isChecked)
-
-                    onCheckClick(item, isChecked)
-                }
-            }
-
-            cbComplete.setOnClickListener {
-                performClickAction()
+            cbComplete.setOnClickListener { view ->
+                performClickAction(view)
             }
 
             itemView.setOnClickListener {
                 cbComplete.isChecked = !cbComplete.isChecked
-                performClickAction()
+                performClickAction(cbComplete)
             }
-
 
             itemView.setOnLongClickListener {
                 val position = bindingAdapterPosition
@@ -60,16 +47,15 @@ class WishlistAdapter(
             }
         }
 
-        private fun performClickAction() {
+        private fun performClickAction(view: View) {
             val position = bindingAdapterPosition
             if (position != RecyclerView.NO_POSITION) {
                 val item = getItem(position)
                 val isChecked = cbComplete.isChecked
 
-
                 updateStrikeThrough(tvTitle, tvDescription, isChecked)
 
-                onCheckClick(item, isChecked)
+                onCheckClick(item, isChecked, view)
             }
         }
     }
@@ -82,7 +68,6 @@ class WishlistAdapter(
 
     override fun onBindViewHolder(holder: WishViewHolder, position: Int) {
         val item = getItem(position)
-
 
         holder.itemView.translationX = 0f
         holder.itemView.alpha = 1f
@@ -99,13 +84,13 @@ class WishlistAdapter(
             holder.tvDescription.visibility = View.GONE
         }
 
-
+        holder.cbComplete.setOnCheckedChangeListener(null)
         holder.cbComplete.isChecked = item.isCompleted
 
         updateStrikeThrough(holder.tvTitle, holder.tvDescription, item.isCompleted)
     }
 
-    private fun getEmojiForCategory(category: String): String {
+    private fun getEmojiForCategory(category: String?): String {
         return when (category) {
             "movie" -> "🎬"
             "shopping" -> "🛒"

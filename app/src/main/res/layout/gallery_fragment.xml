@@ -132,7 +132,31 @@
             android:paddingHorizontal="4dp"
             android:paddingTop="8dp"
             android:paddingBottom="88dp"
+            android:visibility="visible"
             tools:listitem="@layout/item_memory" />
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerViewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <include layout="@layout/item_memory_shimmer" />
+
+                <include layout="@layout/item_memory_shimmer" />
+
+                <include layout="@layout/item_memory_shimmer" />
+
+                <include layout="@layout/item_memory_shimmer" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

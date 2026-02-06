@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
-    id("org.jetbrains.kotlin.kapt")
     id("com.google.firebase.crashlytics")
 
 }
@@ -12,6 +11,10 @@ val version = "0.1.7"
 android {
     namespace = "com.example.ourmemories"
     compileSdk = 36
+
+    buildFeatures {
+        viewBinding = true
+    }
 
     defaultConfig {
         applicationId = "com.example.ourmemories"
@@ -48,6 +51,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
+    // Анимации
+    implementation(libs.shimmer)
+    implementation(libs.konfetti.xml)
+    
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
@@ -57,9 +64,8 @@ dependencies {
     implementation(libs.firebase.messaging)
 
     implementation(libs.glide)
-    kapt(libs.glideCompiler)
     implementation(libs.photoview)
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+    implementation(libs.androidx.lifecycle.livedata.ktx)
 
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.firebase.storage)

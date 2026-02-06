@@ -1,6 +1,11 @@
 package com.example.ourmemories.Fragments
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.transition.ChangeBounds
+import android.transition.ChangeImageTransform
+import android.transition.ChangeTransform
+import android.transition.TransitionSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,10 +17,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.ourmemories.Factory.MemoryDetailFactory
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.MemoryDetailRepository
@@ -63,13 +74,61 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val transitionSet = TransitionSet().apply {
+            addTransition(ChangeBounds())
+            addTransition(ChangeTransform())
+            addTransition(ChangeImageTransform())
+            ordering = TransitionSet.ORDERING_TOGETHER
+            duration = 500
+        }
+
+        sharedElementEnterTransition = transitionSet
+        sharedElementReturnTransition = transitionSet
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
 
         val args = arguments ?: return
         val memoryId = args.getString("id") ?: return
-        
+        val imageUrl = args.getString("imageUrl") ?: ""
+        val ivCover = view.findViewById<ImageView>(R.id.ivCover)
+        ViewCompat.setTransitionName(ivCover, "memory_image_${memoryId}")
+
+        postponeEnterTransition()
+        if (imageUrl.isNotEmpty()) {
+            Glide.with(this)
+                .load(imageUrl)
+                .dontAnimate()
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        startPostponedEnterTransition()
+                        return false
+                    }
+                    override fun onResourceReady(
+                        resource: Drawable,
+                        model: Any,
+                        target: Target<Drawable>,
+                        dataSource: DataSource,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        startPostponedEnterTransition()
+                        return false
+                    }
+                })
+                .into(ivCover)
+        } else {
+            startPostponedEnterTransition()
+        }
+
         viewModel.init(
             id = memoryId,
             initialTitle = args.getString("title") ?: "",
@@ -95,7 +154,7 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
-        appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
+        appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
             val totalScrollRange = appBarLayout.totalScrollRange
             val percentage = abs(verticalOffset).toFloat() / totalScrollRange.toFloat()
 
@@ -105,7 +164,7 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             } else {
                 tvToolbarTitle.alpha = 0f
             }
-        })
+        }
 
         rvPhotos.layoutManager = GridLayoutManager(context, 3)
         adapter = AlbumPhotosAdapter(images = imagesList, onClick = { position ->
@@ -158,7 +217,9 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         viewModel.timestamp.observe(viewLifecycleOwner) { updateDateText(tvDate, it) }
 
         viewModel.coverUrl.observe(viewLifecycleOwner) { url ->
-            GlideHelper.loadGalleryImage(ivCover, url)
+            if (url != arguments?.getString("imageUrl")) {
+                GlideHelper.loadGalleryImage(ivCover, url)
+            }
         }
 
         viewModel.isDeleted.observe(viewLifecycleOwner) { deleted ->

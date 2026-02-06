@@ -8,7 +8,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -28,14 +27,15 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.ourmemories.Factory.MainViewModelFactory
 import com.example.ourmemories.Models.TreeInfo
 import com.example.ourmemories.Models.User
-import com.example.ourmemories.Repositories.MainRepository
 import com.example.ourmemories.Models.Zodiac
 import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.MainRepository
+import com.example.ourmemories.Utils.AnimationHelper
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MainViewModel
-import com.example.ourmemories.Factory.MainViewModelFactory
 import com.example.ourmemories.Widget.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
@@ -118,14 +118,17 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 try {
                     pickWidgetImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 } catch (e: Exception) {
-                    Log.e(TAG, "Ошибка запуска пикера", e)
                     Toast.makeText(context, getString(R.string.error_gallery), Toast.LENGTH_SHORT).show()
                 }
             } else {
                 Toast.makeText(context, getString(R.string.add_partner_first), Toast.LENGTH_SHORT).show()
             }
         }
-
+        val ic_tree = view.findViewById<ImageView>(R.id.ivTreeIcon)
+        ic_tree.setOnClickListener { _ ->
+            AnimationHelper.animateJelly(ic_tree)
+        }
+        AnimationHelper.animateJelly(view.findViewById<ImageView>(R.id.ivTreeIcon))
         cardFridge?.setOnClickListener { showEditNoteDialog() }
         cardTree?.setOnClickListener { showTreeDialog() }
 
@@ -145,14 +148,15 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
     }
 
-    val TAG = "MainFragment"
     private val pickWidgetImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            Log.d(TAG, "Фото выбрано: $uri")
-            viewModel.sendWidgetPhoto(uri)
-        } else {
-            Log.d(TAG, "Выбор фото отменен")
+        try {
+            if (uri != null) {
+                viewModel.sendWidgetPhoto(uri)
+            }
+        } catch (e: Exception) {
+            e.stackTraceToString()
         }
+
     }
 
     /**

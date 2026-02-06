@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,6 +24,8 @@ import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.GalleryRepository
 import com.example.ourmemories.Repositories.MainRepository
 import com.example.ourmemories.ViewModels.GalleryViewModel
+import com.facebook.shimmer.ShimmerFrameLayout
+import androidx.core.view.isVisible
 
 class GalleryFragment : Fragment(R.layout.gallery_fragment) {
     private val viewModel: GalleryViewModel by viewModels {
@@ -30,6 +34,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         val mainRepository = MainRepository()
         GalleryFactory(application, repository, mainRepository)
     }
+    private var isFirstLoad = true
 
     private lateinit var adapter: MemoryAdapter
 
@@ -59,9 +64,14 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         rvGallery.layoutManager = layoutManager
         rvGallery.itemAnimator = null
 
-        adapter = MemoryAdapter(layoutResId = R.layout.item_album, onClick = { memory ->
-            openMemoryDetail(memory)
-        })
+        val controller =
+            AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_slide_up)
+        rvGallery.layoutAnimation = controller
+
+        adapter = MemoryAdapter(
+            layoutResId = R.layout.item_album, onClick = { memory, imageView ->
+                openMemoryDetail(memory, imageView)
+            })
         rvGallery.adapter = adapter
 
         btnSearch.setOnClickListener {
@@ -91,11 +101,14 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (dy > 10 && fabAdd.visibility == View.VISIBLE) {
-                    fabAdd.animate().alpha(0f).setDuration(200).withEndAction { fabAdd.visibility = View.GONE }
+                if (dy > 10 && fabAdd.isVisible) {
+                    fabAdd.animate().alpha(0f).scaleX(0f).scaleY(0f).setDuration(200)
+                        .withEndAction { fabAdd.visibility = View.GONE }.start()
                 } else if (dy < -10 && fabAdd.visibility != View.VISIBLE) {
                     fabAdd.visibility = View.VISIBLE
-                    fabAdd.animate().alpha(1f).setDuration(200)
+                    fabAdd.scaleX = 0f
+                    fabAdd.scaleY = 0f
+                    fabAdd.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start()
                 }
 
                 val visibleItemCount = layoutManager.childCount
@@ -110,6 +123,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
 
         swipeRefresh.setColorSchemeResources(android.R.color.holo_red_light)
         swipeRefresh.setOnRefreshListener {
+            isFirstLoad = true
             viewModel.refresh()
         }
 
@@ -128,9 +142,33 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
     private fun observeViewModel(view: View) {
         val tvEmpty = view.findViewById<View>(R.id.tvEmptyGallery)
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshGallery)
+        val rvGallery = view.findViewById<RecyclerView>(R.id.rvGallery)
+        val shimmer = view.findViewById<ShimmerFrameLayout>(R.id.shimmerViewContainer)
+
+//        viewModel.memories.observe(viewLifecycleOwner) { list ->
+//            adapter.submitList(list)
+//            tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+//        }
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading && adapter.itemCount == 0) {
+                shimmer.startShimmer()
+                shimmer.visibility = View.VISIBLE
+                rvGallery.visibility = View.GONE
+            } else {
+                shimmer.stopShimmer()
+                shimmer.visibility = View.GONE
+                rvGallery.visibility = View.VISIBLE
+            }
+        }
+
 
         viewModel.memories.observe(viewLifecycleOwner) { list ->
-            adapter.submitList(list)
+            adapter.submitList(list) {
+                if (isFirstLoad && list.isNotEmpty()) {
+                    rvGallery.scheduleLayoutAnimation()
+                    isFirstLoad = false
+                }
+            }
             tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
@@ -149,7 +187,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
     /**
      * Открытие экрана детальной информации
      */
-    private fun openMemoryDetail(memory: Memory) {
+    private fun openMemoryDetail(memory: Memory, sharedImageView: ImageView) {
         val detailFragment = MemoryDetailFragment.newInstance(
             memory.id,
             memory.title,
@@ -158,9 +196,13 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             memory.timestamp,
             memory.uploaderUid
         )
-        parentFragmentManager.beginTransaction()
-            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out)
-            .add(R.id.fragment_container, detailFragment)
+
+        val transitionName =
+            ViewCompat.getTransitionName(sharedImageView) ?: "memory_image_${memory.id}"
+
+        parentFragmentManager.beginTransaction().setReorderingAllowed(true)
+            .addSharedElement(sharedImageView, transitionName)
+            .replace(R.id.fragment_container, detailFragment)
             .addToBackStack(null)
             .commit()
     }
@@ -173,6 +215,7 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         popup.menu.add(0, 1, 0, getString(R.string.first_new))
         popup.menu.add(0, 2, 1, getString(R.string.first_old))
         popup.setOnMenuItemClickListener { item ->
+            isFirstLoad = true
             when (item.itemId) {
                 1 -> viewModel.setSortOrder(true)
                 2 -> viewModel.setSortOrder(false)
@@ -181,5 +224,4 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         }
         popup.show()
     }
-
 }

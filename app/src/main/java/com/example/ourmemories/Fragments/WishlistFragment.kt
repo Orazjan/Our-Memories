@@ -3,6 +3,8 @@ package com.example.ourmemories.Fragments
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
@@ -10,16 +12,27 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Adapters.WishlistAdapter
 import com.example.ourmemories.Factory.WishListFactory
 import com.example.ourmemories.Models.WishItem
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.WishlistRepository
+import com.example.ourmemories.Utils.AnimationHelper
 import com.example.ourmemories.ViewModels.WishlistViewModel
+import com.example.ourmemories.databinding.FragmentWishlistBinding
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.emitter.Emitter
+import nl.dionsegijn.konfetti.xml.KonfettiView
+import java.util.concurrent.TimeUnit
 
-class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
+class WishlistFragment : Fragment() {
+    private var _binding: FragmentWishlistBinding? = null
+
+    private val binding get() = _binding!!
+
+    private var isFirstLoad = true
+
 
     private val viewModel: WishlistViewModel by viewModels {
         val application = requireActivity().application
@@ -28,50 +41,82 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
     }
 
     private lateinit var adapter: WishlistAdapter
+    private lateinit var konfettiView: KonfettiView
+
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentWishlistBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupUI(view)
-        observeViewModel(view)
+        setupUI()
+        observeViewModel()
     }
 
-    private fun setupUI(view: View) {
-        val rvWishlist = view.findViewById<RecyclerView>(R.id.rvWishlist)
-        val fabAdd = view.findViewById<View>(R.id.fabAddWish)
-        val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshWishlist)
+    private fun setupUI() {
+        AnimationHelper.addTouchBounce(binding.fabAddWish)
 
-        adapter = WishlistAdapter(onCheckClick = { item, isChecked ->
+        adapter = WishlistAdapter(onCheckClick = { item, isChecked, view ->
             viewModel.toggleWishStatus(item, isChecked)
+            if (isChecked) {
+                val location = IntArray(2)
+                view.getLocationInWindow(location)
+
+                val x = location[0] + view.width / 2f
+                val y = location[1] + view.height / 2f
+
+                playKonfetti(x, y)
+            }
         }, onLongClick = { item ->
             showDeleteDialog(item)
         })
 
-        rvWishlist.layoutManager = LinearLayoutManager(context)
-        rvWishlist.adapter = adapter
-        rvWishlist.itemAnimator = null
+        binding.rvWishlist.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = this@WishlistFragment.adapter
+            itemAnimator = null
 
-        fabAdd.setOnClickListener {
+            layoutAnimation =
+                AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_slide_up)
+        }
+
+        binding.rvWishlist.layoutManager = LinearLayoutManager(context)
+        binding.rvWishlist.adapter = adapter
+        binding.rvWishlist.itemAnimator = null
+
+        val controller =
+            AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_slide_up)
+        binding.rvWishlist.layoutAnimation = controller
+
+        binding.fabAddWish.setOnClickListener {
             showAddWishDialog()
         }
 
-        swipeRefresh.setColorSchemeResources(android.R.color.holo_red_light)
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefreshWishlist.setColorSchemeResources(android.R.color.holo_red_light)
+        binding.swipeRefreshWishlist.setOnRefreshListener {
+            isFirstLoad = true
             viewModel.startListening()
         }
     }
 
-    private fun observeViewModel(view: View) {
-        val layoutEmpty = view.findViewById<View>(R.id.layoutEmpty)
-        val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshWishlist)
-
+    private fun observeViewModel() {
         viewModel.wishes.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
-            layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+            binding.layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+            if (isFirstLoad && list.isNotEmpty()) {
+                binding.rvWishlist.scheduleLayoutAnimation()
+                isFirstLoad = false
+            }
         }
 
         viewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing ->
-            swipeRefresh.isRefreshing = isRefreshing
+            binding.swipeRefreshWishlist.isRefreshing = isRefreshing
+            isFirstLoad = true
         }
 
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
@@ -80,6 +125,22 @@ class WishlistFragment : Fragment(R.layout.fragment_wishlist) {
                 viewModel.onToastShown()
             }
         }
+    }
+
+    /**
+     * Запуск анимации конфетти.
+     */
+    private fun playKonfetti(x: Float, y: Float) {
+        val party = Party(
+            speed = 0f,
+            maxSpeed = 30f,
+            damping = 0.9f,
+            spread = 360,
+            colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
+            emitter = Emitter(duration = 200, TimeUnit.MILLISECONDS).max(100),
+            position = Position.Absolute(x, y)
+        )
+        konfettiView.start(party)
     }
 
     private fun showAddWishDialog() {
