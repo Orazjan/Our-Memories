@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.AddMemoryRepository
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Utils.ImageHandler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -157,7 +158,7 @@ class AddMemoryViewModel(
                     "timestamp" to (_eventDate.value ?: System.currentTimeMillis()),
                     "createdAt" to System.currentTimeMillis(),
                     "images" to allUrls,
-                    "imageUrl" to finalCoverUrl
+                    Constants.ARG_IMAGE_URL to finalCoverUrl
                 )
 
                 repository.addMemory(memoryMap)

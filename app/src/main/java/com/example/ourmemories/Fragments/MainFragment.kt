@@ -9,13 +9,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
 import android.widget.GridLayout
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -26,7 +27,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Factory.MainViewModelFactory
 import com.example.ourmemories.Models.TreeInfo
 import com.example.ourmemories.Models.User
@@ -34,16 +34,22 @@ import com.example.ourmemories.Models.Zodiac
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.MainRepository
 import com.example.ourmemories.Utils.AnimationHelper
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MainViewModel
 import com.example.ourmemories.Widget.CoupleWidget
+import com.example.ourmemories.databinding.MainFragmentBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+
 
 /**
  * Главный экран приложения.
@@ -61,23 +67,32 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private val updateHandler = Handler(Looper.getMainLooper())
     private var currentRelationshipTimestamp: Long = 0
 
+    private var _binding: MainFragmentBinding? = null
+    private val binding get() = _binding!!
 
     private val updateRunnable = Runnable {
         updateDaysUI()
         scheduleNextUpdate()
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = MainFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val repository = MainRepository()
-        prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+        prefs = requireContext().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
         val factory = MainViewModelFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]
 
         viewModel.updateLastActive()
 
-        setupUI(view)
+        setupUI()
         observeViewModel(view)
         scheduleNextUpdate()
     }
@@ -105,15 +120,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     /**
      * Настройка пользовательского интерфейса.
      */
-    private fun setupUI(view: View) {
-        val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
-        val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
-        val ivMyAvatar = view.findViewById<ImageView>(R.id.ivMyAvatar)
-        val cardMyStatus = view.findViewById<View>(R.id.cardMyStatus)
-        val cardFridge = view.findViewById<View>(R.id.cardFridge)
-        val cardTree = view.findViewById<View>(R.id.cardTree)
-        val tvHeart = view.findViewById<TextView>(R.id.tvHeartIcon)
-        view.findViewById<View>(R.id.btnAction)?.setOnClickListener {
+    private fun setupUI() {
+
+
+        binding.btnAction.setOnClickListener {
             if (viewModel.currentUser.value?.partnerUid != null) {
                 try {
                     pickWidgetImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -124,27 +134,47 @@ class MainFragment : Fragment(R.layout.main_fragment) {
                 Toast.makeText(context, getString(R.string.add_partner_first), Toast.LENGTH_SHORT).show()
             }
         }
-        val ic_tree = view.findViewById<ImageView>(R.id.ivTreeIcon)
-        ic_tree.setOnClickListener { _ ->
-            AnimationHelper.animateJelly(ic_tree)
+        val locationBuffer = IntArray(2)
+        binding.tvHeartIcon.setOnClickListener { view ->
+            view.getLocationOnScreen(locationBuffer)
+            val heartX = locationBuffer[0]
+            val heartY = locationBuffer[1]
+
+            binding.konfettiView.getLocationOnScreen(locationBuffer)
+            val konfettiX = locationBuffer[0]
+            val konfettiY = locationBuffer[1]
+
+            val finalX = (heartX - konfettiX) + view.width / 2f
+            val finalY = (heartY - konfettiY) + view.height / 2f
+
+            playKonfetti(finalX, finalY)
         }
-        AnimationHelper.animateJelly(view.findViewById<ImageView>(R.id.ivTreeIcon))
-        cardFridge?.setOnClickListener { showEditNoteDialog() }
-        cardTree?.setOnClickListener { showTreeDialog() }
 
-        tvHeart?.startAnimation(AnimationUtils.loadAnimation(context, R.anim.heart_beat))
 
-        tvDaysCount.setOnClickListener {
+        binding.ivTreeIcon.setOnClickListener { _ ->
+            AnimationHelper.animateJelly(binding.ivTreeIcon)
+        }
+        AnimationHelper.animateJelly(binding.ivTreeIcon)
+        binding.cardFridge.setOnClickListener { showEditNoteDialog() }
+        binding.cardTree.setOnClickListener { showTreeDialog() }
+
+        binding.tvHeartIcon.startAnimation(
+            AnimationUtils.loadAnimation(
+                context, R.anim.heart_beat
+            )
+        )
+
+        binding.tvDaysCount.setOnClickListener {
             viewModel.currentUser.value?.let { showRelationshipDatePicker() }
         }
 
         val statusClickListener = View.OnClickListener { showStatusPickerDialog() }
-        ivMyAvatar.setOnClickListener(statusClickListener)
-        cardMyStatus.setOnClickListener(statusClickListener)
+        binding.ivMyAvatar.setOnClickListener(statusClickListener)
+        binding.cardMyStatus.setOnClickListener(statusClickListener)
 
-        swipeRefreshLayout.setOnRefreshListener {
+        binding.swipeRefreshLayout.setOnRefreshListener {
             viewModel.startListening()
-            swipeRefreshLayout.isRefreshing = false
+            binding.swipeRefreshLayout.isRefreshing = false
         }
     }
 
@@ -159,6 +189,19 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
     }
 
+    private fun playKonfetti(x: Float, y: Float) {
+        val party = Party(
+            speed = 10f,
+            maxSpeed = 30f,
+            damping = 0.9f,
+            spread = 360,
+            colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
+            emitter = Emitter(duration = 200, TimeUnit.MILLISECONDS).max(100),
+            position = Position.Absolute(x, y)
+        )
+        binding.konfettiView.start(party)
+    }
+
     /**
      * Наблюдение за изменениями в ViewModel.
      */
@@ -170,18 +213,15 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             }
         }
 
-        val btnSendWidget =
-            view.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnAction)
-
         viewModel.isWidgetLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
-                btnSendWidget.text = getString(R.string.sending_photo)
-                btnSendWidget.isEnabled = false
-                btnSendWidget.alpha = 0.7f
+                binding.btnAction.text = getString(R.string.sending_photo)
+                binding.btnAction.isEnabled = false
+                binding.btnAction.alpha = 0.7f
             } else {
-                btnSendWidget.text = getString(R.string.send_photo_to_widget)
-                btnSendWidget.isEnabled = true
-                btnSendWidget.alpha = 1.0f
+                binding.btnAction.text = getString(R.string.send_photo_to_widget)
+                binding.btnAction.isEnabled = true
+                binding.btnAction.alpha = 1.0f
             }
         }
 
@@ -216,61 +256,56 @@ class MainFragment : Fragment(R.layout.main_fragment) {
      * Обновление интерфейса пользователя
      */
     private fun updateMyUI(view: View, user: User) {
-        view.findViewById<TextView>(R.id.tvMyName).text = user.name
-        GlideHelper.loadAvatar(view.findViewById(R.id.ivMyAvatar), user.photoUrl, "MY_AVATAR")
+        binding.tvMyName.text = user.name
+        GlideHelper.loadAvatar(binding.ivMyAvatar, user.photoUrl, "MY_AVATAR")
 
         updateStatusUI(
-            view.findViewById(R.id.cardMyStatus), view.findViewById(R.id.tvMyStatus),
+            binding.cardMyStatus, binding.tvMyStatus,
             user.status
         )
 
         val treeInfo = TreeInfo.getTreeInfo(user.treePoints)
         updateTreeUI(view, treeInfo)
 
-        view.findViewById<TextView>(R.id.tvFridgeNote)?.text =
+        binding.tvFridgeNote.text =
             user.sharedNote?.takeIf { it.isNotEmpty() }
                 ?: getString(R.string.leave_note_lovely_person)
 
         currentRelationshipTimestamp = user.relationshipDate
         updateDaysCounter(view, user.relationshipDate)
 
-        val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
-        tvDaysCount.isEnabled = user.partnerUid != null
-        tvDaysCount.alpha = if (user.partnerUid != null) 1.0f else 0.5f
+        binding.tvDaysCount.isEnabled = user.partnerUid != null
+        binding.tvDaysCount.alpha = if (user.partnerUid != null) 1.0f else 0.5f
     }
 
     /**
      * Обновление интерфейса партнёра
      */
     private fun updatePartnerUI(view: View, partner: User?) {
-        val layoutPartner = view.findViewById<LinearLayout>(R.id.layoutPartner)
-        val tvPartnerName = view.findViewById<TextView>(R.id.tvPartnerName)
-        val ivPartnerAvatar = view.findViewById<ImageView>(R.id.ivPartnerAvatar)
-        val cardPartnerStatus = view.findViewById<View>(R.id.cardPartnerStatus)
-
         if (partner != null) {
-            tvPartnerName.text = partner.name
+            binding.tvPartnerName.text = partner.name
 
             val lastActiveDate = partner.lastActive
             val date = if (lastActiveDate > 0) Date(lastActiveDate) else null
 
             val partnerDr = partner.birthDate
             val treepoints = partner.treePoints
-            GlideHelper.loadAvatar(ivPartnerAvatar, partner.photoUrl, "PARTNER_AVATAR")
+            GlideHelper.loadAvatar(binding.ivPartnerAvatar, partner.photoUrl, "PARTNER_AVATAR")
             updateStatusUI(
-                cardPartnerStatus, view.findViewById(R.id.tvPartnerStatus), partner.status
+                binding.cardPartnerStatus, view.findViewById(R.id.tvPartnerStatus), partner.status
             )
-            layoutPartner.setOnClickListener {
+            binding.layoutPartner.setOnClickListener {
                 showPartnerOptions(
                     partner.uid, partner.name, partner.photoUrl, partnerDr, treepoints, date
                 )
             }
         } else {
+            binding.
             tvPartnerName.text = getString(R.string.invite)
-            ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
-            ivPartnerAvatar.setPadding(20, 20, 20, 20)
-            cardPartnerStatus.visibility = View.GONE
-            layoutPartner.setOnClickListener { showInvitePartnerDialog() }
+            binding.ivPartnerAvatar.setImageResource(android.R.drawable.ic_input_add)
+            binding.ivPartnerAvatar.setPadding(20, 20, 20, 20)
+            binding.cardPartnerStatus.visibility = View.GONE
+            binding.layoutPartner.setOnClickListener { showInvitePartnerDialog() }
         }
     }
 
@@ -373,7 +408,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val etCode = dialogView.findViewById<EditText>(R.id.etPartnerCode)
         val btnConnect = dialogView.findViewById<Button>(R.id.btnConnect)
         val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
-        
+
         btnConnect.setOnClickListener {
             val code = etCode.text.toString().trim()
             if (code.length == 8) {
@@ -519,7 +554,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         npYear.minValue = 1950
         npYear.maxValue = Calendar.getInstance().get(Calendar.YEAR)
         npYear.value = calendar.get(Calendar.YEAR)
-        
+
         val months = DateFormatSymbols(Locale.getDefault()).shortMonths
         npMonth.minValue = 0
         npMonth.maxValue = 11
@@ -577,5 +612,6 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     override fun onDestroyView() {
         super.onDestroyView()
         updateHandler.removeCallbacks(updateRunnable)
+        _binding = null
     }
 }

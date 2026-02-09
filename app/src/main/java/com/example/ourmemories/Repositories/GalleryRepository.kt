@@ -1,6 +1,7 @@
 package com.example.ourmemories.Repositories
 
 import com.example.ourmemories.Models.Memory
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -27,7 +28,7 @@ class GalleryRepository {
     ): ListenerRegistration {
         val direction = if (isNewestFirst) Query.Direction.DESCENDING else Query.Direction.ASCENDING
 
-        return db.collection("memories").whereIn("uploaderUid", uids)
+        return db.collection(Constants.COL_MEMORIES).whereIn("uploaderUid", uids)
             .orderBy("timestamp", direction).limit(limit).addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     onError(e)

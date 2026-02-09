@@ -20,6 +20,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Workers.WidgetUpdateWorker
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -39,10 +40,10 @@ class PushNotificationService : FirebaseMessagingService() {
         Log.d("FCM", "Получено сообщение типа: $type")
 
         if (type == "widget_update") {
-            val imageUrl = data["imageUrl"]
+            val imageUrl = data[Constants.ARG_IMAGE_URL]
             if (imageUrl != null) {
                 Log.d("FCM", "Получено фото для виджета: $imageUrl")
-                val inputData = Data.Builder().putString("imageUrl", imageUrl).build()
+                val inputData = Data.Builder().putString(Constants.ARG_IMAGE_URL, imageUrl).build()
 
                 val constraints =
                     Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

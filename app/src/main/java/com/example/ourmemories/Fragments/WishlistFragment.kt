@@ -23,7 +23,6 @@ import com.example.ourmemories.databinding.FragmentWishlistBinding
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
-import nl.dionsegijn.konfetti.xml.KonfettiView
 import java.util.concurrent.TimeUnit
 
 class WishlistFragment : Fragment() {
@@ -41,8 +40,6 @@ class WishlistFragment : Fragment() {
     }
 
     private lateinit var adapter: WishlistAdapter
-    private lateinit var konfettiView: KonfettiView
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -85,13 +82,6 @@ class WishlistFragment : Fragment() {
                 AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_slide_up)
         }
 
-        binding.rvWishlist.layoutManager = LinearLayoutManager(context)
-        binding.rvWishlist.adapter = adapter
-        binding.rvWishlist.itemAnimator = null
-
-        val controller =
-            AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_slide_up)
-        binding.rvWishlist.layoutAnimation = controller
 
         binding.fabAddWish.setOnClickListener {
             showAddWishDialog()
@@ -99,7 +89,6 @@ class WishlistFragment : Fragment() {
 
         binding.swipeRefreshWishlist.setColorSchemeResources(android.R.color.holo_red_light)
         binding.swipeRefreshWishlist.setOnRefreshListener {
-            isFirstLoad = true
             viewModel.startListening()
         }
     }
@@ -140,7 +129,7 @@ class WishlistFragment : Fragment() {
             emitter = Emitter(duration = 200, TimeUnit.MILLISECONDS).max(100),
             position = Position.Absolute(x, y)
         )
-        konfettiView.start(party)
+        binding.konfettiView.start(party)
     }
 
     private fun showAddWishDialog() {
@@ -193,5 +182,10 @@ class WishlistFragment : Fragment() {
             .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 viewModel.deleteWish(item)
             }.setNegativeButton(getString(R.string.cancel), null).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

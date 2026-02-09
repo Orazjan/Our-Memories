@@ -12,10 +12,13 @@ import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.example.ourmemories.R
 import com.example.ourmemories.ViewModels.PhotoViewerViewModel
+import com.example.ourmemories.databinding.FragmentPhotoViewerBinding
 import com.github.chrisbanes.photoview.PhotoView
 
-class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
+class PhotoViewerFragment : Fragment() {
 
+    private var _binding: FragmentPhotoViewerBinding? = null
+    private val binding get() = _binding!!
     private lateinit var viewModel: PhotoViewerViewModel
 
     companion object {
@@ -29,6 +32,13 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
         }
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentPhotoViewerBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -38,17 +48,15 @@ class PhotoViewerFragment : Fragment(R.layout.fragment_photo_viewer) {
         val argsStartPos = arguments?.getInt("pos") ?: 0
         viewModel.initData(argsImages, argsStartPos)
 
-        setupUI(view)
+        setupUI()
         observeViewModel(view)
     }
 
-    private fun setupUI(view: View) {
-        val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
-        val btnClose = view.findViewById<View>(R.id.btnClose)
+    private fun setupUI() {
 
-        btnClose.setOnClickListener { parentFragmentManager.popBackStack() }
+        binding.btnClose.setOnClickListener { parentFragmentManager.popBackStack() }
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 viewModel.onPageChanged(position)
             }

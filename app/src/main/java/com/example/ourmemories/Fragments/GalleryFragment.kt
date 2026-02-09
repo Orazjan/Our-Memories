@@ -3,20 +3,19 @@ package com.example.ourmemories.Fragments
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.PopupMenu
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ourmemories.Adapters.MemoryAdapter
 import com.example.ourmemories.Factory.GalleryFactory
 import com.example.ourmemories.Models.Memory
@@ -24,10 +23,12 @@ import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.GalleryRepository
 import com.example.ourmemories.Repositories.MainRepository
 import com.example.ourmemories.ViewModels.GalleryViewModel
-import com.facebook.shimmer.ShimmerFrameLayout
-import androidx.core.view.isVisible
+import com.example.ourmemories.databinding.GalleryFragmentBinding
 
-class GalleryFragment : Fragment(R.layout.gallery_fragment) {
+class GalleryFragment : Fragment() {
+    private var _binding: GalleryFragmentBinding? = null
+    private val binding get() = _binding!!
+
     private val viewModel: GalleryViewModel by viewModels {
         val application = requireActivity().application
         val repository = GalleryRepository()
@@ -38,56 +39,53 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
 
     private lateinit var adapter: MemoryAdapter
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = GalleryFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupUI(view)
-        observeViewModel(view)
+        setupUI()
+        observeViewModel()
     }
 
     /**
      * Настройка пользовательского интерфейса.
      */
-    private fun setupUI(view: View) {
-        val rvGallery = view.findViewById<RecyclerView>(R.id.rvGallery)
-        val fabAdd = view.findViewById<View>(R.id.fabAddMemory)
-        val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshGallery)
-
-        val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
-        val layoutSearch = view.findViewById<LinearLayout>(R.id.layoutSearch)
-        val etSearch = view.findViewById<EditText>(R.id.etSearch)
-        val btnCloseSearch = view.findViewById<ImageView>(R.id.btnCloseSearch)
-        val btnSearch = view.findViewById<View>(R.id.btnSearch)
-        val btnSort = view.findViewById<View>(R.id.btnSort)
-
+    private fun setupUI() {
+        
         val layoutManager = LinearLayoutManager(context)
-        rvGallery.layoutManager = layoutManager
-        rvGallery.itemAnimator = null
+        binding.rvGallery.layoutManager = layoutManager
+        binding.rvGallery.itemAnimator = null
 
         val controller =
             AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_slide_up)
-        rvGallery.layoutAnimation = controller
+        binding.rvGallery.layoutAnimation = controller
 
         adapter = MemoryAdapter(
             layoutResId = R.layout.item_album, onClick = { memory, imageView ->
                 openMemoryDetail(memory, imageView)
             })
-        rvGallery.adapter = adapter
+        binding.rvGallery.adapter = adapter
 
-        btnSearch.setOnClickListener {
-            tvTitle.visibility = View.GONE
-            layoutSearch.visibility = View.VISIBLE
-            etSearch.requestFocus()
+        binding.btnSearch.setOnClickListener {
+            binding.tvTitle.visibility = View.GONE
+            binding.layoutSearch.visibility = View.VISIBLE
+            binding.etSearch.requestFocus()
         }
 
-        btnCloseSearch.setOnClickListener {
-            layoutSearch.visibility = View.GONE
-            tvTitle.visibility = View.VISIBLE
-            etSearch.text.clear()
+        binding.btnCloseSearch.setOnClickListener {
+            binding.layoutSearch.visibility = View.GONE
+            binding.tvTitle.visibility = View.VISIBLE
+            binding.etSearch.text.clear()
             viewModel.setSearchQuery("")
         }
 
-        etSearch.addTextChangedListener(object : TextWatcher {
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 viewModel.setSearchQuery(s.toString())
             }
@@ -95,20 +93,21 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        btnSort.setOnClickListener { showSortMenu(it) }
+        binding.btnSort.setOnClickListener { showSortMenu(it) }
 
-        rvGallery.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        binding.rvGallery.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (dy > 10 && fabAdd.isVisible) {
-                    fabAdd.animate().alpha(0f).scaleX(0f).scaleY(0f).setDuration(200)
-                        .withEndAction { fabAdd.visibility = View.GONE }.start()
-                } else if (dy < -10 && fabAdd.visibility != View.VISIBLE) {
-                    fabAdd.visibility = View.VISIBLE
-                    fabAdd.scaleX = 0f
-                    fabAdd.scaleY = 0f
-                    fabAdd.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start()
+                if (dy > 10 && binding.fabAddMemory.isVisible) {
+                    binding.fabAddMemory.animate().alpha(0f).scaleX(0f).scaleY(0f).setDuration(200)
+                        .withEndAction { binding.fabAddMemory.visibility = View.GONE }.start()
+                } else if (dy < -10 && binding.fabAddMemory.visibility != View.VISIBLE) {
+                    binding.fabAddMemory.visibility = View.VISIBLE
+                    binding.fabAddMemory.scaleX = 0f
+                    binding.fabAddMemory.scaleY = 0f
+                    binding.fabAddMemory.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200)
+                        .start()
                 }
 
                 val visibleItemCount = layoutManager.childCount
@@ -121,13 +120,13 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             }
         })
 
-        swipeRefresh.setColorSchemeResources(android.R.color.holo_red_light)
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefreshGallery.setColorSchemeResources(android.R.color.holo_red_light)
+        binding.swipeRefreshGallery.setOnRefreshListener {
             isFirstLoad = true
             viewModel.refresh()
         }
 
-        fabAdd.setOnClickListener {
+        binding.fabAddMemory.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out)
                 .replace(R.id.fragment_container, AddMemoryFragment())
@@ -139,25 +138,20 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
     /**
      * Наблюдение за изменениями в ViewModel.
      */
-    private fun observeViewModel(view: View) {
-        val tvEmpty = view.findViewById<View>(R.id.tvEmptyGallery)
-        val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshGallery)
-        val rvGallery = view.findViewById<RecyclerView>(R.id.rvGallery)
-        val shimmer = view.findViewById<ShimmerFrameLayout>(R.id.shimmerViewContainer)
-
-//        viewModel.memories.observe(viewLifecycleOwner) { list ->
+    private fun observeViewModel() {
+        //        viewModel.memories.observe(viewLifecycleOwner) { list ->
 //            adapter.submitList(list)
 //            tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
 //        }
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading && adapter.itemCount == 0) {
-                shimmer.startShimmer()
-                shimmer.visibility = View.VISIBLE
-                rvGallery.visibility = View.GONE
+                binding.shimmerViewContainer.startShimmer()
+                binding.shimmerViewContainer.visibility = View.VISIBLE
+                binding.rvGallery.visibility = View.GONE
             } else {
-                shimmer.stopShimmer()
-                shimmer.visibility = View.GONE
-                rvGallery.visibility = View.VISIBLE
+                binding.shimmerViewContainer.stopShimmer()
+                binding.shimmerViewContainer.visibility = View.GONE
+                binding.rvGallery.visibility = View.VISIBLE
             }
         }
 
@@ -165,15 +159,15 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
         viewModel.memories.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list) {
                 if (isFirstLoad && list.isNotEmpty()) {
-                    rvGallery.scheduleLayoutAnimation()
+                    binding.rvGallery.scheduleLayoutAnimation()
                     isFirstLoad = false
                 }
             }
-            tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+            binding.tvEmptyGallery.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
         viewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing ->
-            swipeRefresh.isRefreshing = isRefreshing
+            binding.swipeRefreshGallery.isRefreshing = isRefreshing
         }
 
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
@@ -223,5 +217,10 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
             true
         }
         popup.show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

@@ -16,6 +16,8 @@ import androidx.fragment.app.Fragment
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
 import com.example.ourmemories.Utils.AutoStartPermissionHelper
+import com.example.ourmemories.Utils.Constants
+import com.example.ourmemories.Utils.LocaleHelper
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.util.Locale
 
@@ -25,7 +27,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+        prefs = requireContext().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
 
         view.findViewById<View>(R.id.btnBack).setOnClickListener {
             parentFragmentManager.popBackStack()
@@ -101,15 +103,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     }
 
     private fun setLocale(languageCode: String) {
-        val locale = Locale(languageCode)
-        Locale.setDefault(locale)
-        val config = resources.configuration
-        config.setLocale(locale)
-        requireContext().resources.updateConfiguration(
-            config, requireContext().resources.displayMetrics
-        )
-
-        prefs.edit().putString("language_code", languageCode).apply()
+        LocaleHelper.setLocale(requireContext(), languageCode)
 
         val intent = Intent(requireActivity(), MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

@@ -16,6 +16,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Widget.CoupleWidget
 import kotlinx.coroutines.delay
 import java.util.Calendar
@@ -36,9 +37,9 @@ class WidgetUpdateWorker(
 
             if (ids.isEmpty()) return Result.success()
 
-            val prefs = context.getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+            val prefs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
 
-            val inputUrl = inputData.getString("imageUrl")
+            val inputUrl = inputData.getString(Constants.ARG_IMAGE_URL)
             if (inputUrl != null) {
                 prefs.edit().putString("widget_live_photo", inputUrl).apply()
             }

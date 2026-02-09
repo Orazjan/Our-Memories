@@ -19,6 +19,8 @@ import com.example.ourmemories.LogAndReg.OnboardingFragment
 import com.example.ourmemories.LogAndReg.OnboardingStep2Fragment
 import com.example.ourmemories.LogAndReg.RegFragment
 import com.example.ourmemories.LogAndReg.SetupProfileFragment
+import com.example.ourmemories.Utils.Constants
+import com.example.ourmemories.Utils.LocaleHelper
 import com.example.ourmemories.ViewModels.EnterViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -33,12 +35,13 @@ class EnterActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        LocaleHelper.onAttach(this)
 
         viewModel = ViewModelProvider(this)[EnterViewModel::class.java]
 
         prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        val themePrefs = getSharedPreferences("AppCache", Context.MODE_PRIVATE)
-        val savedTheme = themePrefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        val themePrefs = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+        val savedTheme = themePrefs.getInt(Constants.KEY_THEME, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
 
         hideSystemUI()

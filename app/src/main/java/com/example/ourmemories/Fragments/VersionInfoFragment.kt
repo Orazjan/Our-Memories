@@ -1,44 +1,40 @@
 package com.example.ourmemories.Fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.ourmemories.R
 import com.example.ourmemories.ViewModels.VersionInfoViewModel
+import com.example.ourmemories.databinding.VersionInfoFragmentBinding
 
-class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
+class VersionInfoFragment : Fragment() {
 
+    private var _binding: VersionInfoFragmentBinding? = null
+    private val binding get() = _binding!!
     private lateinit var viewModel: VersionInfoViewModel
-    private lateinit var infoText: TextView
-    private lateinit var versionSpinner: AutoCompleteTextView
-    private lateinit var tvAppVersion: TextView
+
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = VersionInfoFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProvider(this)[VersionInfoViewModel::class.java]
 
-        initUI(view)
+        setupSpinnerListener()
         observeViewModel()
-        
-        view.findViewById<View>(R.id.btnBack).setOnClickListener {
+
+        binding.btnBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
-
-        setupSpinnerListener()
-    }
-
-    /**
-     * Инициализация пользовательского интерфейса.
-     */
-    private fun initUI(view: View) {
-        infoText = view.findViewById(R.id.InfoText)
-        versionSpinner = view.findViewById(R.id.mySpinner)
-        tvAppVersion = view.findViewById(R.id.tvAppVersion)
     }
 
     /**
@@ -49,19 +45,19 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
             val adapter = ArrayAdapter(
                 requireContext(), android.R.layout.simple_dropdown_item_1line, names
             )
-            versionSpinner.setAdapter(adapter)
+            binding.mySpinner.setAdapter(adapter)
 
-            if (names.isNotEmpty() && versionSpinner.text.isEmpty()) {
-                versionSpinner.setText(names[0], false)
+            if (names.isNotEmpty() && binding.mySpinner.text.isEmpty()) {
+                binding.mySpinner.setText(names[0], false)
             }
         }
 
         viewModel.selectedDescription.observe(viewLifecycleOwner) { text ->
-            infoText.text = text
+            binding.InfoText.text = text
         }
 
         viewModel.currentAppVersion.observe(viewLifecycleOwner) { versionString ->
-            tvAppVersion.text = versionString
+            binding.tvAppVersion.text = versionString
         }
     }
 
@@ -69,13 +65,18 @@ class VersionInfoFragment : Fragment(R.layout.version_info_fragment) {
      * Слушатель выбора версии из спиннера.
      */
     private fun setupSpinnerListener() {
-        versionSpinner.setOnItemClickListener { parent, _, position, _ ->
+        binding.mySpinner.setOnItemClickListener { parent, _, position, _ ->
             val selectedVersion = parent.getItemAtPosition(position) as String
             viewModel.selectVersion(selectedVersion)
         }
 
-        versionSpinner.setOnClickListener {
-            versionSpinner.showDropDown()
+        binding.mySpinner.setOnClickListener {
+            binding.mySpinner.showDropDown()
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

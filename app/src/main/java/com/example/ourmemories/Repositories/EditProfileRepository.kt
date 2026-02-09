@@ -2,6 +2,7 @@ package com.example.ourmemories.Repositories
 
 import androidx.core.net.toUri
 import androidx.lifecycle.MutableLiveData
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
@@ -38,7 +39,7 @@ class EditProfileRepository {
         currentName.value = user.displayName ?: ""
         currentPhotoUrl.value = user.photoUrl?.toString()
 
-        db.collection("users").document(user.uid).get().addOnSuccessListener { doc ->
+        db.collection(Constants.COL_USERS).document(user.uid).get().addOnSuccessListener { doc ->
             if (doc.exists()) {
                 val birthDate = doc.getString("birthDate") ?: ""
                 currentBirthDate.value = birthDate
@@ -64,7 +65,7 @@ class EditProfileRepository {
      */
     suspend fun uploadAvatar(uid: String, imageData: ByteArray): String {
         val timestamp = System.currentTimeMillis()
-        val fileName = "avatars/${uid}_${timestamp}.jpg"
+        val fileName = "${Constants.STORAGE_AVATARS}/${uid}_${timestamp}.jpg"
 
         val storageRef = storage.reference.child(fileName)
         storageRef.putBytes(imageData).await()
@@ -87,6 +88,6 @@ class EditProfileRepository {
      * Обновляет данные пользователя в Firestore.
      */
     suspend fun saveUserToFirestore(uid: String, data: Map<String, Any>) {
-        db.collection("users").document(uid).set(data, SetOptions.merge()).await()
+        db.collection(Constants.COL_USERS).document(uid).set(data, SetOptions.merge()).await()
     }
 }

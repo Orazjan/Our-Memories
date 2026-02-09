@@ -2,6 +2,7 @@ package com.example.ourmemories.Repositories
 
 import com.example.ourmemories.Models.User
 import com.example.ourmemories.Models.WishItem
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -20,7 +21,7 @@ class WishlistRepository {
      * Слушает изменения пользователя (чтобы узнать partnerUid).
      */
     fun listenToUser(uid: String, onUserData: (User?) -> Unit): ListenerRegistration {
-        return db.collection("users").document(uid).addSnapshotListener { snapshot, e ->
+        return db.collection(Constants.COL_USERS).document(uid).addSnapshotListener { snapshot, e ->
             if (e != null || snapshot == null || !snapshot.exists()) {
                 onUserData(null)
                 return@addSnapshotListener
@@ -36,7 +37,7 @@ class WishlistRepository {
     fun listenToWishes(
         uids: List<String>, onData: (List<WishItem>) -> Unit, onError: (Exception) -> Unit
     ): ListenerRegistration {
-        return db.collection("wishes").whereIn("createdBy", uids)
+        return db.collection(Constants.COL_WISHES).whereIn("createdBy", uids)
             .orderBy("timestamp", Query.Direction.DESCENDING).addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     onError(e)
@@ -53,16 +54,17 @@ class WishlistRepository {
     }
 
     fun addWish(wish: WishItem, onFailure: (Exception) -> Unit) {
-        db.collection("wishes").add(wish).addOnFailureListener { onFailure(it) }
+        db.collection(Constants.COL_WISHES).add(wish).addOnFailureListener { onFailure(it) }
     }
 
     fun updateWishStatus(wishId: String, isCompleted: Boolean, onFailure: (Exception) -> Unit) {
-        db.collection("wishes").document(wishId).update("isCompleted", isCompleted)
+        db.collection(Constants.COL_WISHES).document(wishId).update("isCompleted", isCompleted)
             .addOnFailureListener { onFailure(it) }
     }
 
     fun deleteWish(wishId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        db.collection("wishes").document(wishId).delete().addOnSuccessListener { onSuccess() }
+        db.collection(Constants.COL_WISHES).document(wishId).delete()
+            .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
     }
 }

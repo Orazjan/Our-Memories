@@ -5,22 +5,31 @@ import java.util.Locale
 
 object LocaleHelper {
 
-    private val SUPPORTED_LANGUAGES = setOf("ru", "en", "ky", "tk")
+    private const val PREFS_NAME = Constants.PREFS_NAME
+    private const val KEY_LANGUAGE = "language_code"
 
-    fun applyLanguage(context: Context) {
-        val systemLocale = Context.MODE_PRIVATE
-        val config = context.resources.configuration
-
-        val sysLang = config.locales[0].language
-
-        if (sysLang !in SUPPORTED_LANGUAGES) {
-            setLocale(context, "ru")
-        }
+    fun onAttach(context: Context) {
+        val lang = getPersistedData(context, Locale.getDefault().language)
+        setLocale(context, lang)
     }
 
-    @Suppress("DEPRECATION")
-    private fun setLocale(context: Context, languageCode: String) {
-        val locale = Locale(languageCode)
+    fun setLocale(context: Context, languageCode: String) {
+        persist(context, languageCode)
+        updateResources(context, languageCode)
+    }
+
+    private fun getPersistedData(context: Context, defaultLanguage: String): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_LANGUAGE, defaultLanguage) ?: defaultLanguage
+    }
+
+    private fun persist(context: Context, language: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_LANGUAGE, language).apply()
+    }
+
+    private fun updateResources(context: Context, language: String) {
+        val locale = Locale(language)
         Locale.setDefault(locale)
 
         val config = context.resources.configuration

@@ -2,10 +2,6 @@ package com.example.ourmemories.Fragments
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.transition.ChangeBounds
-import android.transition.ChangeImageTransform
-import android.transition.ChangeTransform
-import android.transition.TransitionSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,12 +12,15 @@ import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.ChangeBounds
+import androidx.transition.ChangeImageTransform
+import androidx.transition.ChangeTransform
+import androidx.transition.TransitionSet
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -30,9 +29,10 @@ import com.bumptech.glide.request.target.Target
 import com.example.ourmemories.Factory.MemoryDetailFactory
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.MemoryDetailRepository
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MemoryDetailViewModel
-import com.google.android.material.appbar.AppBarLayout
+import com.example.ourmemories.databinding.FragmentMemoryDetailBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
@@ -41,7 +41,10 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
-class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
+class MemoryDetailFragment : Fragment() {
+    private var _binding: FragmentMemoryDetailBinding? = null
+    private val binding get() = _binding!!
+
 
     private val viewModel: MemoryDetailViewModel by viewModels {
         val application = requireActivity().application
@@ -74,6 +77,13 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
         }
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentMemoryDetailBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val transitionSet = TransitionSet().apply {
@@ -81,7 +91,7 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             addTransition(ChangeTransform())
             addTransition(ChangeImageTransform())
             ordering = TransitionSet.ORDERING_TOGETHER
-            duration = 500
+            duration = 300
         }
 
         sharedElementEnterTransition = transitionSet
@@ -94,11 +104,12 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
 
         val args = arguments ?: return
         val memoryId = args.getString("id") ?: return
-        val imageUrl = args.getString("imageUrl") ?: ""
+        val imageUrl = args.getString(Constants.ARG_IMAGE_URL) ?: ""
         val ivCover = view.findViewById<ImageView>(R.id.ivCover)
         ViewCompat.setTransitionName(ivCover, "memory_image_${memoryId}")
 
         postponeEnterTransition()
+        startPostponedEnterTransitionWithTimeout()
         if (imageUrl.isNotEmpty()) {
             Glide.with(this)
                 .load(imageUrl)
@@ -134,54 +145,47 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             initialTitle = args.getString("title") ?: "",
             initialDesc = args.getString("description") ?: "",
             initialTimestamp = args.getLong("timestamp"),
-            initialCover = args.getString("imageUrl") ?: ""
+            initialCover = args.getString(Constants.ARG_IMAGE_URL) ?: ""
         )
 
-        setupUI(view)
-        observeViewModel(view)
+        setupUI()
+        observeViewModel()
     }
 
     /**
      * Настройка пользовательского интерфейса
      */
-    private fun setupUI(view: View) {
-        val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
-        val btnEdit = view.findViewById<View>(R.id.btnEdit)
-        val btnDelete = view.findViewById<View>(R.id.btnDelete)
-        val rvPhotos = view.findViewById<RecyclerView>(R.id.rvPhotos)
-        val tvToolbarTitle = view.findViewById<TextView>(R.id.tvToolbarTitle)
-        val appBar = view.findViewById<AppBarLayout>(R.id.appBar)
+    private fun setupUI() {
+        binding.toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
-        toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
-
-        appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
+        binding.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
             val totalScrollRange = appBarLayout.totalScrollRange
             val percentage = abs(verticalOffset).toFloat() / totalScrollRange.toFloat()
 
             if (percentage > 0.7f) {
                 val alpha = (percentage - 0.7f) / 0.3f
-                tvToolbarTitle.alpha = alpha
+                binding.tvToolbarTitle.alpha = alpha
             } else {
-                tvToolbarTitle.alpha = 0f
+                binding.tvToolbarTitle.alpha = 0f
             }
         }
 
-        rvPhotos.layoutManager = GridLayoutManager(context, 3)
+        binding.rvPhotos.layoutManager = GridLayoutManager(context, 3)
         adapter = AlbumPhotosAdapter(images = imagesList, onClick = { position ->
             openFullScreenViewer(position)
         }, onLongClick = { url ->
             showPhotoOptionsDialog(url)
         })
-        rvPhotos.adapter = adapter
+        binding.rvPhotos.adapter = adapter
 
-        btnEdit.setOnClickListener {
+        binding.btnEdit.setOnClickListener {
             val currentTitle = viewModel.title.value ?: ""
             val currentDesc = viewModel.description.value ?: ""
             val currentDate = viewModel.timestamp.value ?: System.currentTimeMillis()
             showEditDialog(currentTitle, currentDesc, currentDate)
         }
 
-        btnDelete.setOnClickListener {
+        binding.btnDelete.setOnClickListener {
             AlertDialog.Builder(requireContext()).setTitle(getString(R.string.delete_album_title))
                 .setMessage(getString(R.string.delete_album_message))
                 .setPositiveButton(getString(R.string.delete)) { _, _ ->
@@ -193,32 +197,26 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
     /**
      * Наблюдение за изменениями в ViewModel
      */
-    private fun observeViewModel(view: View) {
-        val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
-        val tvDescription = view.findViewById<TextView>(R.id.tvDescription)
-        val tvDate = view.findViewById<TextView>(R.id.tvDate)
-        val ivCover = view.findViewById<ImageView>(R.id.ivCover)
-        val tvTitleToolbar = view.findViewById<TextView>(R.id.tvToolbarTitle)
-
+    private fun observeViewModel() {
         viewModel.title.observe(viewLifecycleOwner) {
-            tvTitle.text = it
-            tvTitleToolbar.text = it
+            binding.tvTitle.text = it
+            binding.tvToolbarTitle.text = it
         }
         viewModel.description.observe(viewLifecycleOwner) {
-            tvDescription.text = it
-            if (tvDescription.text.isEmpty()) {
-                tvDescription.visibility = View.GONE
+            binding.tvDescription.text = it
+            if (binding.tvDescription.text.isEmpty()) {
+                binding.tvDescription.visibility = View.GONE
             } else {
-                tvDescription.visibility = View.VISIBLE
+                binding.tvDescription.visibility = View.VISIBLE
             }
         }
-        tvTitleToolbar.text = viewModel.title.value
-        tvTitleToolbar.alpha = 1.0f
-        viewModel.timestamp.observe(viewLifecycleOwner) { updateDateText(tvDate, it) }
+        binding.tvToolbarTitle.text = viewModel.title.value
+        binding.tvToolbarTitle.alpha = 1.0f
+        viewModel.timestamp.observe(viewLifecycleOwner) { updateDateText(binding.tvDate, it) }
 
         viewModel.coverUrl.observe(viewLifecycleOwner) { url ->
-            if (url != arguments?.getString("imageUrl")) {
-                GlideHelper.loadGalleryImage(ivCover, url)
+            if (!url.isNullOrEmpty() && url != arguments?.getString(Constants.ARG_IMAGE_URL)) {
+                GlideHelper.loadGalleryImage(binding.ivCover, url)
             }
         }
 
@@ -403,6 +401,12 @@ class MemoryDetailFragment : Fragment(R.layout.fragment_memory_detail) {
             val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
             textView.text = sdf.format(Date(timestamp)).uppercase()
         }
+    }
+
+    private fun startPostponedEnterTransitionWithTimeout() {
+        view?.postDelayed({
+            startPostponedEnterTransition()
+        }, 1000)
     }
 
     /**

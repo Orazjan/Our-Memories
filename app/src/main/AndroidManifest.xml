@@ -8,7 +8,8 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
         tools:ignore="PhotoAndVideoPolicy,SelectedPhotoAccess" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -49,12 +50,10 @@
         </receiver>
 
         <activity
-            android:name=".EnterActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.App.Starting">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -62,13 +61,20 @@
         </activity>
 
         <activity
+            android:name=".EnterActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
+            tools:ignore="LockedOrientationActivity" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="LockedOrientationActivity"
-            android:screenOrientation="portrait"
             android:launchMode="singleInstance"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
     </application>
 
 </manifest>

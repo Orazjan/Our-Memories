@@ -2,6 +2,7 @@ package com.example.ourmemories.Repositories
 
 import android.net.Uri
 import com.example.ourmemories.Models.User
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -20,7 +21,7 @@ class ProfileRepository {
     fun getUserStream(): Flow<User?> = callbackFlow {
         val uid = auth.currentUser?.uid ?: run { trySend(null); return@callbackFlow }
 
-        val listener = db.collection("users").document(uid).addSnapshotListener { snapshot, _ ->
+        val listener = db.collection(Constants.COL_USERS).document(uid).addSnapshotListener { snapshot, _ ->
             val user = snapshot?.toObject(User::class.java)?.copy(uid = uid)
             trySend(user)
         }
@@ -29,20 +30,20 @@ class ProfileRepository {
 
     suspend fun getMemoriesCount(uids: List<String>): Int {
         if (uids.isEmpty()) return 0
-        val snapshot = db.collection("memories").whereIn("uploaderUid", uids).get().await()
+        val snapshot = db.collection(Constants.COL_MEMORIES).whereIn("uploaderUid", uids).get().await()
         return snapshot.size()
     }
 
     suspend fun getWishesCount(uids: List<String>): Int {
         if (uids.isEmpty()) return 0
-        val snapshot = db.collection("wishes").whereIn("createdBy", uids).get().await()
+        val snapshot = db.collection(Constants.COL_WISHES).whereIn("createdBy", uids).get().await()
         return snapshot.size()
     }
 
     suspend fun deleteAccount() {
         val user = auth.currentUser ?: throw Exception("No user")
         val uid = user.uid
-        db.collection("users").document(uid).delete().await()
+        db.collection(Constants.COL_USERS).document(uid).delete().await()
         user.delete().await()
     }
 
@@ -57,7 +58,7 @@ class ProfileRepository {
         val user = auth.currentUser ?: throw Exception("No user")
 
         val timestamp = System.currentTimeMillis()
-        val ref = storage.reference.child("avatars/${user.uid}_$timestamp.jpg")
+        val ref = storage.reference.child("${Constants.STORAGE_AVATARS}/${user.uid}_$timestamp.jpg")
 
         ref.putFile(uri).await()
         val url = ref.downloadUrl.await().toString()
@@ -66,7 +67,7 @@ class ProfileRepository {
         user.updateProfile(updateProfile).await()
 
 
-        db.collection("users").document(user.uid).update("photoUrl", url).await()
+        db.collection(Constants.COL_USERS).document(user.uid).update("photoUrl", url).await()
 
         return url
     }

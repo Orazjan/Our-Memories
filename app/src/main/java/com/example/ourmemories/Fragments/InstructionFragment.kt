@@ -3,98 +3,116 @@ package com.example.ourmemories.Fragments
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.example.ourmemories.R
+import com.example.ourmemories.databinding.FragmentInstructionBinding
+import com.example.ourmemories.databinding.ItemFaqCardBinding
 
-class InstructionFragment : Fragment(R.layout.fragment_instruction) {
+class InstructionFragment : Fragment() {
+
+    private var _binding: FragmentInstructionBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentInstructionBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.findViewById<View>(R.id.btnBack).setOnClickListener {
+        binding.btnBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem1),
+            binding.faqItem1,
             R.string.faq_connect_partner_q,
             R.string.faq_connect_partner_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem2), R.string.faq_love_tree_q, R.string.faq_love_tree_a
+            binding.faqItem2,
+            R.string.faq_love_tree_q,
+            R.string.faq_love_tree_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem3), R.string.faq_add_widget_q, R.string.faq_add_widget_a
+            binding.faqItem3,
+            R.string.faq_add_widget_q,
+            R.string.faq_add_widget_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem4),
+            binding.faqItem4,
             R.string.faq_photos_loading_q,
             R.string.faq_photos_loading_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem_WidgetBug),
+            binding.faqItemWidgetBug,
             R.string.faq_widget_bug_q,
             R.string.faq_widget_bug_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem_Tree),
+            binding.faqItemTree,
             R.string.faq_earn_points_q,
             R.string.faq_earn_points_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem_Swipe), R.string.faq_wishes_q, R.string.faq_wishes_a
+            binding.faqItemSwipe,
+            R.string.faq_wishes_q,
+            R.string.faq_wishes_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem_Cover),
+            binding.faqItemCover,
             R.string.faq_change_cover_q,
             R.string.faq_change_cover_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem_Fridge), R.string.faq_fridge_q, R.string.faq_fridge_a
+            binding.faqItemFridge,
+            R.string.faq_fridge_q,
+            R.string.faq_fridge_a
         )
 
         setupFaqItem(
-            view.findViewById(R.id.faqItem_Privacy), R.string.faq_privacy_q, R.string.faq_privacy_a
+            binding.faqItemPrivacy,
+            R.string.faq_privacy_q,
+            R.string.faq_privacy_a
         )
+
     }
 
-    private fun setupFaqItem(card: View, question: Int, answer: Int) {
-        val tvQuestion = card.findViewById<TextView>(R.id.tvQuestion)
-        val tvAnswer = card.findViewById<TextView>(R.id.tvAnswer)
-        val layoutAnswer = card.findViewById<LinearLayout>(R.id.layoutAnswer)
-        val header = card.findViewById<LinearLayout>(R.id.layoutHeader)
-        val arrow = card.findViewById<ImageView>(R.id.ivArrow)
-        val cardView = card as CardView
+    private fun setupFaqItem(itemBinding: ItemFaqCardBinding, questionRes: Int, answerRes: Int) {
+        itemBinding.tvQuestion.setText(questionRes)
+        itemBinding.tvAnswer.setText(answerRes)
 
-        tvQuestion.setText(question)
-        tvAnswer.setText(answer)
-
-        header.setOnClickListener {
-
+        itemBinding.layoutHeader.setOnClickListener {
+            val cardView = itemBinding.root
             TransitionManager.beginDelayedTransition(cardView.parent as ViewGroup, AutoTransition())
 
-            if (layoutAnswer.isVisible) {
-                layoutAnswer.visibility = View.GONE
-                arrow.animate().rotation(0f).setDuration(200).start()
+            if (itemBinding.layoutAnswer.isVisible) {
+                itemBinding.layoutAnswer.visibility = View.GONE
+                itemBinding.ivArrow.animate().rotation(0f).setDuration(200).start()
             } else {
-                layoutAnswer.visibility = View.VISIBLE
-                arrow.animate().rotation(180f).setDuration(200).start()
+                itemBinding.layoutAnswer.visibility = View.VISIBLE
+                itemBinding.ivArrow.animate().rotation(180f).setDuration(200).start()
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

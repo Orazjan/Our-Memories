@@ -27,6 +27,7 @@ import com.example.ourmemories.Fragments.MainFragment
 import com.example.ourmemories.Fragments.ProfileFragment
 import com.example.ourmemories.Fragments.WishlistFragment
 import com.example.ourmemories.Utils.AutoStartPermissionHelper
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Utils.LocaleHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.Firebase
@@ -69,9 +70,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        LocaleHelper.applyLanguage(this)
-        val prefs = getSharedPreferences("AppCache", Context.MODE_PRIVATE)
-        val savedThemeMode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        LocaleHelper.onAttach(this)
+        val prefs = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+        val savedThemeMode = prefs.getInt(Constants.KEY_THEME, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
 
         if (AppCompatDelegate.getDefaultNightMode() != savedThemeMode) {
@@ -118,7 +119,7 @@ class MainActivity : AppCompatActivity() {
      * Проверка разрешения на автозапуск приложения.
      */
     private fun checkAutoStartPermission(prefs: SharedPreferences) {
-        val isAsked = prefs.getBoolean("autostart_asked", false)
+        val isAsked = prefs.getBoolean(Constants.KEY_AUTOSTART_ASKED, false)
 
         if (!isAsked) {
             val intent = AutoStartPermissionHelper.getAutoStartPermissionIntent(this)
@@ -143,14 +144,14 @@ class MainActivity : AppCompatActivity() {
 
         btnSettings.setOnClickListener {
             startActivity(intent)
-            prefs.edit().putBoolean("autostart_asked", true).apply()
+            prefs.edit().putBoolean(Constants.KEY_AUTOSTART_ASKED, true).apply()
             dialog.dismiss()
         }
         btnLater.setOnClickListener {
             dialog.dismiss()
         }
         btnDontAsk.setOnClickListener {
-            prefs.edit().putBoolean("autostart_asked", true).apply()
+            prefs.edit().putBoolean(Constants.KEY_AUTOSTART_ASKED, true).apply()
             dialog.dismiss()
         }
         dialog.show()

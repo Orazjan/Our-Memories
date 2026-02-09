@@ -2,11 +2,11 @@ package com.example.ourmemories.Fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
@@ -19,17 +19,17 @@ import com.example.ourmemories.Repositories.EditProfileRepository
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.EditProfileViewModel
+import com.example.ourmemories.databinding.EditProfileFragmentBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Locale
 
-class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
+class EditProfileFragment : Fragment() {
 
-    private lateinit var ivAvatar: ImageView
-    private lateinit var etName: EditText
-    private lateinit var etBirthDate: EditText
-    private lateinit var loadingOverlay: View
+    private var _binding: EditProfileFragmentBinding? = null
+    private val binding get() = _binding!!
+
 
     private val viewModel: EditProfileViewModel by viewModels {
         val application = requireActivity().application
@@ -48,25 +48,24 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setupUI(view)
-        observeViewModel(view)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = EditProfileFragmentBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    private fun setupUI(view: View) {
-        ivAvatar = view.findViewById(R.id.ivAvatar)
-        etName = view.findViewById(R.id.etName)
-        etBirthDate = view.findViewById(R.id.etBirthDate)
-        loadingOverlay = view.findViewById(R.id.loadingOverlay)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupUI()
+        observeViewModel()
+    }
 
-        val btnBack = view.findViewById<View>(R.id.btnBack)
-        val btnSave = view.findViewById<Button>(R.id.btnSave)
-        val cardAvatar = view.findViewById<View>(R.id.cardAvatar)
+    private fun setupUI() {
 
-        btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
+        binding.btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
 
-        cardAvatar.setOnClickListener {
+        binding.cardAvatar.setOnClickListener {
             try {
                 pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             } catch (e: Exception) {
@@ -75,42 +74,42 @@ class EditProfileFragment : Fragment(R.layout.edit_profile_fragment) {
             }
         }
 
-        etBirthDate.setOnClickListener { showWheelDatePicker(etBirthDate) }
+        binding.etBirthDate.setOnClickListener { showWheelDatePicker(binding.etBirthDate) }
 
-        btnSave.setOnClickListener {
-            val name = etName.text.toString().trim()
-            val date = etBirthDate.text.toString().trim()
+        binding.btnSave.setOnClickListener {
+            val name = binding.etName.text.toString().trim()
+            val date = binding.etBirthDate.text.toString().trim()
             viewModel.saveChanges(name, date)
         }
     }
 
-    private fun observeViewModel(view: View) {
+    private fun observeViewModel() {
         viewModel.currentName.observe(viewLifecycleOwner) { name ->
-            if (etName.text.isEmpty() && name.isNotEmpty()) {
-                etName.setText(name)
+            if (binding.etName.text.isEmpty() && name.isNotEmpty()) {
+                binding.etName.setText(name)
             }
         }
 
         viewModel.currentBirthDate.observe(viewLifecycleOwner) { date ->
-            if (etBirthDate.text.isEmpty() && date.isNotEmpty()) {
-                etBirthDate.setText(date)
+            if (binding.etBirthDate.text.isEmpty() && date.isNotEmpty()) {
+                binding.etBirthDate.setText(date)
             }
         }
 
         viewModel.currentPhotoUrl.observe(viewLifecycleOwner) { url ->
             if (viewModel.selectedImageUri.value == null) {
-                GlideHelper.loadAvatar(ivAvatar, url, "EditProfile_Old")
+                GlideHelper.loadAvatar(binding.ivAvatar, url, "EditProfile_Old")
             }
         }
 
         viewModel.selectedImageUri.observe(viewLifecycleOwner) { uri ->
             if (uri != null) {
-                GlideHelper.loadAvatar(ivAvatar, uri)
+                GlideHelper.loadAvatar(binding.ivAvatar, uri)
             }
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->

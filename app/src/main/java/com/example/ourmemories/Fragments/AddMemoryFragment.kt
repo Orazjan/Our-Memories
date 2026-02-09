@@ -1,9 +1,10 @@
 package com.example.ourmemories.Fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -13,13 +14,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.ourmemories.Adapters.SelectedImagesAdapter
+import com.example.ourmemories.Factory.AddMemoryViewModelFactory
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.AddMemoryRepository
 import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.AddMemoryViewModel
-import com.example.ourmemories.Factory.AddMemoryViewModelFactory
+import com.example.ourmemories.databinding.AddMemoryFragmentBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
@@ -27,7 +28,9 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
+class AddMemoryFragment : Fragment() {
+    private var _binding: AddMemoryFragmentBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var viewModel: AddMemoryViewModel
     private lateinit var imagesAdapter: SelectedImagesAdapter
@@ -36,6 +39,13 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
         if (uris.isNotEmpty()) {
             viewModel.addImages(uris)
         }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = AddMemoryFragmentBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -47,26 +57,19 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             AddMemoryViewModelFactory(requireActivity().application, repository, imageHandler)
         viewModel = ViewModelProvider(this, factory)[AddMemoryViewModel::class.java]
 
-        setupUI(view)
-        observeViewModel(view)
+        setupUI()
+        observeViewModel()
     }
 
     /**
      * Настройка пользовательского интерфейса.
      */
-    private fun setupUI(view: View) {
-        val btnBack = view.findViewById<View>(R.id.btnBack)
-        val cardAddPhoto = view.findViewById<View>(R.id.cardAddPhoto)
-        val rvSelectedImages = view.findViewById<RecyclerView>(R.id.rvSelectedImages)
-        val etTitle = view.findViewById<EditText>(R.id.etTitle)
-        val etDate = view.findViewById<EditText>(R.id.etDate)
-        val etDescription = view.findViewById<EditText>(R.id.etDescription)
-        val btnSave = view.findViewById<Button>(R.id.btnSaveMemory)
+    private fun setupUI() {
 
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val hasImages = (viewModel.selectedUris.value?.size ?: 0) > 0
-                val hasTitle = etTitle.text.isNotEmpty()
+                val hasTitle = binding.etTitle.text.isNotEmpty()
                 
                 if (hasImages || hasTitle) {
                     showExitConfirmationDialog()
@@ -86,14 +89,15 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             Toast.makeText(context, getString(R.string.cover_selected), Toast.LENGTH_SHORT).show()
         })
 
-        rvSelectedImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        rvSelectedImages.adapter = imagesAdapter
+        binding.rvSelectedImages.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvSelectedImages.adapter = imagesAdapter
 
-        btnBack.setOnClickListener {
+        binding.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
-        cardAddPhoto.setOnClickListener {
+        binding.cardAddPhoto.setOnClickListener {
             try {
                 pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             } catch (e: Exception) {
@@ -102,14 +106,14 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
             }
         }
 
-        etDate.setOnClickListener {
+        binding.etDate.setOnClickListener {
             val currentTimestamp = viewModel.eventDate.value ?: System.currentTimeMillis()
             showWheelDatePicker(currentTimestamp)
         }
 
-        btnSave.setOnClickListener {
-            val title = etTitle.text.toString().trim()
-            val desc = etDescription.text.toString().trim()
+        binding.btnSaveMemory.setOnClickListener {
+            val title = binding.etTitle.text.toString().trim()
+            val desc = binding.etDescription.text.toString().trim()
             viewModel.saveMemory(title, desc)
         }
     }
@@ -117,24 +121,20 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
     /**
      * Наблюдение за изменениями в ViewModel.
      */
-    private fun observeViewModel(view: View) {
-        val rvSelectedImages = view.findViewById<RecyclerView>(R.id.rvSelectedImages)
-        val etDate = view.findViewById<EditText>(R.id.etDate)
-        val loadingOverlay = view.findViewById<View>(R.id.loadingOverlay)
-
+    private fun observeViewModel() {
 
         viewModel.selectedUris.observe(viewLifecycleOwner) { uris ->
 
             imagesAdapter.images = uris.toMutableList()
             imagesAdapter.notifyDataSetChanged()
 
-            rvSelectedImages.visibility = if (uris.isNotEmpty()) View.VISIBLE else View.GONE
+            binding.rvSelectedImages.visibility = if (uris.isNotEmpty()) View.VISIBLE else View.GONE
         }
 
 
         viewModel.eventDate.observe(viewLifecycleOwner) { timestamp ->
             val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-            etDate.setText(sdf.format(Date(timestamp)))
+            binding.etDate.setText(sdf.format(Date(timestamp)))
         }
 
         viewModel.coverUri.observe(viewLifecycleOwner) { uri ->
@@ -143,7 +143,7 @@ class AddMemoryFragment : Fragment(R.layout.add_memory_fragment) {
 
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->

@@ -1,6 +1,7 @@
 package com.example.ourmemories.Repositories
 
 import android.util.Log
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -16,12 +17,12 @@ class MemoryDetailRepository {
             title: String, desc: String, time: Long, cover: String, images: List<String>
         ) -> Unit, onFailure: (String) -> Unit
     ) {
-        db.collection("memories").document(memoryId).get().addOnSuccessListener { document ->
+        db.collection(Constants.COL_MEMORIES).document(memoryId).get().addOnSuccessListener { document ->
             if (document != null && document.exists()) {
                 val title = document.getString("title") ?: ""
                 val description = document.getString("description") ?: ""
                 val timestamp = document.getLong("timestamp") ?: 0L
-                val imageUrl = document.getString("imageUrl") ?: ""
+                val imageUrl = document.getString(Constants.ARG_IMAGE_URL) ?: ""
 
                 val images = try {
                     document.get("images") as? List<String> ?: emptyList()
@@ -47,7 +48,7 @@ class MemoryDetailRepository {
 
 
     fun deletePhoto(memoryId: String, url: String, onSuccess: () -> Unit, onFailure: () -> Unit) {
-        db.collection("memories").document(memoryId).update("images", FieldValue.arrayRemove(url))
+        db.collection(Constants.COL_MEMORIES).document(memoryId).update("images", FieldValue.arrayRemove(url))
             .addOnSuccessListener {
                 try {
                     storage.getReferenceFromUrl(url).delete()
@@ -62,11 +63,11 @@ class MemoryDetailRepository {
     }
 
     fun updateCoverUrl(memoryId: String, newUrl: String) {
-        db.collection("memories").document(memoryId).update("imageUrl", newUrl)
+        db.collection(Constants.COL_MEMORIES).document(memoryId).update(Constants.ARG_IMAGE_URL, newUrl)
     }
 
     fun deleteAlbum(memoryId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        db.collection("memories").document(memoryId).delete().addOnSuccessListener { onSuccess() }
+        db.collection(Constants.COL_MEMORIES).document(memoryId).delete().addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
     }
 
@@ -88,13 +89,13 @@ class MemoryDetailRepository {
         onSuccess: () -> Unit,
         onFailure: () -> Unit
     ) {
-        db.collection("memories").document(memoryId).update(
+        db.collection(Constants.COL_MEMORIES).document(memoryId).update(
             mapOf("title" to newTitle, "description" to newDesc, "timestamp" to newTimestamp)
         ).addOnSuccessListener { onSuccess() }.addOnFailureListener { onFailure() }
     }
 
     fun setCover(url: String, memoryId: String, onSuccess: () -> Unit, onFailure: () -> Unit) {
-        db.collection("memories").document(memoryId).update("imageUrl", url)
+        db.collection(Constants.COL_MEMORIES).document(memoryId).update(Constants.ARG_IMAGE_URL, url)
             .addOnSuccessListener { onSuccess() }.addOnFailureListener { onFailure() }
     }
 }

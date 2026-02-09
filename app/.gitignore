@@ -11,3 +11,4 @@ app/.cxx/
 
 *.apk
 *.aar
+app/google-services.json

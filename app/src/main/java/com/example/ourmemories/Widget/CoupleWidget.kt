@@ -14,6 +14,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.R
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Utils.GlideHelper
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
@@ -48,7 +49,7 @@ class CoupleWidget : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.ivWidgetPhoto, pendingIntent)
 
-                val prefs = context.getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+                val prefs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
                 val date = prefs.getLong("relationship_date", 0)
                 val photoUrl = prefs.getString("widget_live_photo", null) ?: prefs.getString(
                     "partner_photo", null

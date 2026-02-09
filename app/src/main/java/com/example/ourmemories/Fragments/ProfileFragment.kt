@@ -32,6 +32,7 @@ import com.example.ourmemories.Factory.ProfileFactory
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.ProfileRepository
+import com.example.ourmemories.Utils.Constants
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.ProfileViewModel
 import java.util.concurrent.TimeUnit
@@ -62,7 +63,7 @@ class ProfileFragment : Fragment(R.layout.profile_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        prefs = requireContext().getSharedPreferences("AppCache", Context.MODE_PRIVATE)
+        prefs = requireContext().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
 
         applySavedTheme()
 

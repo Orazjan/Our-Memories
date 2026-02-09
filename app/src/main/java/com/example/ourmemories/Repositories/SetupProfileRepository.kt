@@ -1,6 +1,7 @@
 package com.example.ourmemories.Repositories
 
 import android.net.Uri
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -20,7 +21,7 @@ class SetupProfileRepository {
      */
     suspend fun uploadAvatar(uid: String, data: ByteArray): String {
         val timestamp = System.currentTimeMillis()
-        val ref = storage.reference.child("avatars/${uid}_$timestamp.jpg")
+        val ref = storage.reference.child("${Constants.STORAGE_AVATARS}/${uid}_$timestamp.jpg")
         ref.putBytes(data).await()
         return ref.downloadUrl.await().toString()
     }
@@ -40,7 +41,7 @@ class SetupProfileRepository {
      * Возвращает true, если код уникален (свободен).
      */
     suspend fun isCodeUnique(code: String): Boolean {
-        val snapshot = db.collection("partner_codes").document(code).get().await()
+        val snapshot = db.collection(Constants.COL_PARTNER_CODES).document(code).get().await()
         return !snapshot.exists()
     }
 
@@ -53,8 +54,8 @@ class SetupProfileRepository {
     ) {
         val batch = db.batch()
 
-        val userRef = db.collection("users").document(uid)
-        val codeRef = db.collection("partner_codes").document(code)
+        val userRef = db.collection(Constants.COL_USERS).document(uid)
+        val codeRef = db.collection(Constants.COL_PARTNER_CODES).document(code)
 
         batch.set(userRef, userData)
         batch.set(codeRef, codeData)

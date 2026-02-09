@@ -2,6 +2,7 @@ package com.example.ourmemories.Repositories
 
 import android.net.Uri
 import com.example.ourmemories.Models.User
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,7 +28,7 @@ class MainRepository {
      * Подписывается на обновления документа пользователя в реальном времени.
      */
     fun listenToUser(uid: String, onDataCallback: (User?) -> Unit): ListenerRegistration {
-        return db.collection("users").document(uid).addSnapshotListener { document, e ->
+        return db.collection(Constants.COL_USERS).document(uid).addSnapshotListener { document, e ->
             if (e != null || document == null || !document.exists()) {
                 onDataCallback(null)
                 return@addSnapshotListener
@@ -41,21 +42,21 @@ class MainRepository {
      * Обновляет статус наличия виджета (для отображения партнеру).
      */
     fun updateWidgetStatus(uid: String, hasWidget: Boolean) {
-        db.collection("users").document(uid).update("hasWidget", hasWidget)
+        db.collection(Constants.COL_USERS).document(uid).update("hasWidget", hasWidget)
     }
 
     /**
      * Обновляет время последней активности ("Был в сети").
      */
     fun updateLastActive(uid: String) {
-        db.collection("users").document(uid).update("lastActive", System.currentTimeMillis())
+        db.collection(Constants.COL_USERS).document(uid).update("lastActive", System.currentTimeMillis())
     }
 
     /**
      * Начисляет очки дереву любви и обновляет дату последнего бонуса.
      */
     fun updateTreePoints(uid: String, pointsToAdd: Long, lastDailyDate: Long) {
-        db.collection("users").document(uid).update(
+        db.collection(Constants.COL_USERS).document(uid).update(
             mapOf(
                 "treePoints" to FieldValue.increment(pointsToAdd), "lastDailyDate" to lastDailyDate
             )
@@ -69,7 +70,7 @@ class MainRepository {
         val updates = if (status == null) mapOf("status" to FieldValue.delete())
         else mapOf("status" to status)
 
-        db.collection("users").document(uid).update(updates).addOnFailureListener { onFailure() }
+        db.collection(Constants.COL_USERS).document(uid).update(updates).addOnFailureListener { onFailure() }
     }
 
     /**
@@ -81,18 +82,18 @@ class MainRepository {
         val batch = db.batch()
         val updates = hashMapOf<String, Any>("sharedNote" to text)
 
-        batch.update(db.collection("users").document(uid), updates)
+        batch.update(db.collection(Constants.COL_USERS).document(uid), updates)
 
         if (partnerUid != null) {
-            batch.update(db.collection("users").document(partnerUid), updates)
+            batch.update(db.collection(Constants.COL_USERS).document(partnerUid), updates)
         }
 
         batch.commit().addOnSuccessListener { onSuccess() }.addOnFailureListener { onFailure() }
     }
     fun saveRelationshipDate(uid: String, partnerUid: String?, timestamp: Long) {
         val updates = mapOf("relationshipDate" to timestamp)
-        db.collection("users").document(uid).update(updates)
-        if (partnerUid != null) db.collection("users").document(partnerUid).update(updates)
+        db.collection(Constants.COL_USERS).document(uid).update(updates)
+        if (partnerUid != null) db.collection(Constants.COL_USERS).document(partnerUid).update(updates)
     }
 
     fun sendHello(
@@ -109,17 +110,17 @@ class MainRepository {
             "toUid" to partnerUid,
             "timestamp" to System.currentTimeMillis()
         )
-        db.collection("actions").add(actionData).addOnSuccessListener { onSuccess() }
+        db.collection(Constants.COL_ACTIONS).add(actionData).addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure() }
     }
 
     fun uploadWidgetPhoto(
         partnerUid: String, uri: Uri, onSuccess: () -> Unit, onFailure: (String) -> Unit
     ) {
-        val storageRef = storage.reference.child("widget_photos/$partnerUid.jpg")
+        val storageRef = storage.reference.child("${Constants.STORAGE_WIDGET}/$partnerUid.jpg")
         storageRef.putFile(uri).addOnSuccessListener {
             storageRef.downloadUrl.addOnSuccessListener { url ->
-                db.collection("users").document(partnerUid).update("widgetImageUrl", url.toString())
+                db.collection(Constants.COL_USERS).document(partnerUid).update("widgetImageUrl", url.toString())
                     .addOnSuccessListener { onSuccess() }
                     .addOnFailureListener { onFailure(it.message ?: "") }
             }
@@ -129,7 +130,7 @@ class MainRepository {
     fun connectPartner(
         myUid: String, code: String, onSuccess: () -> Unit, onFailure: (String) -> Unit
     ) {
-        db.collection("users").whereEqualTo("partnerCode", code).get()
+        db.collection(Constants.COL_USERS).whereEqualTo("partnerCode", code).get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
                     onFailure("CODE_NOT_FOUND")
@@ -144,8 +145,8 @@ class MainRepository {
                     }
 
                     val batch = db.batch()
-                    batch.update(db.collection("users").document(myUid), "partnerUid", partnerUid)
-                    batch.update(db.collection("users").document(partnerUid), "partnerUid", myUid)
+                    batch.update(db.collection(Constants.COL_USERS).document(myUid), "partnerUid", partnerUid)
+                    batch.update(db.collection(Constants.COL_USERS).document(partnerUid), "partnerUid", myUid)
                     batch.commit().addOnSuccessListener { onSuccess() }
                         .addOnFailureListener { onFailure(it.message ?: "") }
                 }
@@ -154,8 +155,8 @@ class MainRepository {
 
     fun disconnectPartner(myUid: String, partnerUid: String, onSuccess: () -> Unit) {
         val batch = db.batch()
-        batch.update(db.collection("users").document(myUid), "partnerUid", null)
-        batch.update(db.collection("users").document(partnerUid), "partnerUid", null)
+        batch.update(db.collection(Constants.COL_USERS).document(myUid), "partnerUid", null)
+        batch.update(db.collection(Constants.COL_USERS).document(partnerUid), "partnerUid", null)
         batch.commit().addOnSuccessListener { onSuccess() }
     }
 }
