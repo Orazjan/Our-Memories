@@ -21,6 +21,7 @@ firebaseAuth = "24.0.1"
 firebaseFirestore = "26.1.0"
 mockk = "1.14.9"
 photoview = "2.3.0"
+playServicesAuth = "21.5.0"
 recyclerview = "1.4.0"
 shimmer = "0.5.0"
 swiperefreshlayout = "1.2.0"
@@ -57,6 +58,7 @@ androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview"
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoview" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 shimmer = { module = "com.facebook.shimmer:shimmer", version.ref = "shimmer" }
 
 [plugins]

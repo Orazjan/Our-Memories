@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.konfetti.xml)
     
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.play.services.auth)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
     testImplementation(libs.mockk)

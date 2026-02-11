@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="background_light">#0A0E1A</color>
 
-
-    <color name="primary_lavender">#D0BCFF</color>
-
-    <color name="background_light">#121212</color>
 
     <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#E0E0E0</color>
+    <color name="text_secondary">#B0B5C1</color>
 
-    <color name="white">#2D2D2D</color>
+    <color name="white">#161B2A</color>
 
-    <color name="baby_pink">#682842</color>
+    <color name="baby_pink">#E5B3A1</color>
+
+
+    <color name="light_blue">#D49A89</color>
+
+
+    <color name="heart_red">#FF4D6D</color>
+
+    <color name="nav_icon_active">#E5B3A1</color>
+    <color name="nav_icon_inactive">#5A6175</color>
+
+    <color name="for_notes">#1F2637</color>
+    <color name="for_text_notes">#E5B3A1</color>
+    <color name="for_text_notes_secondary">#B0B5C1</color>
+
+    <color name="splash_text_color">#FFFFFF</color>
+    <color name="splash_version_color">#E5B3A1</color>
+
     <color name="prozrachno">#00000000</color>
-
-    <color name="light_blue">#0d91d9</color>
-
-    <color name="heart_red">#E57373</color>
-
     <color name="prosto_white">#FFFFFF</color>
     <color name="prosto_black">#000000</color>
 
-    <color name="nav_icon_active">#D0BCFF</color>
-    <color name="nav_icon_inactive">#8E8E93</color>
-
-
-    <color name="for_notes">#FFF9C4</color>
-    <color name="for_text_notes">#FBC02D</color>
-    <color name="for_text_notes_secondary">#5D4037</color>
+    <color name="gradient_start">#E5B3A1</color>
+    <color name="gradient_end">#D49A89</color>
 </resources>

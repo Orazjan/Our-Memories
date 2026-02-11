@@ -197,7 +197,6 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Обновляет FCM токен текущего пользователя в Firestore.
-     * Необходим для корректной работы пуш-уведомлений.
      */
     private fun updateFcmToken() {
         val user = FirebaseAuth.getInstance().currentUser ?: return

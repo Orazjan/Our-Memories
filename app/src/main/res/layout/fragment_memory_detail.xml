@@ -137,9 +137,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/delete"
-                        android:textColor="@color/primary_lavender"
+                        android:textColor="@color/light_blue"
                         app:icon="@android:drawable/ic_delete"
-                        app:iconTint="@color/primary_lavender" />
+                        app:iconTint="@color/light_blue" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEdit"
@@ -147,9 +147,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/edit"
-                        android:textColor="@color/primary_lavender"
+                        android:textColor="@color/light_blue"
                         app:icon="@android:drawable/ic_menu_edit"
-                        app:iconTint="@color/primary_lavender" />
+                        app:iconTint="@color/light_blue" />
                 </LinearLayout>
 
                 <View

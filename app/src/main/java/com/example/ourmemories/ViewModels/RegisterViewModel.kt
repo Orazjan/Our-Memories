@@ -3,14 +3,19 @@ package com.example.ourmemories.ViewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.FirebaseNetworkException
+import androidx.lifecycle.viewModelScope
+import com.example.ourmemories.Repositories.AuthRepository
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
 class RegisterViewModel : ViewModel() {
 
+    private val repository = AuthRepository()
     private val auth = FirebaseAuth.getInstance()
+    private val storage = FirebaseFirestore.getInstance()
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -26,27 +31,44 @@ class RegisterViewModel : ViewModel() {
      */
     fun register(email: String, pass: String) {
         _isLoading.value = true
-
-        auth.createUserWithEmailAndPassword(email, pass)
-            .addOnCompleteListener { task ->
-                _isLoading.value = false
-                if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    user?.sendEmailVerification()?.addOnCompleteListener {
-                        _toastMessage.value = "Аккаунт создан! Проверьте почту."
+        viewModelScope.launch {
+            try {
+                auth.createUserWithEmailAndPassword(email, pass).addOnSuccessListener {
+                    createFirestoreUser(it.user)
                         _authSuccess.value = true
+                    _isLoading.value = false
+                }.addOnFailureListener {
+                    _toastMessage.value = "Ошибка: ${it.localizedMessage}"
+                    _isLoading.value = false
                     }
-                } else {
-                    val exception = task.exception
-                    val errorMessage = when (exception) {
-                        is FirebaseAuthWeakPasswordException -> "Пароль слишком простой"
-                        is FirebaseAuthUserCollisionException -> "Этот Email уже занят"
-                        is FirebaseNetworkException -> "Нет интернета"
-                        else -> "Ошибка: ${exception?.localizedMessage}"
-                    }
-                    _toastMessage.value = errorMessage
-                }
+
+            } catch (e: Exception) {
+                _toastMessage.value = "Ошибка: ${e.message}"
+                _isLoading.value = false
             }
+        }
+    }
+
+    private fun createFirestoreUser(firebaseUser: FirebaseUser?) {
+        if (firebaseUser == null) return
+        val userMap = hashMapOf(
+            "uid" to firebaseUser.uid, "email" to firebaseUser.email, "name" to "User"
+        )
+        storage.collection(Constants.COL_USERS).document(firebaseUser.uid).set(userMap)
+    }
+
+    fun handleGoogleLogin(idToken: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                repository.signInWithGoogle(idToken)
+                _authSuccess.value = true
+            } catch (e: Exception) {
+                _toastMessage.value = "Ошибка Google: ${e.localizedMessage}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun onToastShown() {

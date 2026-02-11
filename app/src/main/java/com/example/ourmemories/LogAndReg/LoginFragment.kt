@@ -1,73 +1,102 @@
 package com.example.ourmemories.LogAndReg
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.util.Patterns
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.R
 import com.example.ourmemories.ViewModels.LoginViewModel
+import com.example.ourmemories.databinding.LoginFragmentBinding
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 
-class LoginFragment : Fragment(R.layout.login_fragment) {
+class LoginFragment : Fragment() {
+
+    private var _binding: LoginFragmentBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var viewModel: LoginViewModel
-
     private var lastClickTime: Long = 0
+
+    private val googleSignInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val idToken = account.idToken
+
+                if (idToken != null) {
+                    viewModel.handleGoogleLogin(idToken)
+                } else {
+                    Toast.makeText(context, "Ошибка Google: Token is null", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            } catch (e: ApiException) {
+                Log.e("LoginFragment", "Google sign in failed", e)
+            }
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = LoginFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProvider(this)[LoginViewModel::class.java]
 
-        val btnLogin = view.findViewById<Button>(R.id.btn_login)
-        val tvGoToRegister = view.findViewById<View>(R.id.tv_sign_up)
-        val tvForgotPassword = view.findViewById<View>(R.id.btn_forgot_password)
-        val etEmail = view.findViewById<EditText>(R.id.loginTextView)
-        val etPassword = view.findViewById<EditText>(R.id.passwordTextView)
-        val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
-
-        btnLogin.isEnabled = false
-        btnLogin.alpha = 0.5f
+        binding.btnLogin.isEnabled = false
+        binding.btnLogin.alpha = 0.5f
 
         fun validateInputs() {
-            val email = etEmail.text.toString().trim()
-            val password = etPassword.text.toString().trim()
+            val email = binding.loginTextView.text.toString().trim()
+            val password = binding.passwordTextView.text.toString().trim()
 
             val isEmailValid = email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
             val isPasswordValid = password.length >= 6
 
-            btnLogin.isEnabled = isEmailValid && isPasswordValid
-            btnLogin.alpha = if (btnLogin.isEnabled) 1.0f else 0.5f
+            binding.btnLogin.isEnabled = isEmailValid && isPasswordValid
+            binding.btnLogin.alpha = if (binding.btnLogin.isEnabled) 1.0f else 0.5f
 
-            if (isEmailValid) etEmail.error = null
-            if (isPasswordValid) etPassword.error = null
+            if (isEmailValid) binding.loginTextView.error = null
+            if (isPasswordValid) binding.passwordTextView.error = null
         }
 
         fun attemptLogin() {
             if (SystemClock.elapsedRealtime() - lastClickTime < 1000) return
             lastClickTime = SystemClock.elapsedRealtime()
 
-            val email = etEmail.text.toString().trim()
-            val password = etPassword.text.toString().trim()
+            val email = binding.loginTextView.text.toString().trim()
+            val password = binding.passwordTextView.text.toString().trim()
 
             if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                etEmail.error = "Некорректная почта"
-                etEmail.requestFocus()
+                binding.loginTextView.error = getString(R.string.error_invalid_credentials)
+                binding.loginTextView.requestFocus()
                 return
             }
 
             if (password.length < 6) {
-                etPassword.error = "Пароль слишком короткий"
+                binding.passwordTextView.error = getString(R.string.error_invalid_credentials)
                 return
             }
 
@@ -75,16 +104,16 @@ class LoginFragment : Fragment(R.layout.login_fragment) {
             viewModel.login(email, password)
         }
 
-        etEmail.doAfterTextChanged { validateInputs() }
-        etPassword.doAfterTextChanged { validateInputs() }
+        binding.loginTextView.doAfterTextChanged { validateInputs() }
+        binding.passwordTextView.doAfterTextChanged { validateInputs() }
 
-        btnLogin.setOnClickListener {
+        binding.btnLogin.setOnClickListener {
             attemptLogin()
         }
 
-        etPassword.setOnEditorActionListener { _, actionId, _ ->
+        binding.passwordTextView.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
-                if (btnLogin.isEnabled) {
+                if (binding.btnLogin.isEnabled) {
                     attemptLogin()
                 }
                 true
@@ -93,36 +122,56 @@ class LoginFragment : Fragment(R.layout.login_fragment) {
             }
         }
 
-        tvGoToRegister.setOnClickListener {
+        binding.tvSignUp.setOnClickListener {
             (activity as? EnterActivity)?.showRegistration()
         }
 
-        tvForgotPassword.setOnClickListener {
+        binding.btnForgotPassword.setOnClickListener {
             (activity as? EnterActivity)?.showForgotPassword()
         }
 
-        observeViewModel(progressBar, btnLogin, etEmail, etPassword)
+        binding.btnGoogleLogin.setOnClickListener {
+            if (SystemClock.elapsedRealtime() - lastClickTime < 1000) return@setOnClickListener
+            lastClickTime = SystemClock.elapsedRealtime()
+            signInWithGoogle()
+        }
+
+        observeViewModel()
     }
 
-    private fun observeViewModel(progressBar: ProgressBar, btn: Button, et1: EditText, et2: EditText) {
+    private fun signInWithGoogle() {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build()
+
+        val googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
+
+        googleSignInClient.signOut().addOnCompleteListener {
+            val signInIntent = googleSignInClient.signInIntent
+            googleSignInLauncher.launch(signInIntent)
+        }
+    }
+
+    private fun observeViewModel() {
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
 
             if (isLoading) {
-                btn.text = ""
-                btn.isEnabled = false
-                btn.alpha = 0.5f
+                binding.tvLoginLabel.visibility = View.INVISIBLE
+                binding.btnLogin.isEnabled = false
+                binding.btnLogin.alpha = 0.5f
             } else {
-                btn.text = getString(R.string.login)
-                btn.visibility = View.VISIBLE
-                val emailValid = Patterns.EMAIL_ADDRESS.matcher(et1.text.toString().trim()).matches()
-                val passValid = et2.text.toString().trim().length >= 6
-                btn.isEnabled = emailValid && passValid
-                btn.alpha = if (btn.isEnabled) 1.0f else 0.5f
+                binding.tvLoginLabel.visibility = View.VISIBLE
+
+                val email = binding.loginTextView.text.toString().trim()
+                val pass = binding.passwordTextView.text.toString().trim()
+                val isValid = Patterns.EMAIL_ADDRESS.matcher(email).matches() && pass.length >= 6
+
+                binding.btnLogin.isEnabled = isValid
+                binding.btnLogin.alpha = if (isValid) 1.0f else 0.5f
             }
 
-            et1.isEnabled = !isLoading
-            et2.isEnabled = !isLoading
+            binding.loginTextView.isEnabled = !isLoading
+            binding.passwordTextView.isEnabled = !isLoading
         }
 
         viewModel.toastMessage.observe(viewLifecycleOwner) { msg ->
@@ -142,5 +191,10 @@ class LoginFragment : Fragment(R.layout.login_fragment) {
     private fun hideKeyboard(view: View) {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

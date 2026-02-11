@@ -1,6 +1,5 @@
 <resources>
     <style name="Base.Theme.OurMemories" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/primary_lavender</item>
         <item name="colorOnPrimary">#000000</item>
 
 

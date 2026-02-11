@@ -4,14 +4,14 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@color/background_light">
+    android:background="@drawable/bg_border_selected">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/notes"
         android:layout_gravity="center"
-        android:textColor="@color/text_primary"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
@@ -42,7 +42,7 @@
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_border_selected"
+            android:background="@drawable/bg_input_field"
             android:text="@string/cancel"
             android:textAllCaps="false"
             android:textColor="@color/text_secondary"

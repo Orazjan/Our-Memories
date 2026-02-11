@@ -4,14 +4,19 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.ourmemories.R
+import com.example.ourmemories.Repositories.AuthRepository
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import kotlinx.coroutines.launch
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val auth = FirebaseAuth.getInstance()
+    private val repository = AuthRepository()
+
     private val context = application.applicationContext
 
     private val _isLoading = MutableLiveData(false)
@@ -48,6 +53,21 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
     }
+
+    fun handleGoogleLogin(idToken: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                repository.signInWithGoogle(idToken)
+                _loginSuccess.value = true
+            } catch (e: Exception) {
+                _toastMessage.value = "Ошибка Google: ${e.localizedMessage}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 
     fun onToastShown() {
         _toastMessage.value = null

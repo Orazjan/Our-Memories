@@ -104,7 +104,7 @@
                             android:layout_height="24dp"
                             android:layout_marginEnd="12dp"
                             android:src="@android:drawable/ic_menu_info_details"
-                            app:tint="@color/primary_lavender" />
+                            app:tint="@color/light_blue" />
 
                         <TextView
                             android:layout_width="wrap_content"
