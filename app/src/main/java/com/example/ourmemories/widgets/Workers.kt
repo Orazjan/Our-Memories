@@ -1,4 +1,4 @@
-package com.example.ourmemories.Workers
+package com.example.ourmemories.widgets
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -17,7 +17,6 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
 import com.example.ourmemories.utils.Constants
-import com.example.ourmemories.widgets.CoupleWidget
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.concurrent.TimeUnit

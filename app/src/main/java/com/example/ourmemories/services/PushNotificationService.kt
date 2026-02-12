@@ -3,7 +3,6 @@ package com.example.ourmemories.services
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -21,7 +20,7 @@ import androidx.work.WorkManager
 import com.example.ourmemories.MainActivity
 import com.example.ourmemories.R
 import com.example.ourmemories.utils.Constants
-import com.example.ourmemories.Workers.WidgetUpdateWorker
+import com.example.ourmemories.widgets.WidgetUpdateWorker
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
@@ -107,8 +106,7 @@ class PushNotificationService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent).setColor(color)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelName = getString(R.string.notification_channel_name)

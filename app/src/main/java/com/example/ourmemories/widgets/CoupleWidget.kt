@@ -12,8 +12,8 @@ import android.util.Log
 import android.widget.RemoteViews
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.example.ourmemories.ui.entering.EnterActivity
 import com.example.ourmemories.R
+import com.example.ourmemories.ui.entering.EnterActivity
 import com.example.ourmemories.utils.Constants
 import com.example.ourmemories.utils.GlideHelper
 import java.util.Calendar

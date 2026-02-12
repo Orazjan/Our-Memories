@@ -38,6 +38,7 @@ import com.example.ourmemories.utils.Constants
 import com.example.ourmemories.utils.GlideHelper
 import com.example.ourmemories.widgets.CoupleWidget
 import com.example.ourmemories.databinding.MainFragmentBinding
+import com.example.ourmemories.utils.enableBlur
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
@@ -48,6 +49,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import androidx.core.content.edit
 
 /**
  * Главный экран приложения.
@@ -241,8 +243,10 @@ class MainFragment : Fragment(R.layout.main_fragment) {
 
                 updateDaysCounter(view, 0)
 
-                prefs.edit().putString("partner_name", null).putString("partner_photo", null)
-                    .putString("partner_status", null).apply()
+                prefs.edit {
+                    putString("partner_name", null).putString("partner_photo", null)
+                        .putString("partner_status", null)
+                }
 
                 updateWidget()
             }
@@ -262,7 +266,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             user.status
         )
 
-        val treeInfo = TreeInfo.Companion.getTreeInfo(user.treePoints)
+        val treeInfo = TreeInfo.getTreeInfo(user.treePoints)
         updateTreeUI(view, treeInfo)
 
         binding.tvFridgeNote.text =
@@ -483,7 +487,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
      */
     private fun showTreeDialog() {
         val points = viewModel.currentUser.value?.treePoints ?: 0L
-        val treeInfo = TreeInfo.Companion.getTreeInfo(points)
+        val treeInfo = TreeInfo.getTreeInfo(points)
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_tree_info, null)
         val dialog = AlertDialog.Builder(requireContext())
@@ -542,6 +546,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
     private fun showRelationshipDatePicker() {
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
+        dialog.enableBlur(90)
         val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
         val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
         val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
@@ -597,14 +602,14 @@ class MainFragment : Fragment(R.layout.main_fragment) {
             editor.putString("partner_name", user.name).putString("partner_photo", user.photoUrl)
                 .apply()
         }
-        context?.let { CoupleWidget.Companion.sendRefreshBroadcast(it) }
+        context?.let { CoupleWidget.sendRefreshBroadcast(it) }
     }
 
     /**
      * Обновление виджета
      */
     private fun updateWidget() {
-        CoupleWidget.Companion.sendRefreshBroadcast(requireContext())
+        CoupleWidget.sendRefreshBroadcast(requireContext())
     }
 
     override fun onDestroyView() {

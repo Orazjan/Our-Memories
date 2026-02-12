@@ -2,12 +2,9 @@ package com.example.ourmemories.utils
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
-import android.view.WindowManager
 import android.widget.Button
 import android.widget.NumberPicker
 import com.example.ourmemories.R
-
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.text.DateFormatSymbols
 import java.util.Calendar
@@ -31,14 +28,8 @@ object DatePickerHelper {
             context, R.style.Base_Theme_OurMemories
         )
         dialog.setContentView(R.layout.dialog_wheel_date_picker)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            dialog.window?.let { window ->
-                window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-                val attributes = window.attributes
-                attributes.blurBehindRadius = 60
-                window.attributes = attributes
-            }
-        }
+        dialog.enableBlur(60)
+
         val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
         val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
         val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
