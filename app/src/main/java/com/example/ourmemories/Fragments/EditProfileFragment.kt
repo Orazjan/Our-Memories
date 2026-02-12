@@ -1,13 +1,9 @@
 package com.example.ourmemories.Fragments
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,14 +12,11 @@ import androidx.fragment.app.viewModels
 import com.example.ourmemories.Factory.EditProfileViewModelFactory
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.EditProfileRepository
+import com.example.ourmemories.Utils.DatePickerHelper
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.EditProfileViewModel
 import com.example.ourmemories.databinding.EditProfileFragmentBinding
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import java.text.DateFormatSymbols
-import java.util.Calendar
-import java.util.Locale
 
 class EditProfileFragment : Fragment() {
 
@@ -74,7 +67,11 @@ class EditProfileFragment : Fragment() {
             }
         }
 
-        binding.etBirthDate.setOnClickListener { showWheelDatePicker(binding.etBirthDate) }
+        binding.etBirthDate.setOnClickListener {
+            DatePickerHelper.showDatePicker(requireContext()) { dateString, timestamp ->
+                binding.etBirthDate.setText(dateString)
+            }
+        }
 
         binding.btnSave.setOnClickListener {
             val name = binding.etName.text.toString().trim()
@@ -124,56 +121,5 @@ class EditProfileFragment : Fragment() {
                 viewModel.onToastShown()
             }
         }
-    }
-
-    @SuppressLint("DefaultLocale")
-    private fun showWheelDatePicker(editText: EditText) {
-        val dialog = BottomSheetDialog(
-            requireContext(),
-            com.google.android.material.R.style.Theme_Design_BottomSheetDialog
-        )
-        dialog.setContentView(R.layout.dialog_wheel_date_picker)
-
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate) ?: return
-
-        val calendar = Calendar.getInstance()
-        val currentYear = calendar.get(Calendar.YEAR)
-
-        npYear.minValue = 1900
-        npYear.maxValue = currentYear
-        npYear.value = 2000
-        npYear.wrapSelectorWheel = false
-
-        val months = DateFormatSymbols(Locale.getDefault()).shortMonths
-        npMonth.minValue = 0
-        npMonth.maxValue = months.size - 1
-        npMonth.displayedValues = months
-        npMonth.value = calendar.get(Calendar.MONTH)
-
-        npDay.minValue = 1
-        npDay.maxValue = 31
-        npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
-
-        fun updateDaysInMonth() {
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.YEAR, npYear.value)
-            cal.set(Calendar.MONTH, npMonth.value)
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            npDay.maxValue = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        }
-
-        npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-
-        btnConfirm.setOnClickListener {
-            val selectedDate =
-                String.format("%02d.%02d.%d", npDay.value, npMonth.value + 1, npYear.value)
-            editText.setText(selectedDate)
-            dialog.dismiss()
-        }
-        dialog.show()
     }
 }

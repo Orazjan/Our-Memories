@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
@@ -18,13 +16,11 @@ import com.example.ourmemories.Adapters.SelectedImagesAdapter
 import com.example.ourmemories.Factory.AddMemoryViewModelFactory
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.AddMemoryRepository
+import com.example.ourmemories.Utils.DatePickerHelper
 import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.AddMemoryViewModel
 import com.example.ourmemories.databinding.AddMemoryFragmentBinding
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -108,7 +104,11 @@ class AddMemoryFragment : Fragment() {
 
         binding.etDate.setOnClickListener {
             val currentTimestamp = viewModel.eventDate.value ?: System.currentTimeMillis()
-            showWheelDatePicker(currentTimestamp)
+            DatePickerHelper.showDatePicker(
+                requireContext(), currentTimestamp
+            ) { dateString, timestamp ->
+                binding.etDate.setText(dateString)
+            }
         }
 
         binding.btnSaveMemory.setOnClickListener {
@@ -172,60 +172,5 @@ class AddMemoryFragment : Fragment() {
             }
             .setNegativeButton(getString(R.string.stay), null)
             .show()
-    }
-
-    /**
-     * Отображение диалога выбора даты.
-     */
-    private fun showWheelDatePicker(initialTimestamp: Long) {
-        val dialog = BottomSheetDialog(requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
-        dialog.setContentView(R.layout.dialog_wheel_date_picker)
-
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate) ?: return
-
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = initialTimestamp
-        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-
-        npYear.minValue = 1980
-        npYear.maxValue = currentYear
-        npYear.value = calendar.get(Calendar.YEAR)
-        npYear.wrapSelectorWheel = false
-
-        val months = DateFormatSymbols(Locale.getDefault()).shortMonths
-        npMonth.minValue = 0
-        npMonth.maxValue = months.size - 1
-        npMonth.displayedValues = months
-        npMonth.value = calendar.get(Calendar.MONTH)
-
-        npDay.minValue = 1
-        npDay.maxValue = 31
-        npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
-
-        fun updateDaysInMonth() {
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.YEAR, npYear.value)
-            cal.set(Calendar.MONTH, npMonth.value)
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            npDay.maxValue = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        }
-
-        npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        updateDaysInMonth()
-
-        btnConfirm.setOnClickListener {
-            val selectedCal = Calendar.getInstance()
-            selectedCal.set(Calendar.YEAR, npYear.value)
-            selectedCal.set(Calendar.MONTH, npMonth.value)
-            selectedCal.set(Calendar.DAY_OF_MONTH, npDay.value)
-
-            viewModel.setEventDate(selectedCal.timeInMillis)
-            dialog.dismiss()
-        }
-        dialog.show()
     }
 }

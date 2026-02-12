@@ -7,9 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
-import android.widget.Button
-import android.widget.EditText
-import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,15 +16,12 @@ import com.example.ourmemories.EnterActivity
 import com.example.ourmemories.Factory.SetupProfileFactory
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.SetupProfileRepository
+import com.example.ourmemories.Utils.DatePickerHelper
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.SetupProfileViewModel
 import com.example.ourmemories.databinding.SetupProfileFragmentBinding
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
-import java.text.DateFormatSymbols
-import java.util.Calendar
-import java.util.Locale
 
 class SetupProfileFragment : Fragment() {
     private var _binding: SetupProfileFragmentBinding? = null
@@ -59,7 +53,6 @@ class SetupProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         setupUI()
         observeViewModel()
     }
@@ -73,6 +66,7 @@ class SetupProfileFragment : Fragment() {
         if (user != null && !user.displayName.isNullOrEmpty()) {
             binding.etName.setText(user.displayName)
         }
+
         binding.cardAvatar.scaleX = 0f
         binding.cardAvatar.scaleY = 0f
         binding.cardAvatar.animate().scaleX(1f).scaleY(1f).setDuration(500)
@@ -82,7 +76,9 @@ class SetupProfileFragment : Fragment() {
         }
 
         binding.etDate.setOnClickListener {
-            showWheelDatePicker(binding.etDate)
+            DatePickerHelper.showDatePicker(requireContext()) { dateString, _ ->
+                binding.etDate.setText(dateString)
+            }
         }
 
         binding.btnSaveProfile.setOnClickListener {
@@ -158,56 +154,4 @@ class SetupProfileFragment : Fragment() {
         }
     }
 
-    /**
-     * Открытие диалога выбора даты.
-     */
-    private fun showWheelDatePicker(editText: EditText) {
-        val dialog = BottomSheetDialog(
-            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
-        )
-        dialog.setContentView(R.layout.dialog_wheel_date_picker)
-
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay)!!
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth)!!
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear)!!
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate)!!
-
-        val calendar = Calendar.getInstance()
-        val currentYear = calendar.get(Calendar.YEAR)
-
-        npYear.minValue = 1900
-        npYear.maxValue = currentYear
-        npYear.value = 2000
-        npYear.wrapSelectorWheel = false
-
-        val months = DateFormatSymbols(Locale.getDefault()).shortMonths
-        npMonth.minValue = 0
-        npMonth.maxValue = months.size - 1
-        npMonth.displayedValues = months
-        npMonth.value = calendar.get(Calendar.MONTH)
-
-        npDay.minValue = 1
-        npDay.maxValue = 31
-        npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
-
-        fun updateDaysInMonth() {
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.YEAR, npYear.value)
-            cal.set(Calendar.MONTH, npMonth.value)
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            npDay.maxValue = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        }
-
-        npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        updateDaysInMonth()
-
-        btnConfirm.setOnClickListener {
-            val selectedDate =
-                String.format("%02d.%02d.%d", npDay.value, npMonth.value + 1, npYear.value)
-            editText.setText(selectedDate)
-            dialog.dismiss()
-        }
-        dialog.show()
-    }
 }

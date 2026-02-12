@@ -5,10 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -30,13 +28,11 @@ import com.example.ourmemories.Factory.MemoryDetailFactory
 import com.example.ourmemories.R
 import com.example.ourmemories.Repositories.MemoryDetailRepository
 import com.example.ourmemories.Utils.Constants
+import com.example.ourmemories.Utils.DatePickerHelper
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.ViewModels.MemoryDetailViewModel
 import com.example.ourmemories.databinding.FragmentMemoryDetailBinding
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
@@ -307,14 +303,12 @@ class MemoryDetailFragment : Fragment() {
         etTitle.setText(currentTitle)
         etDesc.setText(currentDesc)
 
-        var newTimestamp = currentTimestamp
         val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        etDateView.text = sdf.format(Date(newTimestamp))
+        etDateView.text = sdf.format(Date(currentTimestamp))
 
         etDateView.setOnClickListener {
-            showWheelDatePicker(newTimestamp) { selectedTime ->
-                newTimestamp = selectedTime
-                etDateView.text = sdf.format(Date(newTimestamp))
+            DatePickerHelper.showDatePicker(requireContext()) { dateString, timestamp ->
+                etDateView.text = dateString
             }
         }
 
@@ -323,7 +317,7 @@ class MemoryDetailFragment : Fragment() {
             val newDesc = etDesc.text.toString().trim()
 
             if (newTitle.isNotEmpty()) {
-                viewModel.saveChanges(newTitle, newDesc, newTimestamp)
+                viewModel.saveChanges(newTitle, newDesc, currentTimestamp)
             } else {
                 Toast.makeText(context, getString(R.string.error_empty_title), Toast.LENGTH_SHORT)
                     .show()
@@ -331,63 +325,6 @@ class MemoryDetailFragment : Fragment() {
             dialog.dismiss()
         }
         btnCancel?.setOnClickListener {
-            dialog.dismiss()
-        }
-        dialog.show()
-    }
-
-    /**
-     * Диалог для выбора даты
-     */
-    private fun showWheelDatePicker(initialTimestamp: Long, onDateSelected: (Long) -> Unit) {
-        val dialog = BottomSheetDialog(
-            requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog
-        )
-        dialog.setContentView(R.layout.dialog_wheel_date_picker)
-
-        val npDay = dialog.findViewById<NumberPicker>(R.id.npDay) ?: return
-        val npMonth = dialog.findViewById<NumberPicker>(R.id.npMonth) ?: return
-        val npYear = dialog.findViewById<NumberPicker>(R.id.npYear) ?: return
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmDate) ?: return
-
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = initialTimestamp
-        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-
-        npYear.minValue = 1980
-        npYear.maxValue = currentYear
-        npYear.value = calendar.get(Calendar.YEAR)
-        npYear.wrapSelectorWheel = false
-
-        val months = DateFormatSymbols(Locale.getDefault()).shortMonths
-        npMonth.minValue = 0
-        npMonth.maxValue = months.size - 1
-        npMonth.displayedValues = months
-        npMonth.value = calendar.get(Calendar.MONTH)
-
-        npDay.minValue = 1
-        npDay.maxValue = 31
-        npDay.value = calendar.get(Calendar.DAY_OF_MONTH)
-
-        fun updateDaysInMonth() {
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.YEAR, npYear.value)
-            cal.set(Calendar.MONTH, npMonth.value)
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            npDay.maxValue = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        }
-
-        npMonth.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        npYear.setOnValueChangedListener { _, _, _ -> updateDaysInMonth() }
-        updateDaysInMonth()
-
-        btnConfirm.setOnClickListener {
-            val selectedCal = Calendar.getInstance()
-            selectedCal.set(Calendar.YEAR, npYear.value)
-            selectedCal.set(Calendar.MONTH, npMonth.value)
-            selectedCal.set(Calendar.DAY_OF_MONTH, npDay.value)
-
-            onDateSelected(selectedCal.timeInMillis)
             dialog.dismiss()
         }
         dialog.show()

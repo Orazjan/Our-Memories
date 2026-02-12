@@ -2,27 +2,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:background="@drawable/bg_input_field"
+    android:orientation="vertical"
     android:padding="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
         android:text="@string/choose_your_date_of_birthday"
         android:textColor="@color/text_primary"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="24dp"/>
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginBottom="24dp"
         android:background="@color/white"
         android:gravity="center"
-        android:layout_marginBottom="24dp">
+        android:orientation="horizontal">
 
         <NumberPicker
             android:id="@+id/npDay"
@@ -57,7 +57,7 @@
         android:text="@string/select"
         android:textAllCaps="false"
         android:textColor="@color/text_primary"
-        android:textStyle="bold"
-        android:textSize="18sp"/>
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
 </LinearLayout>
