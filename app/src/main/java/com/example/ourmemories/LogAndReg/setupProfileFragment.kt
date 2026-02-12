@@ -3,11 +3,12 @@ package com.example.ourmemories.LogAndReg
 import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
@@ -21,12 +22,16 @@ import com.example.ourmemories.Repositories.SetupProfileRepository
 import com.example.ourmemories.Utils.GlideHelper
 import com.example.ourmemories.Utils.ImageHandler
 import com.example.ourmemories.ViewModels.SetupProfileViewModel
+import com.example.ourmemories.databinding.SetupProfileFragmentBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.auth.FirebaseAuth
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Locale
 
-class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
+class SetupProfileFragment : Fragment() {
+    private var _binding: SetupProfileFragmentBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: SetupProfileViewModel by viewModels() {
         val application = requireActivity().application
@@ -44,51 +49,58 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
             }
         }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = SetupProfileFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
 
-        setupUI(view)
-        observeViewModel(view)
+        setupUI()
+        observeViewModel()
     }
+
 
     /**
      * Инициализация пользовательского интерфейса.
      */
-    private fun setupUI(view: View) {
-        val etName = view.findViewById<EditText>(R.id.etName)
-        val etDate = view.findViewById<EditText>(R.id.etDate)
-        val btnSave = view.findViewById<Button>(R.id.btnSaveProfile)
-        val cardAvatar = view.findViewById<View>(R.id.cardAvatar)
-
-        cardAvatar.scaleX = 0f
-        cardAvatar.scaleY = 0f
-        cardAvatar.animate().scaleX(1f).scaleY(1f).setDuration(500)
+    private fun setupUI() {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null && !user.displayName.isNullOrEmpty()) {
+            binding.etName.setText(user.displayName)
+        }
+        binding.cardAvatar.scaleX = 0f
+        binding.cardAvatar.scaleY = 0f
+        binding.cardAvatar.animate().scaleX(1f).scaleY(1f).setDuration(500)
             .setInterpolator(OvershootInterpolator()).start()
-        cardAvatar.setOnClickListener {
+        binding.cardAvatar.setOnClickListener {
             pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
-        etDate.setOnClickListener {
-            showWheelDatePicker(etDate)
+        binding.etDate.setOnClickListener {
+            showWheelDatePicker(binding.etDate)
         }
 
-        btnSave.setOnClickListener {
-            val name = etName.text.toString().trim()
-            val date = etDate.text.toString().trim()
+        binding.btnSaveProfile.setOnClickListener {
+            val name = binding.etName.text.toString().trim()
+            val date = binding.etDate.text.toString().trim()
             
             var hasError = false
             if (viewModel.selectedImageUri.value == null) {
-                shakeView(cardAvatar)
+                shakeView(binding.cardAvatar)
                 hasError = true
             }
             if (name.isEmpty()) {
-                shakeView(etName)
-                etName.error = getString(R.string.your_name)
+                shakeView(binding.etName)
+                binding.etName.error = getString(R.string.your_name)
                 hasError = true
             }
             if (date.isEmpty()) {
-                shakeView(etDate)
+                shakeView(binding.etDate)
                 hasError = true
             }
 
@@ -101,20 +113,16 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
     /**
      * Наблюдение за изменениями в ViewModel.
      */
-    private fun observeViewModel(view: View) {
-        val btnSave = view.findViewById<Button>(R.id.btnSaveProfile)
-        val avatarView = view.findViewById<ImageView>(R.id.ivAvatar)
-        val loadingOverlay = view.findViewById<View>(R.id.loadingOverlay)
-
+    private fun observeViewModel() {
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
-                loadingOverlay.visibility = View.VISIBLE
-                btnSave.isEnabled = false
-                btnSave.text = getString(R.string.saving_data)
+                binding.loadingOverlay.visibility = View.VISIBLE
+                binding.btnSaveProfile.isEnabled = false
+                binding.btnSaveProfile.text = getString(R.string.saving_data)
             } else {
-                loadingOverlay.visibility = View.GONE
-                btnSave.isEnabled = true
-                btnSave.text = getString(R.string.ready)
+                binding.loadingOverlay.visibility = View.GONE
+                binding.btnSaveProfile.isEnabled = true
+                binding.btnSaveProfile.text = getString(R.string.ready)
             }
         }
 
@@ -133,7 +141,7 @@ class SetupProfileFragment : Fragment(R.layout.setup_profile_fragment) {
 
         viewModel.selectedImageUri.observe(viewLifecycleOwner) { uri ->
             if (uri != null) {
-                GlideHelper.loadAvatar(avatarView, uri)
+                GlideHelper.loadAvatar(binding.ivAvatar, uri)
             }
         }
     }

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ourmemories.Utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
@@ -12,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 
 /**
- * ViewModel для стартовой активности [EnterActivity].
+ * ViewModel для стартовой активности [com.example.ourmemories.EnterActivity].
  *
  * Определяет, какой экран показать при запуске приложения:
  * - Сплэш-скрин (проверка авторизации).
@@ -28,10 +29,10 @@ class EnterViewModel : ViewModel() {
 
     sealed class NavigationState {
         object Idle : NavigationState()
-        object NavigateToMain : NavigationState()       
-        object NavigateToSetupProfile : NavigationState() 
-        object NavigateToLogin : NavigationState()      
-        object NavigateToOnboarding : NavigationState() 
+        object NavigateToMain : NavigationState()
+        object NavigateToSetupProfile : NavigationState()
+        object NavigateToLogin : NavigationState()
+        object NavigateToOnboarding : NavigationState()
     }
 
     private val _navigationState = MutableLiveData<NavigationState>(NavigationState.Idle)
@@ -45,8 +46,6 @@ class EnterViewModel : ViewModel() {
      */
     fun checkUser(isFirstRun: Boolean) {
         viewModelScope.launch {
-            delay(1000)
-
             val user = auth.currentUser
 
             if (user == null) {
@@ -60,12 +59,12 @@ class EnterViewModel : ViewModel() {
             }
 
             try {
-                withTimeout(3000L) {
-                    try { user.reload().await() } catch (e: Exception) { }
+                withTimeout(200) {
 
-                    val doc = db.collection("users").document(user.uid).get().await()
+                    val doc = db.collection(Constants.COL_USERS).document(user.uid).get().await()
+                    val birthDate = doc.getString("birthDate")
 
-                    if (doc.exists()) {
+                    if (doc.exists() && !birthDate.isNullOrEmpty()) {
                         _navigationState.value = NavigationState.NavigateToMain
                     } else {
                         _isChecking.value = false
@@ -86,8 +85,10 @@ class EnterViewModel : ViewModel() {
             val user = auth.currentUser
             if (user != null) {
                 try {
-                    val doc = db.collection("users").document(user.uid).get().await()
-                    if (doc.exists()) {
+                    val doc = db.collection(Constants.COL_USERS).document(user.uid).get().await()
+                    val birthDate = doc.getString("birthDate")
+
+                    if (doc.exists() && !birthDate.isNullOrEmpty()) {
                         _navigationState.value = NavigationState.NavigateToMain
                     } else {
                         _navigationState.value = NavigationState.NavigateToSetupProfile

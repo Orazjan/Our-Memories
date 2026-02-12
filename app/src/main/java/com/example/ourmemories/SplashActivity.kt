@@ -13,20 +13,20 @@ import kotlinx.coroutines.launch
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-
         val tvVersion = findViewById<TextView>(R.id.tvVersion)
 
         tvVersion.text = "Версия ${BuildConfig.VERSION_NAME}"
 
         lifecycleScope.launch {
-            delay(2000)
+            delay(1000)
 
-            val intent = Intent(this@SplashActivity, EnterActivity::class.java) // Или MainActivity
+            val intent = Intent(this@SplashActivity, EnterActivity::class.java)
             startActivity(intent)
 
             finish()

@@ -1,18 +1,18 @@
 package com.example.ourmemories
 
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.ViewModelProvider
 import com.example.ourmemories.LogAndReg.ForgotPasswordFragment
 import com.example.ourmemories.LogAndReg.LoginFragment
 import com.example.ourmemories.LogAndReg.OnboardingFragment
@@ -29,37 +29,50 @@ import com.google.firebase.firestore.firestore
 
 class EnterActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: EnterViewModel
     private lateinit var prefs: SharedPreferences
+    private val viewModel: EnterViewModel by viewModels()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        val splashScreen = installSplashScreen()
+
         LocaleHelper.onAttach(this)
+        setupFirebaseSettings()
 
-        viewModel = ViewModelProvider(this)[EnterViewModel::class.java]
-
-        prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        val themePrefs = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs = getSharedPreferences(Constants.APP_PREFS, MODE_PRIVATE)
+        val themePrefs = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
         val savedTheme = themePrefs.getInt(Constants.KEY_THEME, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
 
         hideSystemUI()
-
         splashScreen.setKeepOnScreenCondition {
             viewModel.isChecking.value == true
         }
 
         setContentView(R.layout.activity_enter)
 
-        setupFirebaseSettings()
-        
         if (savedInstanceState == null) {
-            val isFirstRun = prefs.getBoolean("isFirstRun", true)
+            val isFirstRun = prefs.getBoolean(Constants.FIRST_RUN, true)
             viewModel.checkUser(isFirstRun)
         }
 
         observeViewModel()
+    }
+
+    /**
+     * Наблюдение за состоянием навигации.
+     */
+    private fun observeViewModel() {
+        viewModel.navigationState.observe(this) { state ->
+            when (state) {
+                is EnterViewModel.NavigationState.NavigateToMain -> navigateToMainApp()
+                is EnterViewModel.NavigationState.NavigateToSetupProfile -> showProfileSetup()
+                is EnterViewModel.NavigationState.NavigateToLogin -> loadFragment(LoginFragment())
+                is EnterViewModel.NavigationState.NavigateToOnboarding -> showOnboarding()
+                is EnterViewModel.NavigationState.Idle -> {}
+            }
+        }
     }
 
     /**
@@ -76,21 +89,6 @@ class EnterActivity : AppCompatActivity() {
     }
 
     /**
-     * Наблюдение за состоянием навигации.
-     */
-    private fun observeViewModel() {
-        viewModel.navigationState.observe(this) { state ->
-            when (state) {
-                is EnterViewModel.NavigationState.NavigateToMain -> navigateToMainApp()
-                is EnterViewModel.NavigationState.NavigateToLogin -> showLogin()
-                is EnterViewModel.NavigationState.NavigateToOnboarding -> showOnboarding()
-                is EnterViewModel.NavigationState.NavigateToSetupProfile -> showProfileSetup()
-                else -> {}
-            }
-        }
-    }
-
-    /**
      * Скрытие системного UI (status bar и navigation bar).
      */
     private fun hideSystemUI() {
@@ -103,12 +101,11 @@ class EnterActivity : AppCompatActivity() {
     }
 
     /**
-     * Переход в основное приложение.
+     * Загрузка фрагмента.
      */
-    private fun navigateToMainApp() {
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        finish()
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, fragment)
+            .commitAllowingStateLoss()
     }
 
     /**
@@ -117,6 +114,7 @@ class EnterActivity : AppCompatActivity() {
     fun showOnboarding() {
         loadFragment(OnboardingFragment())
     }
+
 
     /**
      * Отображение второго экрана онбординга.
@@ -141,8 +139,7 @@ class EnterActivity : AppCompatActivity() {
     fun showRegistration() {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-            .replace(R.id.fragment_container, RegFragment()).addToBackStack(null)
-            .commitAllowingStateLoss()
+            .replace(R.id.fragment_container, RegFragment()).addToBackStack(null).commit()
     }
 
     /**
@@ -182,16 +179,15 @@ class EnterActivity : AppCompatActivity() {
      * Переход в основное приложение после успешной авторизации.
      */
     fun onAuthSuccess() {
-        prefs.edit().putBoolean("isFirstRun", false).apply()
+        prefs.edit { putBoolean(Constants.FIRST_RUN, false) }
         viewModel.onAuthSuccess()
     }
-
     /**
-     * Загрузка фрагмента.
+     * Переход в основное приложение.
      */
-    private fun loadFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .commitAllowingStateLoss()
+    private fun navigateToMainApp() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }
