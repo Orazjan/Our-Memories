@@ -3,9 +3,9 @@ package com.example.ourmemories
 import android.app.Application
 import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.example.ourmemories.Models.User
-import com.example.ourmemories.Repositories.MainRepository
-import com.example.ourmemories.ViewModels.MainViewModel
+import com.example.ourmemories.data.models.User
+import com.example.ourmemories.data.repositories.MainRepository
+import com.example.ourmemories.ui.main.MainViewModel
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

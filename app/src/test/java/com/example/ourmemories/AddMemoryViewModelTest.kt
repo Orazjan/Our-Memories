@@ -4,9 +4,9 @@ import android.app.Application
 import android.content.Context
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.example.ourmemories.Repositories.AddMemoryRepository
-import com.example.ourmemories.Utils.ImageHandler
-import com.example.ourmemories.ViewModels.AddMemoryViewModel
+import com.example.ourmemories.data.repositories.AddMemoryRepository
+import com.example.ourmemories.utils.ImageHandler
+import com.example.ourmemories.ui.addmemory.AddMemoryViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

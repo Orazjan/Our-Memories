@@ -30,7 +30,7 @@
             android:value="F217B972-D2B0-474A-BEE9-46CEF155926C" />
 
         <service
-            android:name=".Services.PushNotificationService"
+            android:name=".services.PushNotificationService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -38,7 +38,7 @@
         </service>
 
         <receiver
-            android:name=".Widget.CoupleWidget"
+            android:name=".widgets.CoupleWidget"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -61,7 +61,7 @@
         </activity>
 
         <activity
-            android:name=".EnterActivity"
+            android:name=".ui.entering.EnterActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"

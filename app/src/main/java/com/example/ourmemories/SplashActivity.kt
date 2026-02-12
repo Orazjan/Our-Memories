@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.example.ourmemories.ui.entering.EnterActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
