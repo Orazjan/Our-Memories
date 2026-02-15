@@ -13,8 +13,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.ourmemories.adapters.SelectedImagesAdapter
 import com.example.ourmemories.R
+import com.example.ourmemories.adapters.SelectedImagesAdapter
 import com.example.ourmemories.data.repositories.AddMemoryRepository
 import com.example.ourmemories.databinding.AddMemoryFragmentBinding
 import com.example.ourmemories.utils.DatePickerHelper

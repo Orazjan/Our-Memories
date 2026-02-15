@@ -180,10 +180,10 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:background="@drawable/bg_input_field"
-                android:backgroundTint="@color/baby_pink"
+                android:backgroundTint="@color/nav_icon_active"
                 android:text="@string/save_memory"
                 android:textAllCaps="false"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -194,7 +194,7 @@
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#80000000"
+        android:background="@color/for_loader"
         android:clickable="true"
         android:focusable="true"
         android:visibility="gone">

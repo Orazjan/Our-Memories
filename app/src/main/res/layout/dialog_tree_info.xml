@@ -31,7 +31,7 @@
         android:layout_marginBottom="8dp"
         android:gravity="center"
         android:text="@string/name_of_tree"
-        android:textColor="#2E7D32"
+        android:textColor="@color/text_derevo_vnutri"
         android:textSize="20sp"
         android:textStyle="bold" />
 
@@ -116,9 +116,9 @@
         android:layout_height="50dp"
         android:layout_marginTop="24dp"
         android:background="@drawable/bg_input_field"
-        android:backgroundTint="#C8E6C9"
+        android:backgroundTint="@color/background_tint_derevo"
         android:text="@string/understand"
-        android:textColor="#2E7D32"
+        android:textColor="@color/secondary_text_derevo"
         android:textStyle="bold" />
 
 </LinearLayout>

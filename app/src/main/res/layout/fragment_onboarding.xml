@@ -6,6 +6,37 @@
     android:background="@color/background_light"
     android:padding="24dp">
 
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="4dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginEnd="64dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@color/text_primary" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@color/baby_pink" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/baby_pink" />
+    </LinearLayout>
+
     <androidx.cardview.widget.CardView
         android:id="@+id/cardIllustration"
         android:layout_width="572px"
@@ -59,10 +90,9 @@
         android:layout_height="64dp"
         android:layout_marginBottom="24dp"
         android:background="@drawable/bg_input_field"
-        android:backgroundTint="#FAD1E6"
         android:text="@string/next"
         android:textAllCaps="false"
-        android:textColor="@color/prosto_black"
+        android:textColor="@color/light_blue"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

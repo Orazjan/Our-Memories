@@ -1,41 +1,39 @@
 package com.example.ourmemories.ui.auth
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.ourmemories.databinding.ForgetFragmentBinding
 import com.example.ourmemories.ui.entering.EnterActivity
-import com.example.ourmemories.R
 
-class ForgotPasswordFragment : Fragment(R.layout.forget_fragment) {
+class ForgotPasswordFragment : Fragment() {
+    private var _binding: ForgetFragmentBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var viewModel: ForgotPasswordViewModel
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = ForgetFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProvider(this)[ForgotPasswordViewModel::class.java]
 
-        val btnBack = view.findViewById<ImageView>(R.id.btnBack)
-        val btnBackToLogin = view.findViewById<TextView>(R.id.btnBackToLogin)
-        val btnSendReset = view.findViewById<Button>(R.id.btnSendReset)
-        val etEmail = view.findViewById<EditText>(R.id.etEmail)
-
-        btnBack.setOnClickListener {
+        binding.btnBackToLogin.setOnClickListener {
             (requireActivity() as EnterActivity).showLogin()
         }
 
-        btnBackToLogin.setOnClickListener {
-            (requireActivity() as EnterActivity).showLogin()
-        }
-
-        btnSendReset.setOnClickListener {
-            val email = etEmail.text.toString().trim()
+        binding.btnSendReset.setOnClickListener {
+            val email = binding.etEmail.text.toString().trim()
             viewModel.resetPassword(email)
         }
 

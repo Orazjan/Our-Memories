@@ -297,5 +297,9 @@
     <string name="kyrgyz">Кыргыз тили</string>
     <string name="englisg">English</string>
     <string name="turkmen">Türkmen dili</string>
+    <string name="russian_flag">🇷🇺</string>
+    <string name="usa_flag">🇺🇸</string>
+    <string name="kyrgyz_flag">🇰🇬</string>
+    <string name="turkmen_flag">🇹🇲</string>
 
 </resources>

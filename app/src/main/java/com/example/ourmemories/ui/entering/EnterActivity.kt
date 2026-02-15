@@ -13,13 +13,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.example.ourmemories.MainActivity
+import com.example.ourmemories.R
 import com.example.ourmemories.ui.auth.ForgotPasswordFragment
 import com.example.ourmemories.ui.auth.LoginFragment
-import com.example.ourmemories.MainActivity
+import com.example.ourmemories.ui.auth.RegFragment
+import com.example.ourmemories.ui.onboardings.OnBoardingStep3Fragment
 import com.example.ourmemories.ui.onboardings.OnboardingFragment
 import com.example.ourmemories.ui.onboardings.OnboardingStep2Fragment
-import com.example.ourmemories.R
-import com.example.ourmemories.ui.auth.RegFragment
 import com.example.ourmemories.ui.setupprofile.SetupProfileFragment
 import com.example.ourmemories.utils.Constants
 import com.example.ourmemories.utils.LocaleHelper
@@ -127,6 +128,10 @@ class EnterActivity : AppCompatActivity() {
             .commitAllowingStateLoss()
     }
 
+    fun onSetupProfileSuccess() {
+        showLinkAccounts()
+    }
+
     /**
      * Закрытие онбординга и перехода к регистрации
      */
@@ -164,6 +169,16 @@ class EnterActivity : AppCompatActivity() {
             .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
             .replace(R.id.fragment_container, SetupProfileFragment())
             .commitAllowingStateLoss()
+    }
+    fun showLinkAccounts() {
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+            .replace(R.id.fragment_container, OnBoardingStep3Fragment()) // Ваш фрагмент связывания
+            .commitAllowingStateLoss()
+    }
+
+    fun onRegistrationSuccess() {
+        showProfileSetup()
     }
 
     /**

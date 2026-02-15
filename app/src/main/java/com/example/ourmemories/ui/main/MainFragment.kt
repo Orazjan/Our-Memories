@@ -26,19 +26,21 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.ourmemories.R
 import com.example.ourmemories.data.models.TreeInfo
 import com.example.ourmemories.data.models.User
 import com.example.ourmemories.data.models.Zodiac
-import com.example.ourmemories.R
 import com.example.ourmemories.data.repositories.MainRepository
+import com.example.ourmemories.databinding.MainFragmentBinding
 import com.example.ourmemories.utils.AnimationHelper
 import com.example.ourmemories.utils.Constants
 import com.example.ourmemories.utils.GlideHelper
-import com.example.ourmemories.widgets.CoupleWidget
-import com.example.ourmemories.databinding.MainFragmentBinding
+import com.example.ourmemories.utils.VibrateHelper
 import com.example.ourmemories.utils.enableBlur
+import com.example.ourmemories.widgets.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
@@ -49,7 +51,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import androidx.core.content.edit
 
 /**
  * Главный экран приложения.
@@ -136,6 +137,7 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         }
         val locationBuffer = IntArray(2)
         binding.tvHeartIcon.setOnClickListener { view ->
+            VibrateHelper.vibrate(requireContext(), 40)
             view.getLocationOnScreen(locationBuffer)
             val heartX = locationBuffer[0]
             val heartY = locationBuffer[1]

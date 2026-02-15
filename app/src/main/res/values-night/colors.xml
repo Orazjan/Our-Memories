@@ -32,4 +32,6 @@
 
     <color name="gradient_start">#E5B3A1</color>
     <color name="gradient_end">#D49A89</color>
+    <color name="for_loader">#80000000</color>
+
 </resources>

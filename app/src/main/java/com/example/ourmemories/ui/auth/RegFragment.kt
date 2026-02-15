@@ -179,7 +179,7 @@ class RegFragment : Fragment(R.layout.register_fragment) {
 
         viewModel.authSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
-                (requireActivity() as? EnterActivity)?.onAuthSuccess()
+                (requireActivity() as? EnterActivity)?.onRegistrationSuccess()
             }
         }
     }

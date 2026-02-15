@@ -12,13 +12,13 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.example.ourmemories.ui.entering.EnterActivity
 import com.example.ourmemories.R
 import com.example.ourmemories.data.repositories.SetupProfileRepository
+import com.example.ourmemories.databinding.SetupProfileFragmentBinding
+import com.example.ourmemories.ui.entering.EnterActivity
 import com.example.ourmemories.utils.DatePickerHelper
 import com.example.ourmemories.utils.GlideHelper
 import com.example.ourmemories.utils.ImageHandler
-import com.example.ourmemories.databinding.SetupProfileFragmentBinding
 import com.google.firebase.auth.FirebaseAuth
 
 class SetupProfileFragment : Fragment() {
@@ -129,7 +129,7 @@ class SetupProfileFragment : Fragment() {
 
         viewModel.setupSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
-                (requireActivity() as? EnterActivity)?.onAuthSuccess()
+                (requireActivity() as? EnterActivity)?.onSetupProfileSuccess()
             }
         }
 

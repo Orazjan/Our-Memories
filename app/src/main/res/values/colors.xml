@@ -23,7 +23,10 @@
     <color name="input_stroke">#EDF0F3</color>
 
     <color name="text_derevo">#1B4332</color>
+    <color name="text_derevo_vnutri">#2E7D32</color>
+    <color name="background_tint_derevo">#C8E6C9</color>
     <color name="secondary_text_derevo">#40916C</color>
+    <color name="play_derevo">#2E7D32</color>
 
     <color name="for_notes">#FFF9DB</color>
     <color name="for_text_notes">#D4A017</color>
@@ -34,4 +37,7 @@
 
     <color name="gradient_start">#E5B3A1</color>
     <color name="gradient_end">#D49A89</color>
+    <color name="for_loader">#80000000</color>
+
+
 </resources>

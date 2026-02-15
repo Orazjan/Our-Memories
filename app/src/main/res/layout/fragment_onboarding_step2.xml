@@ -6,10 +6,42 @@
     android:background="@color/background_light"
     android:padding="24dp">
 
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="4dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginEnd="64dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@color/baby_pink" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@color/text_primary" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/baby_pink" />
+    </LinearLayout>
+
     <androidx.cardview.widget.CardView
         android:id="@+id/cardIllustration"
-        android:layout_width="570px"
-        android:layout_height="960px"
+        android:layout_width="250dp"
+        android:layout_height="400dp"
         android:layout_marginTop="40dp"
         app:cardCornerRadius="32dp"
         app:cardElevation="0dp"
@@ -20,6 +52,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:contentDescription="About security"
             android:scaleType="centerInside"
             android:src="@drawable/photo_for_onboarding_step_2" />
     </androidx.cardview.widget.CardView>
@@ -54,7 +87,7 @@
         android:layout_height="64dp"
         android:layout_marginBottom="24dp"
         android:background="@drawable/bg_input_field"
-        android:backgroundTint="#BDE0FE"
+
         android:text="@string/start"
         android:textAllCaps="false"
         android:textColor="@color/light_blue"

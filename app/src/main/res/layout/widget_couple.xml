@@ -29,7 +29,7 @@
             android:id="@+id/tvWidgetDays"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:shadowColor="#80000000"
+            android:shadowColor="@color/for_loader"
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="2"
@@ -41,13 +41,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:shadowColor="#80000000"
+            android:shadowColor="@color/for_loader"
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="2"
             android:text="@string/days_together"
             android:textAllCaps="true"
-            android:textColor="#E0E0E0"
+            android:textColor="@color/prosto_white"
             android:textSize="12sp" />
     </LinearLayout>
 
