@@ -23,6 +23,8 @@ import com.example.ourmemories.ui.entering.EnterActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 
 class RegFragment : Fragment(R.layout.register_fragment) {
 
@@ -52,6 +54,11 @@ class RegFragment : Fragment(R.layout.register_fragment) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        FirebaseAppCheck.getInstance()
+            .installAppCheckProviderFactory(
+                PlayIntegrityAppCheckProviderFactory.getInstance()
+            )
 
         viewModel = ViewModelProvider(this)[RegisterViewModel::class.java]
 

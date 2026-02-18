@@ -17,7 +17,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.ourmemories"
+        applicationId = "com.atnzvdev.ourmemories"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
@@ -57,7 +57,9 @@ dependencies {
     // Анимации
     implementation(libs.shimmer)
     implementation(libs.konfetti.xml)
-    
+
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug")
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.play.services.auth)
     implementation(libs.firebase.crashlytics)
