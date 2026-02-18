@@ -12,12 +12,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.ourmemories.R
 import com.example.ourmemories.adapters.WishlistAdapter
 import com.example.ourmemories.data.models.WishItem
-import com.example.ourmemories.R
 import com.example.ourmemories.data.repositories.WishlistRepository
-import com.example.ourmemories.utils.AnimationHelper
 import com.example.ourmemories.databinding.FragmentWishlistBinding
+import com.example.ourmemories.utils.AnimationHelper
+import com.example.ourmemories.utils.VibrateHelper
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
@@ -65,6 +66,7 @@ class WishlistFragment : Fragment() {
                 val x = location[0] + view.width / 2f
                 val y = location[1] + view.height / 2f
 
+                VibrateHelper.vibrate(requireContext(), 40)
                 playKonfetti(x, y)
             }
         }, onLongClick = { item ->

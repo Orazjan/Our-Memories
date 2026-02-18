@@ -64,6 +64,7 @@ class RegFragment : Fragment(R.layout.register_fragment) {
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
         val btnGoogleRegister = view.findViewById<View>(R.id.btnGoogleRegister)
 
+
         btnRegister.isEnabled = false
         btnRegister.alpha = 0.5f
 
@@ -104,6 +105,8 @@ class RegFragment : Fragment(R.layout.register_fragment) {
             viewModel.register(email, password)
         }
 
+
+
         etEmail.doAfterTextChanged { validateInputs() }
         etPassword.doAfterTextChanged { validateInputs() }
 
@@ -132,8 +135,10 @@ class RegFragment : Fragment(R.layout.register_fragment) {
             signInWithGoogle()
         }
 
+
         observeViewModel(progressBar, btnRegister, tvRegisterLabel, etEmail, etPassword)
     }
+
 
     private fun signInWithGoogle() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

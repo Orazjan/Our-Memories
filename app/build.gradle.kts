@@ -6,7 +6,7 @@ plugins {
 
 }
 
-val version = "0.1.7 Test"
+val version = "0.1.7"
 
 android {
     namespace = "com.example.ourmemories"
@@ -30,7 +30,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
