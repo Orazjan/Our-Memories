@@ -58,8 +58,12 @@ dependencies {
     implementation(libs.shimmer)
     implementation(libs.konfetti.xml)
 
-    implementation("com.google.firebase:firebase-appcheck-playintegrity")
-    implementation("com.google.firebase:firebase-appcheck-debug")
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    implementation(libs.firebase.appcheck.playintegrity)
+    implementation(libs.firebase.appcheck.debug)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.play.services.auth)
     implementation(libs.firebase.crashlytics)

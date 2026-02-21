@@ -42,6 +42,7 @@ import com.example.ourmemories.utils.VibrateHelper
 import com.example.ourmemories.utils.enableBlur
 import com.example.ourmemories.widgets.CoupleWidget
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.auth.FirebaseAuth
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
@@ -122,7 +123,8 @@ class MainFragment : Fragment(R.layout.main_fragment) {
      * Настройка пользовательского интерфейса.
      */
     private fun setupUI() {
-
+        val user = FirebaseAuth.getInstance().currentUser
+        android.util.Log.d("FIREBASE_TEST", "Реальный юзер: ${user?.uid}")
 
         binding.btnAction.setOnClickListener {
             if (viewModel.currentUser.value?.partnerUid != null) {

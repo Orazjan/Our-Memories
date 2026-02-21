@@ -112,22 +112,44 @@ Our Memories — это уютное мобильное приложение д�
 <tr>
 <td align="center"><b>Главная (День)</b></td>
 <td align="center"><b>Главная (Ночь)</b></td>
-<td align="center"><b>Галерея</b></td>
+<td align="center"><b>Живые статусы</b></td>
+<td align="center"><b>Дерево любви</b></td>
+<td align="center"><b>Записки</b></td>
+
 </tr>
 <tr>
 <td><img src="screenshots/main_day.jpg" width="220" /></td>
 <td><img src="screenshots/main_night.jpg" width="220" /></td>
-<td><img src="screenshots/gallery.jpg" width="220" /></td>
+<td><img src="screenshots/live_status.jpg" width="220" /></td>
+<td><img src="screenshots/tree_of_love.jpg" width="220" /></td>
+<td><img src="screenshots/notes.jpg" width="220" /></td>
 </tr>
 <tr>
-<td align="center"><b>Профиль</b></td>
+<td align="center"><b>Галерея</b></td>
+<td align="center"><b>Добавление фотографий</b></td>
 <td align="center"><b>Виджет</b></td>
 <td align="center"><b>Список желаний</b></td>
+<td align="center"><b>Добавление в список желаний</b></td>
+</tr>
+<tr>
+<td><img src="screenshots/gallery.jpg" width="220" /></td>
+<td><img src="screenshots/add_memory.jpg" width="220" /></td>
+<td><img src="screenshots/widget.jpg" width="220" /></td>
+<td><img src="screenshots/wishlist.jpg" width="220" /></td>
+<td><img src="screenshots/add_wish.jpg" width="220" /></td>
+</tr>
+
+<tr>
+<td align="center"><b>Профиль</b></td>
+<td align="center"><b>Инструкции</b></td>
+<td align="center"><b>Авторизация</b></td>
+<td align="center"><b>Регистрация</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/profile.jpg" width="220" /></td>
-<td><img src="screenshots/widget.jpg" width="220" /></td>
-<td><img src="screenshots/wishlist.jpg" width="220" /></td>
+<td><img src="screenshots/instructions.jpg" width="220" /></td>
+<td><img src="screenshots/login_fragment.jpg" width="220" /></td>
+<td><img src="screenshots/registration.jpg" width="220" /></td>
 </tr>
 </table>
 </div>
